@@ -1,0 +1,18 @@
+# Unity
+client/[Ll]ibrary/
+client/[Tt]emp/
+client/[Oo]bj/
+client/[Bb]uild/
+client/[Bb]uilds/
+client/[Ll]ogs/
+client/[Uu]serSettings/
+client/*.csproj
+client/*.sln
+client/.vs/
+client/.idea/
+# .NET simulation
+sim/**/bin/
+sim/**/obj/
+sim/.vs/
+results.xml
+TestResults/

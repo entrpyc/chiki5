@@ -17,3 +17,4 @@ sim/**/obj/
 sim/.vs/
 results.xml
 TestResults/
+client-tests.log

@@ -811,39 +811,39 @@ Ties broken: 3.2.3 is delivered twice, the stat holder in Phase 1 and the Base D
 - Needs: P8.1, P2.8
 - Test (unit): `Sim.Powers › guard_starts_with_30_block` — given an enemy with Guard and HP 100, when a 40 Perfect lands, then Block is 0 and HP is 90.
 
-### Phase 12 — The client hears the beat
+### ✅ Phase 12 — The client hears the beat
 
 *Delivers the Unity project, an audio-clock-driven beat source that drives the simulation, and the measurement that grading is independent of framerate. Done when every P12 test is green and the suite passes.*
 
-#### P12.1 Unity project and test runner
+#### ✅ P12.1 Unity project and test runner
 
 - PRD: — (groundwork for P12.2 to P12.5, every P13, P14, P15 and P23 item)
-- Does: `client/` Unity project (2022 LTS or later) referencing `Chiki.Sim` as a compiled assembly, with an assembly definition `Chiki.Client`, the Input System package, and Unity Test Framework edit-mode and play-mode assemblies under `client/Assets/Tests`. A CLI script runs the play-mode suite headless.
+- Does: `client/` Unity project (2022 LTS or later) referencing `Chiki.Sim` as a compiled assembly, with an assembly definition `Chiki.Client`, the Input System package, and Unity Test Framework edit-mode and play-mode assemblies under `client/Assets/Tests`. A CLI script runs the play-mode suite headless. Assumption: the client reads JSON content from the repository `data/` folder in the editor and from `StreamingAssets/data` in a player; test fixtures use a generated silent clip the length of the fixture track; the play-mode suite runs from `tools/run-client-tests.ps1` with the editor closed.
 - Needs: P1.3
 - Test (integration): `Client.Smoke › sim_available_in_client` — given the client test assembly, when a `Battle` from `Chiki.Sim` is constructed, then it works and the scene loads.
 
-#### P12.2 Battle synchronised to the track
+#### ✅ P12.2 Battle synchronised to the track
 
 - PRD: 3.3.1.1
-- Does: A `BeatClock` schedules the track with `AudioSettings.dspTime`, converts DSP time to the sim's millisecond beat map (P2.1), and ticks the simulation's beats from audio time, never from `Time.deltaTime`. The Rhythm Line view is P14.1.
+- Does: A `BeatClock` schedules the track with `AudioSettings.dspTime`, converts DSP time to the sim's millisecond beat map (P2.1), and ticks the simulation's beats from audio time, never from `Time.deltaTime`. The Rhythm Line view is P14.1. Assumption: the track is scheduled once with looping on and audio time 0 is its first sample; the driver delivers nothing to presenters until the clock reaches audio time 0, so the simulation's construction-time beat 0 reaches them on the first frame after the track starts.
 - Needs: P12.1, P2.1
 - Test (integration): `Client.Clock › beats_tick_on_dsp_time` — given the fixture track scheduled, when 4 seconds of DSP time elapse, then the simulation has received beats 0–7 at BPM 120 and each tick's audio time matches the beat map within 1 ms.
 
-#### P12.3 Timing accuracy
+#### ✅ P12.3 Timing accuracy
 
 - PRD: 6.1
-- Does: Input events are stamped with audio time by converting the Input System event timestamp to DSP time at the moment the event was generated, not the frame it was read; grading uses that stamp.
+- Does: Input events are stamped with audio time by converting the Input System event timestamp to DSP time at the moment the event was generated, not the frame it was read; grading uses that stamp. Assumption: Input System timestamps sit on the realtime-since-startup timeline, and the clock maps them to DSP time with a running estimate of the offset between the two, the largest observed since DSP time only advances per audio buffer; the measurement generates the event at a realtime computed from the clock and hands it over on a later frame.
 - Needs: P12.2
 - Test (measurement): `Client.Clock › grade_independent_of_framerate` — given an input generated at beat centre +30 ms, when the frame rate is capped at 30 fps and then 144 fps, then both runs grade Perfect and the stamped offset differs by less than 2 ms between them.
 
-#### P12.4 Music never interrupted
+#### ✅ P12.4 Music never interrupted
 
 - PRD: 3.3.1.6
 - Does: No mechanic touches the audio source's pitch, playback position or pause state; enemy rhythm changes (Beat Rush, out of scope) and player Stun act only on the simulation.
 - Needs: P12.2, P5.6
 - Test (measurement): `Client.Clock › playback_continuous_through_stun_and_signature` — given a battle with a player Stun and a Signature firing, when 8 seconds elapse, then the audio source's pitch stayed at 1 and its DSP position advanced monotonically by 8 seconds within 5 ms.
 
-#### P12.5 Battle harness
+#### ✅ P12.5 Battle harness
 
 - PRD: — (groundwork for P13.1 to P13.5, P14.1 to P14.6, P15.4)
 - Does: A `BattleDriver` that owns one `Battle`, subscribes the presenter to its event stream, forwards timestamped inputs, and can be driven in tests by a scripted input list with audio-time stamps.

@@ -15,8 +15,9 @@ namespace Chiki.Sim
     /// <summary>
     /// The rules every enemy definition must obey, each a build-time failure on the shipped
     /// sets: the intended duration inside its tier's band (PRD 3.3.9.1), exactly one rhythm
-    /// profile (PRD 3.6.2), the tier's capability budget (PRD 3.6.4) and a chart written for
-    /// the enemy's own track (PRD 3.6.28). Every violation is returned, not just the first.
+    /// profile (PRD 3.6.2), the tier's capability budget (PRD 3.6.4), a chart written for
+    /// the enemy's own track (PRD 3.6.28) and damage per hit inside the role's World 1 band
+    /// (PRD 3.7.16). Every violation is returned, not just the first.
     /// </summary>
     public static class EnemyValidator
     {
@@ -24,6 +25,7 @@ namespace Chiki.Sim
         public const string RuleProfile = "3.6.2";
         public const string RuleBudget = "3.6.4";
         public const string RuleTrack = "3.6.28";
+        public const string RuleDamageBand = "3.7.16";
         public const string RuleUniqueId = "4.7";
 
         /// <summary>Validates a whole set: every enemy's rules, unique ids, and no track shared by two enemies (PRD 3.6.28).</summary>
@@ -71,7 +73,18 @@ namespace Chiki.Sim
             ValidateProfile(enemy, violations);
             ValidateBudget(enemy, violations);
             ValidateTrack(enemy, violations);
+            ValidateDamageBand(enemy, violations);
             return violations;
+        }
+
+        /// <summary>PRD 3.7.16: the definition's damage per hit is its World 1 base and sits in the role's band for the tier; the battle raises it per World.</summary>
+        private static void ValidateDamageBand(EnemyDefinition enemy, List<EnemyViolation> violations)
+        {
+            var band = Balance.DamageBand(enemy.Role, enemy.Tier);
+            if (!band.Contains(enemy.DamagePerHit))
+            {
+                violations.Add(new EnemyViolation(enemy.Id, RuleDamageBand, $"{enemy.Tier} {enemy.Role} damage per hit {enemy.DamagePerHit} is outside the World 1 band {band}"));
+            }
         }
 
         /// <summary>PRD 3.3.9.1: the intended duration sits in the tier's band.</summary>

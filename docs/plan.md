@@ -725,36 +725,36 @@ Ties broken: 3.2.3 is delivered twice, the stat holder in Phase 1 and the Base D
 - Needs: P2.11, P9.7
 - Test (unit): `Sim.Chart › loops_from_start_seamlessly` — given a 32-beat chart whose first action is at beat 1 and the battle unfinished at beat 32, when the position passes 32, then the next opportunity is at beat 33 (pass 2, beat 1) and the beat map time is continuous.
 
-### Phase 10 — Enemy numbers hold
+### ✅ Phase 10 — Enemy numbers hold
 
 *Delivers the damage bands, the derived HP, the mistake-budget check and the fixture enemies every later phase fights. Done when every P10 test is green and the suite passes.*
 
-#### P10.1 Damage bands and World scaling
+#### ✅ P10.1 Damage bands and World scaling
 
 - PRD: 3.7.16
-- Does: A table of damage-per-hit bands per role × tier from 3.7.16; the validator rejects a World 1 definition outside its band; the battle raises a definition's damage by 15% per World above World 1, compounded and rounded once.
+- Does: A table of damage-per-hit bands per role × tier from 3.7.16; the validator rejects a World 1 definition outside its band; the battle raises a definition's damage by 15% per World above World 1, compounded and rounded once. Assumption: a definition's damage per hit is always its World 1 base, so every definition is validated against the band and the World fought in is a battle input.
 - Needs: P9.3, P9.2
 - Test (unit): `Sim.Balance › band_enforced_for_world_1` — given a Normal Aggressor with damage 16, when validated, then it fails; with 15, it passes.
 - Test (unit): `Sim.Balance › damage_rises_15_percent_per_world` — given damage 10 in World 1, when the same enemy appears in World 3, then its damage is 13 (10 raised 15% twice, rounded).
 
-#### P10.2 HP and damage derived at battle start
+#### ✅ P10.2 HP and damage derived at battle start
 
 - PRD: 3.6.29
-- Does: At battle start enemy HP = P9.8 result for the World's AvgCardDMG (12, 14, 16 for Worlds 1–3, one constant table) and the enemy's intended duration, times the role multiplier; damage per hit comes from P10.1.
+- Does: At battle start enemy HP = P9.8 result for the World's AvgCardDMG (12, 14, 16 for Worlds 1–3, one constant table) and the enemy's intended duration, times the role multiplier; damage per hit comes from P10.1. Assumption: the battle takes an `EncounterBalance` (World, AttackRatio, AvgCardDMG, judgment mix) whose per-World default is the typical AttackRatio 0.6 and an all-Perfect mix; a constructor that pins the starting HP remains for fixtures and tests only.
 - Needs: P9.8, P9.3, P10.1
 - Test (unit): `Sim.Balance › tank_hp_is_1_2x_formula` — given the worked-check inputs and a Tank, when a battle starts, then HP is 432; an Aggressor, 288.
 
-#### P10.3 Mistake budget
+#### ✅ P10.3 Mistake budget
 
 - PRD: 3.7.17
 - Does: A measurement over the fixture enemies (P10.4): a full-ARD player who takes only Misses survives at least 10 consecutive Misses against a Normal enemy at the top of its band, 6 against an Elite, 4 against a Boss.
 - Needs: P10.2, P10.4, P3.1
 - Test (measurement): `Sim.Balance › mistake_budget_lower_bounds` — given each fixture enemy at max band damage and ARD 300, when the player Misses 10, 6 and 4 times respectively, then ARD is above 0 in every case.
 
-#### P10.4 Fixture enemies
+#### ✅ P10.4 Fixture enemies
 
 - PRD: — (groundwork for P10.3, P11.1 to P11.7, P20.1, P21.1, P21.3)
-- Does: `data/enemies/fixtures.json` with five definitions bound to the fixture track: Normal Aggressor (Fast), Normal Tank (Slow), Normal Mentalist (Fast), one Elite Tank, one Boss Aggressor, each on its own 32-beat fixture track at BPM 120 with an authored chart of 16–32 actions using quarter-beat positions at least once, and powers drawn only from the seven in-scope abilities and traits; Ren from `data/enemies.csv` becomes the Normal Tank rescaled to the formulas.
+- Does: `data/enemies/fixtures.json` with five definitions bound to the fixture track: Normal Aggressor (Fast), Normal Tank (Slow), Normal Mentalist (Fast), one Elite Tank, one Boss Aggressor, each on its own 32-beat fixture track at BPM 120 with an authored chart of 16–32 actions using quarter-beat positions at least once, and powers drawn only from the seven in-scope abilities and traits; Ren from `data/enemies.csv` becomes the Normal Tank rescaled to the formulas. Assumption: `data/enemies.csv` is not in the repository, so Ren was authored here as the Normal Tank and the other four (Kess, Vey, Orm, Malk) were named here; each enemy has its own 32-beat track file under `data/tracks/`.
 - Needs: P9.6, P9.9, P10.1
 - Test (unit): `Sim.Fixtures › fixture_enemies_validate` — given the fixture set, when definitions and charts are validated, then there are zero violations, one definition per tier exists, and no two enemies share a track.
 

@@ -1,0 +1,25 @@
+{
+  "id": "chart-enemy-orm",
+  "enemy": "enemy-orm",
+  "track": "track-fixture-orm",
+  "actions": [
+    { "kind": "attack-left", "position": 2 },
+    { "kind": "defend", "position": 4, "defenseLevel": 750 },
+    { "kind": "attack-right", "position": 6, "applies": [ { "status": "weak", "stacks": 1, "value": 250 } ] },
+    { "kind": "attack-left", "position": 8 },
+    { "kind": "defend", "position": 10, "defenseLevel": 500 },
+    { "kind": "attack-right", "position": 12 },
+    { "kind": "attack-left", "position": 13.5 },
+    { "kind": "buff", "position": 16 },
+    { "kind": "attack-right", "position": 18 },
+    { "kind": "defend", "position": 20, "defenseLevel": 750 },
+    { "kind": "attack-left", "position": 22, "applies": [ { "status": "weak", "stacks": 1, "value": 250 } ] },
+    { "kind": "attack-right", "position": 24 },
+    { "kind": "attack-left", "position": 26 },
+    { "kind": "defend", "position": 27.25, "defenseLevel": 500 },
+    { "kind": "attack-right", "position": 29 },
+    { "kind": "attack-left", "position": 30 },
+    { "kind": "attack-right", "position": 31 },
+    { "kind": "defend", "position": 31.75, "defenseLevel": 250 }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "id": "track-fixture-malk",
+  "world": 1,
+  "tier": "boss",
+  "lengthBeats": 32,
+  "offsetMs": 0,
+  "tempo": {
+    "bpm": 120,
+    "changes": []
+  }
+}

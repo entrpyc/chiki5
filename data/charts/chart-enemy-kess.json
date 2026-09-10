@@ -1,0 +1,31 @@
+{
+  "id": "chart-enemy-kess",
+  "enemy": "enemy-kess",
+  "track": "track-fixture-kess",
+  "actions": [
+    { "kind": "attack-left", "position": 1 },
+    { "kind": "attack-right", "position": 2 },
+    { "kind": "attack-left", "position": 3 },
+    { "kind": "attack-right", "position": 4 },
+    { "kind": "attack-left", "position": 5.25 },
+    { "kind": "attack-right", "position": 6 },
+    { "kind": "buff", "position": 7 },
+    { "kind": "attack-left", "position": 8 },
+    { "kind": "attack-right", "position": 9 },
+    { "kind": "attack-left", "position": 10 },
+    { "kind": "attack-right", "position": 11 },
+    { "kind": "attack-left", "position": 12.75 },
+    { "kind": "attack-right", "position": 13.5 },
+    { "kind": "attack-left", "position": 14 },
+    { "kind": "attack-right", "position": 15 },
+    { "kind": "buff", "position": 16 },
+    { "kind": "attack-left", "position": 17 },
+    { "kind": "attack-right", "position": 18 },
+    { "kind": "attack-left", "position": 19 },
+    { "kind": "attack-right", "position": 20 },
+    { "kind": "attack-left", "position": 21.25 },
+    { "kind": "attack-right", "position": 22 },
+    { "kind": "attack-left", "position": 23 },
+    { "kind": "attack-right", "position": 24 }
+  ]
+}

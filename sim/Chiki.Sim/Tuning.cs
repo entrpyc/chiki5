@@ -164,5 +164,37 @@ namespace Chiki.Sim
 
         /// <summary>The typical AttackRatio of the HP formula in thousandths: 0.6 (PRD 3.7.15).</summary>
         public const int DefaultAttackRatioThousandths = 600;
+
+        /// <summary>The expected average card damage the HP formula assumes per World (PRD 3.2.17, 3.7.15).</summary>
+        public const int AvgCardDmgWorld1 = 12;
+        public const int AvgCardDmgWorld2 = 14;
+        public const int AvgCardDmgWorld3 = 16;
+
+        /// <summary>Enemy damage per hit rises by this much per World above World 1, in thousandths: 15% (PRD 3.7.16).</summary>
+        public const int DamageRisePerWorldThousandths = 150;
+
+        /// <summary>Aggressor damage-per-hit bands by tier, World 1 base (PRD 3.7.16).</summary>
+        public const int AggressorNormalDamageMin = 10;
+        public const int AggressorNormalDamageMax = 15;
+        public const int AggressorEliteDamageMin = 18;
+        public const int AggressorEliteDamageMax = 25;
+        public const int AggressorBossDamageMin = 35;
+        public const int AggressorBossDamageMax = 45;
+
+        /// <summary>Mentalist damage-per-hit bands by tier, World 1 base (PRD 3.7.16).</summary>
+        public const int MentalistNormalDamageMin = 8;
+        public const int MentalistNormalDamageMax = 12;
+        public const int MentalistEliteDamageMin = 15;
+        public const int MentalistEliteDamageMax = 20;
+        public const int MentalistBossDamageMin = 30;
+        public const int MentalistBossDamageMax = 40;
+
+        /// <summary>Tank damage-per-hit bands by tier, World 1 base (PRD 3.7.16).</summary>
+        public const int TankNormalDamageMin = 6;
+        public const int TankNormalDamageMax = 10;
+        public const int TankEliteDamageMin = 12;
+        public const int TankEliteDamageMax = 18;
+        public const int TankBossDamageMin = 25;
+        public const int TankBossDamageMax = 35;
     }
 }

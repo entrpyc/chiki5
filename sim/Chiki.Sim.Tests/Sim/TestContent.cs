@@ -146,4 +146,58 @@ internal static class TestContent
     {
         return File.ReadAllText(Path.Combine(RepoRoot, "data", relativePath));
     }
+
+    /// <summary>Every track under data/tracks by id.</summary>
+    public static Dictionary<string, SimTrack> LoadTracks()
+    {
+        return Directory.GetFiles(Path.Combine(RepoRoot, "data", "tracks"), "*.json")
+            .Select(f => Chiki.Sim.Data.TrackLoader.FromJson(File.ReadAllText(f)))
+            .ToDictionary(t => t.Id);
+    }
+
+    /// <summary>Every chart under data/charts by id, built on its track.</summary>
+    public static Dictionary<string, SimChart> LoadCharts(IReadOnlyDictionary<string, SimTrack> tracks)
+    {
+        return Directory.GetFiles(Path.Combine(RepoRoot, "data", "charts"), "*.json")
+            .Select(f =>
+            {
+                var document = Chiki.Sim.Data.ChartLoader.Read(File.ReadAllText(f));
+                return Chiki.Sim.Data.ChartLoader.Build(document, tracks[document.TrackId]);
+            })
+            .ToDictionary(c => c.Id);
+    }
+
+    /// <summary>The fixture enemies of data/enemies/fixtures.json (P10.4), with their charts and tracks loaded.</summary>
+    public static EnemySet LoadFixtureEnemies()
+    {
+        var charts = LoadCharts(LoadTracks());
+        return Chiki.Sim.Data.EnemyLoader.SetFromJson(ReadData("enemies/fixtures.json"), charts);
+    }
+
+    /// <summary>The same definition with another damage per hit.</summary>
+    public static EnemyDefinition WithDamage(EnemyDefinition enemy, int damagePerHit)
+    {
+        return new EnemyDefinition(
+            enemy.Id,
+            enemy.Name,
+            enemy.Tier,
+            enemy.Role,
+            enemy.Profile,
+            enemy.IntendedSeconds,
+            enemy.Chart,
+            damagePerHit,
+            enemy.Abilities,
+            enemy.Traits,
+            enemy.StatusesUsed,
+            enemy.PortraitId,
+            enemy.QuoteLine,
+            enemy.Phases,
+            enemy.TrackId);
+    }
+
+    /// <summary>A left attack at every odd beat of a 32-beat track: 16 actions in 16 s, 60 per minute (the worked check of PRD 3.7.15).</summary>
+    public static SimChart SixtyPerMinuteChart(SimTrack? track = null)
+    {
+        return Chart(track ?? Track(), Enumerable.Range(0, 16).Select(i => Chiki.Sim.Beats.ToQuarterBeats(2 * i + 1)).ToArray());
+    }
 }

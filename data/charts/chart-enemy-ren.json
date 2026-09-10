@@ -1,0 +1,23 @@
+{
+  "id": "chart-enemy-ren",
+  "enemy": "enemy-ren",
+  "track": "track-fixture-ren",
+  "actions": [
+    { "kind": "attack-left", "position": 2 },
+    { "kind": "defend", "position": 4, "defenseLevel": 500 },
+    { "kind": "attack-right", "position": 6 },
+    { "kind": "attack-left", "position": 8 },
+    { "kind": "defend", "position": 10.25, "defenseLevel": 750 },
+    { "kind": "attack-right", "position": 12 },
+    { "kind": "attack-left", "position": 14 },
+    { "kind": "buff", "position": 16 },
+    { "kind": "attack-right", "position": 18 },
+    { "kind": "attack-left", "position": 20 },
+    { "kind": "defend", "position": 22, "defenseLevel": 500 },
+    { "kind": "attack-right", "position": 24 },
+    { "kind": "attack-left", "position": 26 },
+    { "kind": "attack-right", "position": 28 },
+    { "kind": "attack-left", "position": 29.75 },
+    { "kind": "defend", "position": 31, "defenseLevel": 250 }
+  ]
+}

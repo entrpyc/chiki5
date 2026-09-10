@@ -62,8 +62,17 @@ namespace Chiki.Sim
         /// <summary>The quarter beat the battle's current time falls in, absolute across laps.</summary>
         public int CurrentPositionQb => QuarterBeatAt(CurrentTimeMs);
 
-        /// <summary>The enemy's HP at battle start (PRD 3.7.15; derived by P10.2, supplied by the caller until then).</summary>
+        /// <summary>The balance inputs this battle was set up with (PRD 3.6.29): the World and the HP formula's parameters.</summary>
+        public EncounterBalance Balance { get; }
+
+        /// <summary>The World the battle is fought in; it scales the enemy's damage (PRD 3.7.16).</summary>
+        public int World => Balance.World;
+
+        /// <summary>The enemy's HP at battle start (PRD 3.6.29): the formula value (PRD 3.7.15) times the role multiplier (PRD 3.6.1), unless a caller fixed it.</summary>
         public int EnemyMaxHp { get; }
+
+        /// <summary>The enemy's damage per hit in this World: its definition's World 1 base raised 15% per World above the first (PRD 3.7.16).</summary>
+        public int EnemyDamagePerHit { get; }
 
         /// <summary>The enemy's current HP; the battle is won when it reaches 0 (PRD 3.3.9.2).</summary>
         public int EnemyHp { get; private set; }
@@ -120,20 +129,38 @@ namespace Chiki.Sim
         /// <summary>The next enemy action still to resolve, with its window.</summary>
         public ActionOpportunity PendingAction => _pending;
 
+        /// <summary>
+        /// The battle as the run starts it: the enemy's HP and damage are derived from its
+        /// definition and the balance inputs of the World (PRD 3.6.29).
+        /// </summary>
+        public Battle(RunStats stats, EnemyDefinition enemy, EncounterBalance balance, Rng rng)
+            : this(stats, new[] { enemy }, balance, null, rng)
+        {
+        }
+
+        /// <summary>A battle with a fixed starting HP in World 1, for fixtures and tests that pin the number; the run never uses it.</summary>
         public Battle(RunStats stats, EnemyDefinition enemy, int enemyHp, Rng rng)
-            : this(stats, new[] { enemy }, enemyHp, rng)
+            : this(stats, new[] { enemy }, EncounterBalance.ForWorld(1), enemyHp, rng)
+        {
+        }
+
+        /// <summary>A battle with a fixed starting HP in World 1 (see the single-enemy overload); exactly one enemy is required (PRD 3.3.1.7).</summary>
+        public Battle(RunStats stats, IReadOnlyList<EnemyDefinition> enemies, int enemyHp, Rng rng)
+            : this(stats, enemies, EncounterBalance.ForWorld(1), enemyHp, rng)
         {
         }
 
         /// <summary>
-        /// Constructs a battle; exactly one enemy is required (PRD 3.3.1.7). <paramref name="enemyHp"/>
-        /// is the enemy's starting HP (PRD 3.7.15); P10.2 derives it at battle start.
-        /// <paramref name="rng"/> is the battle's seeded generator (PRD 6.8), drawn from only by
-        /// rules that roll: Scar (PRD 3.3.7.3).
+        /// Constructs a battle; exactly one enemy is required (PRD 3.3.1.7). The enemy's HP is
+        /// the formula value for <paramref name="balance"/> times its role multiplier
+        /// (PRD 3.6.29) unless <paramref name="enemyHp"/> pins it, and its damage per hit is its
+        /// World 1 base raised per World (PRD 3.7.16). <paramref name="rng"/> is the battle's
+        /// seeded generator (PRD 6.8), drawn from only by rules that roll: Scar (PRD 3.3.7.3).
         /// </summary>
-        public Battle(RunStats stats, IReadOnlyList<EnemyDefinition> enemies, int enemyHp, Rng rng)
+        private Battle(RunStats stats, IReadOnlyList<EnemyDefinition> enemies, EncounterBalance balance, int? enemyHp, Rng rng)
         {
             Stats = stats ?? throw new ArgumentNullException(nameof(stats));
+            Balance = balance ?? throw new ArgumentNullException(nameof(balance));
             _rng = rng ?? throw new ArgumentNullException(nameof(rng));
             if (enemies is null)
             {
@@ -145,7 +172,7 @@ namespace Chiki.Sim
                 throw new ArgumentException("Every encounter is one player against one enemy.", nameof(enemies));
             }
 
-            if (enemyHp <= 0)
+            if (enemyHp != null && enemyHp.Value <= 0)
             {
                 throw new ArgumentOutOfRangeException(nameof(enemyHp), "Enemy HP must be positive.");
             }
@@ -156,8 +183,15 @@ namespace Chiki.Sim
                 throw new ArgumentException("The enemy's chart has no actions.", nameof(enemies));
             }
 
-            EnemyMaxHp = enemyHp;
-            EnemyHp = enemyHp;
+            int hp = enemyHp ?? Chiki.Sim.Balance.EnemyHp(Enemy, balance);
+            if (hp <= 0)
+            {
+                throw new ArgumentException("The enemy's derived HP is 0: its chart, intended duration or the balance inputs give it nothing to lose.", nameof(enemies));
+            }
+
+            EnemyMaxHp = hp;
+            EnemyHp = hp;
+            EnemyDamagePerHit = Chiki.Sim.Balance.DamageForWorld(Enemy.DamagePerHit, balance.World);
 
             for (int i = 0; i < Chart.Actions.Count; i++)
             {
@@ -881,7 +915,7 @@ namespace Chiki.Sim
         {
             var opportunity = context.Opportunity!;
             int statusMult = Fixed.Mul(context.IncomingMultThousandths, _effects.MultiplierFor(EffectValue.DamageTaken));
-            var incoming = Resolution.Incoming(Enemy.DamagePerHit, context.Press?.Grade, Block, statusMult);
+            var incoming = Resolution.Incoming(EnemyDamagePerHit, context.Press?.Grade, Block, statusMult);
             int ardLoss = TakeArd(incoming.ArdLoss);
 
             Block -= incoming.BlockAbsorbed;

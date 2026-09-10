@@ -118,7 +118,8 @@ public class Enemies
             120,
             twoAbilities,
             new[] { EnemyTrait.Guard, EnemyTrait.ThornsShell },
-            new[] { StatusKind.Bleed }));
+            new[] { StatusKind.Bleed },
+            damagePerHit: 40));
 
         Assert.Multiple(() =>
         {

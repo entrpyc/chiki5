@@ -26,6 +26,31 @@ public class Fixtures
         });
     }
 
+    [Test]
+    public void fixture_enemies_validate()
+    {
+        var set = TestContent.LoadFixtureEnemies();
+
+        var violations = EnemyValidator.Validate(set);
+        var tiers = set.Enemies.Select(e => e.Tier).Distinct().ToArray();
+        var tracks = set.Enemies.Select(e => e.TrackId).ToArray();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(violations, Is.Empty, string.Join("\n", violations));
+            Assert.That(set.Enemies, Has.Count.EqualTo(5));
+            Assert.That(tiers, Is.EquivalentTo(Enum.GetValues<EncounterTier>()));
+            Assert.That(tracks, Is.Unique);
+            foreach (var enemy in set.Enemies)
+            {
+                Assert.That(enemy.Chart.Actions, Has.Count.InRange(16, 32), enemy.Name);
+                Assert.That(enemy.Track.LengthBeats, Is.EqualTo(32), enemy.Name);
+                Assert.That(enemy.Track.BeatMap.BpmAt(0), Is.EqualTo(120), enemy.Name);
+                Assert.That(enemy.Chart.Actions.Any(a => a.PositionQb % 4 != 0), Is.True, $"{enemy.Name} uses no quarter-beat position");
+            }
+        });
+    }
+
     /// <summary>Every shipped chart and enemy set under data/ obeys its rules (PRD 3.6.31, 3.6).</summary>
     [Test]
     public void shipped_charts_and_enemies_validate()

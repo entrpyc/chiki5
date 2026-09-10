@@ -18,6 +18,7 @@ If something is not in these documents, it is not a requirement. Do not invent f
 - Never renumber, reorder or delete items or requirements. A withdrawn item keeps its id and the word *withdrawn*.
 - Commit messages reference the item id (`P3.4: efficacy matrix`). Commit only when asked and don't add yoruself as contributor.
 - When implementing a requirement from `docs/project/prd.md` or an item from `docs/plan.md`, finish your part, then hand the operator a numbered, step-by-step list of everything they must do to complete the work (Unity Editor steps, asset imports, scene wiring, manual test runs, settings changes). Each step names the exact menu, file, field or command. If the operator has nothing to do, say so explicitly.
+- After that list, give a short manual validation recipe: what to open or run, what to do, and what the operator should see if the implementation is correct. Keep it to a few steps; no test theory, no restating the PRD.
 
 ## Architecture rules (non-negotiable)
 

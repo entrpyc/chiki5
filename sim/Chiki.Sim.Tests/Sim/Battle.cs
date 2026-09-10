@@ -111,6 +111,33 @@ public class Battle
         });
     }
 
+    [Test]
+    public void block_and_statuses_cleared_at_end()
+    {
+        // Enemy HP 10, left attacks on beats 1 and 3: a Perfect 12-Block Defense on beat 1, Bleed
+        // applied on beat 3, then a 10-damage Perfect on beat 3 kills.
+        var stats = new Stats();
+        var battle = TestContent.Battle(stats, TestContent.Chart(TestContent.Track(), 4, 12), enemyHp: 10);
+        battle.Press(TestContent.SlotL, TestContent.Defense(12), 500);
+        battle.AdvanceToBeat(3);
+        battle.ApplyStatus(StatusTarget.Player, StatusKind.Bleed);
+        Assume.That(battle.Block, Is.EqualTo(12));
+        battle.Press(TestContent.SlotD, TestContent.LeftAttack10, 1500);
+        battle.AdvanceToBeat(4);
+        Assume.That(battle.Outcome, Is.EqualTo(BattleOutcome.Won));
+
+        var next = TestContent.Battle(stats, TestContent.Chart(TestContent.Track(), 4));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(battle.Block, Is.EqualTo(0));
+            Assert.That(battle.PlayerStatuses.Any, Is.False);
+            Assert.That(next.Block, Is.EqualTo(0));
+            Assert.That(next.PlayerStatuses.Any, Is.False);
+            Assert.That(next.EnemyStatuses.Any, Is.False);
+        });
+    }
+
     /// <summary>
     /// Left attacks on beats 1 and 3, each answered by a 10-damage Left Attack; the first with the
     /// given offset, the second Perfect. The enemy HP is chosen so the second attack wins.

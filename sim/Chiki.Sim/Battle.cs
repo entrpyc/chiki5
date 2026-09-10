@@ -14,7 +14,7 @@ namespace Chiki.Sim
     /// time and <see cref="Press"/> / <see cref="Send"/> stamp a slot press with the audio time of
     /// the key event. An enemy action resolves when its Judgment Window closes, with the accepted
     /// press if there was one and as no input otherwise (PRD 3.3.3.2), in a fixed order: grade,
-    /// incoming damage, player effect (PRD 3.3.4.1).
+    /// incoming damage, the action's statuses, player effect (PRD 3.3.4.1, 3.3.4.6).
     ///
     /// Every accepted press starts its slot's cooldown (PRD 3.3.5.1); a cooling slot cannot be
     /// played (PRD 3.3.5.3). A Signature send banks its card instead of playing it, and the
@@ -34,6 +34,8 @@ namespace Chiki.Sim
         private int _nextBeat;
         private ActionOpportunity _pending;
         private PendingPress? _pendingPress;
+        private BeatTimer? _enemyDamageReduction;
+        private int _enemyDamageReductionThousandths;
 
         /// <summary>The run-wide stats this battle reads and writes; never a copy.</summary>
         public RunStats Stats { get; }
@@ -62,6 +64,16 @@ namespace Chiki.Sim
 
         /// <summary>The player's Block (PRD 3.3.4.2).</summary>
         public int Block { get; private set; }
+
+        /// <summary>The enemy's Block (PRD 3.6.20, 3.6.25): absorbs damage before HP, except True DMG (PRD 3.3.4.7).</summary>
+        public int EnemyBlock { get; private set; }
+
+        /// <summary>
+        /// How much less damage the enemy takes right now, in thousandths (PRD 3.6.9); 0 when no
+        /// reduction runs. True DMG ignores it (PRD 3.3.4.7).
+        /// </summary>
+        public int EnemyDamageReductionThousandths =>
+            _enemyDamageReduction != null && !_enemyDamageReduction.IsExpired ? _enemyDamageReductionThousandths : 0;
 
         /// <summary>Total ARD lost this battle (PRD 3.3.9.4).</summary>
         public int DamageTaken { get; private set; }
@@ -267,41 +279,51 @@ namespace Chiki.Sim
 
         /// <summary>
         /// Lands a status on one side at the current time (PRD 3.3.7.1); a status lands
-        /// regardless of judgment (PRD 3.3.4.6). <paramref name="value"/> is the source's X:
-        /// Weak's percentage in thousandths (PRD 3.3.7.4), Thorns' damage (PRD 3.3.7.7), and 0
-        /// for the rest. Until the effect framework (P8.6) attaches status effects to cards and
-        /// enemy abilities, this is how a status lands. A no-op once the battle has ended.
+        /// regardless of judgment unless the side is immune (PRD 3.3.4.6). <paramref name="value"/>
+        /// is the source's X: Weak's percentage in thousandths (PRD 3.3.7.4), Thorns' damage
+        /// (PRD 3.3.7.7), and 0 for the rest. Until the effect framework (P8.6) attaches status
+        /// effects to cards and enemy abilities, this is how a status lands. A no-op once the
+        /// battle has ended.
         /// </summary>
         public void ApplyStatus(StatusTarget target, StatusKind kind, int stacks = 1, int value = 0)
         {
-            if (stacks < 1)
+            var application = new StatusApplication(kind, stacks, value);
+            if (Outcome != null)
             {
-                throw new ArgumentOutOfRangeException(nameof(stacks), "At least one stack must be applied.");
+                return;
             }
 
-            switch (kind)
+            Land(target, application, PositionAt(CurrentTimeMs));
+        }
+
+        /// <summary>
+        /// Makes one side immune to a status for the rest of the battle: applications of it are
+        /// blocked (PRD 3.3.4.6). The hook a card effect flagged as blocking a status uses until
+        /// the effect framework (P8.1) drives it. A no-op once the battle has ended.
+        /// </summary>
+        public void GrantImmunity(StatusTarget target, StatusKind kind)
+        {
+            if (Outcome != null)
             {
-                case StatusKind.Weak:
-                    if (value < 1 || value > Fixed.One)
-                    {
-                        throw new ArgumentOutOfRangeException(nameof(value), "Weak's X must be 1–1000 thousandths.");
-                    }
+                return;
+            }
 
-                    break;
-                case StatusKind.Thorns:
-                    if (value < 1)
-                    {
-                        throw new ArgumentOutOfRangeException(nameof(value), "Thorns' damage must be positive.");
-                    }
+            if (StatusesOn(target).AddImmunity(kind))
+            {
+                Emit(new ImmunityGranted(PositionAt(CurrentTimeMs), kind, target));
+            }
+        }
 
-                    break;
-                default:
-                    if (value != 0)
-                    {
-                        throw new ArgumentOutOfRangeException(nameof(value), $"{kind} has no per-source value.");
-                    }
-
-                    break;
+        /// <summary>
+        /// Gives one side Block at the current time: the player's outside a Defense card
+        /// (PRD 3.4.8 Block-on-attack, P8.1) or the enemy's (PRD 3.6.20, 3.6.25). A no-op once
+        /// the battle has ended.
+        /// </summary>
+        public void GrantBlock(StatusTarget target, int amount)
+        {
+            if (amount < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(amount), "Block must not be negative.");
             }
 
             if (Outcome != null)
@@ -309,9 +331,100 @@ namespace Chiki.Sim
                 return;
             }
 
+            AddBlock(target, amount, PositionAt(CurrentTimeMs));
+        }
+
+        /// <summary>
+        /// The enemy takes <paramref name="thousandths"/> less damage for <paramref name="beats"/>
+        /// beats from now, Iron Veil's shape (PRD 3.6.9); a new reduction replaces the running one.
+        /// True DMG ignores it (PRD 3.3.4.7). A no-op once the battle has ended.
+        /// </summary>
+        public void ReduceEnemyDamageTaken(int thousandths, int beats)
+        {
+            if (thousandths < 1 || thousandths > Fixed.One)
+            {
+                throw new ArgumentOutOfRangeException(nameof(thousandths), "A reduction must be 1–1000 thousandths.");
+            }
+
+            if (beats < 1)
+            {
+                throw new ArgumentOutOfRangeException(nameof(beats), "A reduction must last at least one beat.");
+            }
+
+            if (Outcome != null)
+            {
+                return;
+            }
+
+            _enemyDamageReduction = StartTimer(beats);
+            _enemyDamageReductionThousandths = thousandths;
+            Emit(new DamageReductionStarted(PositionAt(CurrentTimeMs), thousandths, beats));
+        }
+
+        /// <summary>
+        /// True DMG (PRD 3.3.4.7): comes straight off the enemy's HP or the player's ARD, past
+        /// Block, Weak, damage reductions and every other multiplier; it still ends the battle at
+        /// 0 (PRD 3.3.9.2, 3.3.9.3) and counts toward damage taken (PRD 3.3.9.4). A no-op once
+        /// the battle has ended.
+        /// </summary>
+        public void DealTrueDamage(StatusTarget target, int amount)
+        {
+            if (amount < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(amount), "True DMG must not be negative.");
+            }
+
+            if (Outcome != null)
+            {
+                return;
+            }
+
+            int positionQb = PositionAt(CurrentTimeMs);
+            if (target == StatusTarget.Enemy)
+            {
+                int dealt = TakeEnemyHp(amount);
+                Emit(new TrueDamageDealt(positionQb, target, dealt));
+                if (EnemyHp == 0)
+                {
+                    End(BattleOutcome.Won, positionQb);
+                }
+            }
+            else
+            {
+                int lost = TakeArd(amount);
+                Emit(new TrueDamageDealt(positionQb, target, lost));
+                if (Stats.Ard == 0)
+                {
+                    End(BattleOutcome.Died, positionQb);
+                }
+            }
+        }
+
+        private void Land(StatusTarget target, StatusApplication application, int positionQb)
+        {
             var set = StatusesOn(target);
-            var instance = set.Apply(kind, stacks, value);
-            Emit(new StatusApplied(PositionAt(CurrentTimeMs), kind, target, stacks, value, set.Stacks(kind), instance.RemainingBeats));
+            if (set.IsImmune(application.Kind))
+            {
+                Emit(new StatusBlocked(positionQb, application.Kind, target));
+                return;
+            }
+
+            var instance = set.Apply(application.Kind, application.Stacks, application.Value);
+            Emit(new StatusApplied(positionQb, application.Kind, target, application.Stacks, application.Value, set.Stacks(application.Kind), instance.RemainingBeats));
+        }
+
+        private void AddBlock(StatusTarget target, int amount, int positionQb)
+        {
+            if (target == StatusTarget.Player)
+            {
+                Block += amount;
+                Emit(new BlockGained(positionQb, target, amount, Block));
+            }
+            else
+            {
+                EnemyBlock += amount;
+                Emit(new BlockGained(positionQb, target, amount, EnemyBlock));
+            }
         }
 
         private PressResult Accept(Slot slot, CardDefinition card, bool signatureSend, int audioTimeMs)
@@ -464,6 +577,12 @@ namespace Chiki.Sim
                     _timers.RemoveAt(i);
                 }
             }
+
+            if (_enemyDamageReduction != null && _enemyDamageReduction.IsExpired)
+            {
+                _enemyDamageReduction = null;
+                Emit(new DamageReductionEnded(positionQb));
+            }
         }
 
         /// <summary>
@@ -493,11 +612,13 @@ namespace Chiki.Sim
 
         /// <summary>
         /// Resolves the pending enemy action in the fixed order of PRD 3.3.4.1: the grade was
-        /// fixed at the press, then incoming damage (PRD 3.3.4.2), then the player's effect
-        /// (PRD 3.3.4.3, 3.3.4.4). Block gained on this action is therefore available from the
-        /// next enemy action on. Statuses that act as the action arrives go first (PRD 3.3.7.2):
-        /// Stun turns the player's press into no input (PRD 3.3.3.3) or skips the enemy's action
-        /// (PRD 3.3.7.5); Weak sets the incoming multiplier (PRD 3.3.7.4).
+        /// fixed at the press, then incoming damage (PRD 3.3.4.2) against the Block held as the
+        /// action arrives, then the statuses the action applies, whatever the grade (PRD 3.3.4.6),
+        /// then the player's effect (PRD 3.3.4.3, 3.3.4.4). Block gained on this action is
+        /// therefore available from the next enemy action on (PRD 3.3.4.8). Statuses that act as
+        /// the action arrives go first (PRD 3.3.7.2): Stun turns the player's press into no input
+        /// (PRD 3.3.3.3) or skips the enemy's action (PRD 3.3.7.5), in which case neither its
+        /// damage nor its statuses land; Weak sets the incoming multiplier (PRD 3.3.7.4).
         /// </summary>
         private void ResolvePending()
         {
@@ -516,12 +637,20 @@ namespace Chiki.Sim
                 press?.Slot,
                 press?.Card.Id));
 
-            if (opportunity.Action.IsAttack && !context.EnemySkipped)
+            if (!context.EnemySkipped)
             {
-                ResolveIncoming(context);
-                if (Outcome != null)
+                if (opportunity.Action.IsAttack)
                 {
-                    return;
+                    ResolveIncoming(context);
+                    if (Outcome != null)
+                    {
+                        return;
+                    }
+                }
+
+                foreach (var application in opportunity.Action.Applies)
+                {
+                    Land(StatusTarget.Player, application, opportunity.PositionQb);
                 }
             }
 
@@ -621,8 +750,8 @@ namespace Chiki.Sim
                 return;
             }
 
-            int dealt = TakeEnemyHp(damage);
-            Emit(new StatusTriggered(context.PositionQb, StatusKind.Thorns, StatusTarget.Player, dealt, 0));
+            int dealt = DamageEnemy(damage, out int absorbed);
+            Emit(new StatusTriggered(context.PositionQb, StatusKind.Thorns, StatusTarget.Player, dealt, absorbed));
             Emit(new StatusRemoved(context.PositionQb, StatusKind.Thorns, StatusTarget.Player, 1, left));
             if (EnemyHp == 0)
             {
@@ -639,8 +768,8 @@ namespace Chiki.Sim
             int enemyStacks = EnemyStatuses.Stacks(StatusKind.Bleed);
             if (enemyStacks > 0)
             {
-                int dealt = TakeEnemyHp(enemyStacks * Tuning.BleedDamagePerStack);
-                Emit(new StatusTriggered(context.PositionQb, StatusKind.Bleed, StatusTarget.Enemy, dealt, 0));
+                int dealt = DamageEnemy(enemyStacks * Tuning.BleedDamagePerStack, out int absorbed);
+                Emit(new StatusTriggered(context.PositionQb, StatusKind.Bleed, StatusTarget.Enemy, dealt, absorbed));
                 if (EnemyHp == 0)
                 {
                     End(BattleOutcome.Won, context.PositionQb);
@@ -699,12 +828,8 @@ namespace Chiki.Sim
             switch (card.Category)
             {
                 case CardCategory.Defense:
-                {
-                    int gained = Resolution.PlayerEffect(card.Value, press.Grade, 0);
-                    Block += gained;
-                    Emit(new BlockGained(opportunity.PositionQb, opportunity.Index, gained));
+                    AddBlock(StatusTarget.Player, Resolution.PlayerEffect(card.Value, press.Grade, 0), opportunity.PositionQb);
                     break;
-                }
 
                 case CardCategory.LeftAttack:
                 case CardCategory.RightAttack:
@@ -727,8 +852,9 @@ namespace Chiki.Sim
                 }
 
                 case CardCategory.Ability:
-                    // An Ability's effect resolves through the effect framework (P8.1); Phase 3
-                    // has no effects to attach.
+                    // An Ability's effect resolves through the effect framework (P8.1) at the
+                    // scale of its grade: fully on a Perfect (PRD 3.3.4.8).
+                    Emit(new AbilityResolved(opportunity.PositionQb, opportunity.Index, press.Slot, card.Id, Resolution.JudgmentMultiplier(press.Grade)));
                     break;
 
                 default:
@@ -769,20 +895,33 @@ namespace Chiki.Sim
         {
             var cards = _signatureChain.ToArray();
             _signatureChain.Clear();
-            int damage = Math.Min(Tuning.SignatureDamage, EnemyHp);
-            Emit(new SignatureFired(opportunity.PositionQb, opportunity.Index, cards, damage));
-            DealDamage(opportunity, damage);
+            Emit(new SignatureFired(opportunity.PositionQb, opportunity.Index, cards, Tuning.SignatureDamage));
+            DealDamage(opportunity, Tuning.SignatureDamage);
         }
 
-        /// <summary>Takes HP off the enemy for an action, never below 0, and wins the battle at 0 (PRD 3.3.9.2).</summary>
+        /// <summary>Damages the enemy for an action, never below 0, and wins the battle at 0 (PRD 3.3.9.2).</summary>
         private void DealDamage(ActionOpportunity opportunity, int damage)
         {
-            int dealt = TakeEnemyHp(damage);
-            Emit(new DamageDealt(opportunity.PositionQb, opportunity.Index, dealt));
+            int dealt = DamageEnemy(damage, out int absorbed);
+            Emit(new DamageDealt(opportunity.PositionQb, opportunity.Index, dealt, absorbed));
             if (EnemyHp == 0)
             {
                 End(BattleOutcome.Won, opportunity.PositionQb);
             }
+        }
+
+        /// <summary>
+        /// Damage to the enemy that is not True DMG: its running reduction takes its share first
+        /// (PRD 3.6.9), then its Block absorbs (PRD 3.6.25), and the remainder comes off HP. The
+        /// reduction is applied to the whole-number damage of the source, so a card's effect is
+        /// still rounded once by its own formula (PRD 3.3.4.5).
+        /// </summary>
+        private int DamageEnemy(int amount, out int blockAbsorbed)
+        {
+            int reduced = Fixed.Mul(amount, Fixed.One - EnemyDamageReductionThousandths);
+            blockAbsorbed = Math.Min(EnemyBlock, reduced);
+            EnemyBlock -= blockAbsorbed;
+            return TakeEnemyHp(reduced - blockAbsorbed);
         }
 
         private int TakeEnemyHp(int amount)
@@ -800,11 +939,38 @@ namespace Chiki.Sim
             return taken;
         }
 
-        /// <summary>Ends the battle and records Perfect Defense on the closing event (PRD 3.3.9.4).</summary>
+        /// <summary>
+        /// Ends the battle: Block and every status on both sides are cleared so nothing carries
+        /// to the next battle (PRD 3.3.9.5), then the closing event records Perfect Defense
+        /// (PRD 3.3.9.4).
+        /// </summary>
         private void End(BattleOutcome outcome, int positionQb)
         {
             Outcome = outcome;
+            if (Block > 0)
+            {
+                Emit(new BlockCleared(positionQb, StatusTarget.Player, Block));
+                Block = 0;
+            }
+
+            if (EnemyBlock > 0)
+            {
+                Emit(new BlockCleared(positionQb, StatusTarget.Enemy, EnemyBlock));
+                EnemyBlock = 0;
+            }
+
+            ClearStatuses(StatusTarget.Player, positionQb);
+            ClearStatuses(StatusTarget.Enemy, positionQb);
             Emit(new BattleEnded(positionQb, outcome, DamageTaken, PerfectDefense));
+        }
+
+        private void ClearStatuses(StatusTarget target, int positionQb)
+        {
+            var set = StatusesOn(target);
+            foreach (var removed in set.Clear())
+            {
+                Emit(new StatusRemoved(positionQb, removed.Kind, target, removed.Stacks, set.Stacks(removed.Kind)));
+            }
         }
 
         private void Emit(BattleEvent battleEvent)

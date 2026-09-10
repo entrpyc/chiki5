@@ -41,6 +41,13 @@ internal static class TestContent
 
     public static EnemyAction Left(int positionQb) => new(EnemyActionKind.AttackLeft, positionQb);
 
+    /// <summary>A left attack that lands the given statuses on the player when it resolves (PRD 3.3.4.6).</summary>
+    public static EnemyAction LeftApplying(int positionQb, params StatusApplication[] applies) =>
+        new(EnemyActionKind.AttackLeft, positionQb, applies: applies);
+
+    /// <summary>Weak at the given percentage in thousandths, one stack.</summary>
+    public static StatusApplication Weak(int thousandths) => new(StatusKind.Weak, 1, thousandths);
+
     public static EnemyAction Right(int positionQb) => new(EnemyActionKind.AttackRight, positionQb);
 
     public static EnemyAction Defend(int positionQb, int defenseLevelThousandths) => new(EnemyActionKind.Defend, positionQb, defenseLevelThousandths);

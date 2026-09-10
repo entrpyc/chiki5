@@ -16,10 +16,40 @@ namespace Chiki.Sim
     /// <summary>
     /// One charted enemy action (PRD 3.6.31, 4.16) at a position in quarter beats within the
     /// track. <see cref="DefenseLevel"/> is in thousandths and only meaningful for Defend;
-    /// <see cref="WindUpBeats"/> only for Charge.
+    /// <see cref="WindUpBeats"/> only for Charge. <see cref="Applies"/> are the statuses the
+    /// action lands on the player when it resolves, whatever the judgment (PRD 3.3.4.6).
     /// </summary>
-    public sealed record EnemyAction(EnemyActionKind Kind, int PositionQb, int DefenseLevel = 0, int WindUpBeats = 0)
+    public sealed record EnemyAction
     {
+        public EnemyActionKind Kind { get; }
+
+        public int PositionQb { get; }
+
+        public int DefenseLevel { get; }
+
+        public int WindUpBeats { get; }
+
+        public IReadOnlyList<StatusApplication> Applies { get; }
+
+        public EnemyAction(EnemyActionKind kind, int positionQb, int defenseLevel = 0, int windUpBeats = 0, IReadOnlyList<StatusApplication>? applies = null)
+        {
+            if (defenseLevel < 0 || defenseLevel > Fixed.One)
+            {
+                throw new ArgumentOutOfRangeException(nameof(defenseLevel), "Defense level must be 0–1000 thousandths.");
+            }
+
+            if (windUpBeats < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(windUpBeats), "Wind-up must not be negative.");
+            }
+
+            Kind = kind;
+            PositionQb = positionQb;
+            DefenseLevel = defenseLevel;
+            WindUpBeats = windUpBeats;
+            Applies = applies ?? Array.Empty<StatusApplication>();
+        }
+
         public bool IsAttack => Kind == EnemyActionKind.AttackLeft || Kind == EnemyActionKind.AttackRight;
     }
 

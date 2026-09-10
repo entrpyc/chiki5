@@ -124,12 +124,22 @@ namespace Chiki.Sim
     public sealed class StatusSet
     {
         private readonly List<StatusInstance> _instances = new List<StatusInstance>();
+        private readonly HashSet<StatusKind> _immunities = new HashSet<StatusKind>();
 
         public IReadOnlyList<StatusInstance> Instances => _instances;
+
+        /// <summary>True while any status sits on this side.</summary>
+        public bool Any => _instances.Count > 0;
 
         public bool Has(StatusKind kind)
         {
             return Find(kind) != null;
+        }
+
+        /// <summary>Whether an immunity blocks applications of a status on this side (PRD 3.3.4.6).</summary>
+        public bool IsImmune(StatusKind kind)
+        {
+            return _immunities.Contains(kind);
         }
 
         /// <summary>Total stacks of a status across its instances.</summary>
@@ -247,6 +257,20 @@ namespace Chiki.Sim
 
             stacksLeft = Stacks(kind);
             return true;
+        }
+
+        /// <summary>Grants an immunity; returns false when it was already held.</summary>
+        internal bool AddImmunity(StatusKind kind)
+        {
+            return _immunities.Add(kind);
+        }
+
+        /// <summary>Removes every status at battle end (PRD 3.3.9.5), returning them in order.</summary>
+        internal List<StatusInstance> Clear()
+        {
+            var removed = new List<StatusInstance>(_instances);
+            _instances.Clear();
+            return removed;
         }
 
         /// <summary>Ticks every timed status down one beat and removes the expired ones, returning them.</summary>

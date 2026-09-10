@@ -50,9 +50,11 @@ namespace Chiki.Sim
 
     /// <summary>
     /// The player's attack resolved against the enemy (PRD 3.3.4.3, 3.3.4.4); <see cref="Amount"/> is
-    /// the HP the enemy lost, 0 for a whiffed side. Also emitted for the Signature's damage (PRD 3.3.6.2).
+    /// the HP the enemy lost, 0 for a whiffed side, after the enemy's damage reduction and with
+    /// <see cref="BlockAbsorbed"/> taken off its Block first. Also emitted for the Signature's
+    /// damage (PRD 3.3.6.2).
     /// </summary>
-    public sealed record DamageDealt(int PositionQb, int ActionIndex, int Amount) : BattleEvent(PositionQb);
+    public sealed record DamageDealt(int PositionQb, int ActionIndex, int Amount, int BlockAbsorbed = 0) : BattleEvent(PositionQb);
 
     /// <summary>
     /// An enemy attack resolved against the player (PRD 3.3.4.2): <see cref="BlockAbsorbed"/> came
@@ -60,8 +62,37 @@ namespace Chiki.Sim
     /// </summary>
     public sealed record DamageTaken(int PositionQb, int ActionIndex, int Amount, int BlockAbsorbed) : BattleEvent(PositionQb);
 
-    /// <summary>A Defense card gave the player Block (PRD 3.3.4.3, 3.3.4.4).</summary>
-    public sealed record BlockGained(int PositionQb, int ActionIndex, int Amount) : BattleEvent(PositionQb);
+    /// <summary>
+    /// True DMG landed on one side (PRD 3.3.4.7): <see cref="Amount"/> came straight off the
+    /// enemy's HP or the player's ARD, past Block and every reduction.
+    /// </summary>
+    public sealed record TrueDamageDealt(int PositionQb, StatusTarget Target, int Amount) : BattleEvent(PositionQb);
+
+    /// <summary>
+    /// One side gained Block (PRD 3.3.4.3, 3.3.4.4 for the player's Defense cards; PRD 3.6.20,
+    /// 3.6.25 for the enemy's): <see cref="Amount"/> was added and <see cref="Total"/> is the
+    /// Block held afterwards.
+    /// </summary>
+    public sealed record BlockGained(int PositionQb, StatusTarget Target, int Amount, int Total) : BattleEvent(PositionQb);
+
+    /// <summary>One side's Block was cleared at battle end (PRD 3.3.9.5); <see cref="Amount"/> is what it held.</summary>
+    public sealed record BlockCleared(int PositionQb, StatusTarget Target, int Amount) : BattleEvent(PositionQb);
+
+    /// <summary>
+    /// The enemy takes <see cref="Thousandths"/> less damage for <see cref="Beats"/> beats
+    /// (PRD 3.6.9); True DMG ignores it (PRD 3.3.4.7). A new reduction replaces the running one.
+    /// </summary>
+    public sealed record DamageReductionStarted(int PositionQb, int Thousandths, int Beats) : BattleEvent(PositionQb);
+
+    /// <summary>The enemy's damage reduction ran out (PRD 3.6.9).</summary>
+    public sealed record DamageReductionEnded(int PositionQb) : BattleEvent(PositionQb);
+
+    /// <summary>
+    /// An Ability card resolved (PRD 3.3.4.3, 3.3.4.4): its effect scales by
+    /// <see cref="EffectMultThousandths"/>, the JudgmentMult of the press, which the effect
+    /// framework (P8.1) applies to whatever the card declares.
+    /// </summary>
+    public sealed record AbilityResolved(int PositionQb, int ActionIndex, Slot Slot, string CardId, int EffectMultThousandths) : BattleEvent(PositionQb);
 
     /// <summary>
     /// A status landed on one side (PRD 3.3.7.1): <see cref="Stacks"/> and <see cref="Value"/>
@@ -78,8 +109,14 @@ namespace Chiki.Sim
     /// </summary>
     public sealed record StatusTriggered(int PositionQb, StatusKind Kind, StatusTarget Target, int Amount, int BlockAbsorbed) : BattleEvent(PositionQb);
 
-    /// <summary>Stacks of a status left one side, by expiry or consumption (PRD 3.3.7.1); <see cref="StacksLeft"/> is the kind's total afterwards.</summary>
+    /// <summary>Stacks of a status left one side, by expiry, consumption or battle end (PRD 3.3.7.1, 3.3.9.5); <see cref="StacksLeft"/> is the kind's total afterwards.</summary>
     public sealed record StatusRemoved(int PositionQb, StatusKind Kind, StatusTarget Target, int Stacks, int StacksLeft) : BattleEvent(PositionQb);
+
+    /// <summary>An immunity on one side stopped a status from landing (PRD 3.3.4.6).</summary>
+    public sealed record StatusBlocked(int PositionQb, StatusKind Kind, StatusTarget Target) : BattleEvent(PositionQb);
+
+    /// <summary>One side became immune to a status (PRD 3.3.4.6).</summary>
+    public sealed record ImmunityGranted(int PositionQb, StatusKind Kind, StatusTarget Target) : BattleEvent(PositionQb);
 
     /// <summary>A card was banked into the Signature Chain (PRD 3.3.6.1).</summary>
     public sealed record CardBanked(int PositionQb, Slot Slot, string CardId) : BattleEvent(PositionQb);

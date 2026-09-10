@@ -483,36 +483,36 @@ Ties broken: 3.2.3 is delivered twice, the stat holder in Phase 1 and the Base D
 - Needs: P5.2
 - Test (unit): `Sim.Status › thorns_consumed_by_next_attack` — given Thorns 5 twice (two stacks), when the enemy attacks twice, then the enemy takes 5 each time and Thorns is gone after the second.
 
-### Phase 6 — Edge cases green
+### ✅ Phase 6 — Edge cases green
 
 *Delivers the remaining resolution rules and the nine-row test table that proves the whole combat core at once. Done when every P6 test is green and the suite passes.*
 
-#### P6.1 Statuses land regardless of judgment
+#### ✅ P6.1 Statuses land regardless of judgment
 
 - PRD: 3.3.4.6
-- Does: An enemy action that applies a status applies it on Perfect, Good, Miss and no input alike; only its damage component is mitigated. A card effect or immunity flagged as blocking that status prevents it.
+- Does: An enemy action that applies a status applies it on Perfect, Good, Miss and no input alike; only its damage component is mitigated. A card effect or immunity flagged as blocking that status prevents it. Assumption: the statuses are content on the charted action (`applies` in the chart JSON), always target the player, and land right after the action's damage and before the player's effect; a Stunned enemy's skipped action lands none. Immunity is a per-side flag on the battle (`GrantImmunity`), the hook a blocking card effect uses until P8.1 drives it.
 - Needs: P5.1, P3.5
 - Test (unit): `Sim.Resolve › debuff_lands_on_perfect` — given the enemy attacks with Weak, when the player is Perfect, then ARD loss is 0 and the player has Weak.
 - Test (unit): `Sim.Resolve › immunity_blocks_status` — given the player has Weak immunity, when the same action resolves, then no Weak is applied.
 
-#### P6.2 Battle end clears Block and statuses
+#### ✅ P6.2 Battle end clears Block and statuses
 
 - PRD: 3.3.9.5
-- Does: At BattleEnded the player's Block and all statuses on both sides are cleared; the next battle starts with Block 0 and no statuses.
+- Does: At BattleEnded the player's Block and all statuses on both sides are cleared; the next battle starts with Block 0 and no statuses. Assumption: the clearing emits one StatusRemoved per status and one BlockCleared per side that held Block, all before BattleEnded; the enemy's Block (P6.3) is cleared the same way.
 - Needs: P3.7, P5.1
 - Test (unit): `Sim.Battle › block_and_statuses_cleared_at_end` — given Block 12 and Bleed on the player at the killing blow, when the next battle starts from the same run stats, then Block is 0 and no status is present.
 
-#### P6.3 True DMG
+#### ✅ P6.3 True DMG
 
 - PRD: 3.3.4.7
-- Does: A True DMG effect reduces the target's HP or ARD directly, ignoring Block, Weak, Iron-Veil-style reductions and any StatusMults.
+- Does: A True DMG effect reduces the target's HP or ARD directly, ignoring Block, Weak, Iron-Veil-style reductions and any StatusMults. Assumption: enemy Block (`GrantBlock`) and a timed Iron-Veil-style reduction (`ReduceEnemyDamageTaken`) are battle state from here on, so the test can set them and P11.4, P11.6 and P11.7 drive them through the framework; every damage to the enemy that is not True DMG is reduced first, then absorbed by its Block, then taken off HP. True DMG on the player still counts toward damage taken (3.3.9.4).
 - Needs: P3.1, P5.4
 - Test (unit): `Sim.Resolve › true_dmg_ignores_block_and_reductions` — given the enemy has 10 Block and an 80% damage reduction, when a 7 True DMG effect lands, then enemy HP drops by 7 and Block is unchanged.
 
-#### P6.4 The nine edge cases
+#### ✅ P6.4 The nine edge cases
 
 - PRD: 3.3.4.8
-- Does: One parameterised test per row of the table in 3.3.4.8, each built from the public battle API, no internals.
+- Does: One parameterised test per row of the table in 3.3.4.8, each built from the public battle API, no internals. Assumption: "minus Block" is the Block held as the action arrives (P3.5), so the Good Defense row is tested holding Block 4 like its neighbours; an Ability's full resolution is shown by an AbilityResolved event carrying the JudgmentMult (100% on Perfect), which P8.1 applies to the card's declared effects.
 - Needs: P4.3, P4.6, P5.6, P6.1
 - Test (unit): `Sim.EdgeCases › perfect_wrong_side_while_attacked` — given the enemy attacks Left, when a Right Attack lands Perfect, then deal 0 and take 0.
 - Test (unit): `Sim.EdgeCases › good_correct_counter` — given the enemy attacks Left with 20 and Block 4, when a 10 Left Attack is Good, then deal 5 and take 6.

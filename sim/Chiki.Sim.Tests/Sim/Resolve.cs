@@ -171,6 +171,54 @@ public class Resolve
     }
 
     [Test]
+    public void debuff_lands_on_perfect()
+    {
+        var stats = new Stats();
+        var battle = TestContent.Battle(stats, TestContent.Chart(TestContent.Track(), TestContent.LeftApplying(4, TestContent.Weak(250))), enemyDmg: 20);
+        battle.Press(TestContent.SlotD, TestContent.LeftAttack10, 500 + Perfect);
+
+        battle.AdvanceToBeat(2);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(300 - stats.Ard, Is.EqualTo(0));
+            Assert.That(battle.PlayerStatuses.Has(StatusKind.Weak), Is.True);
+        });
+    }
+
+    [Test]
+    public void immunity_blocks_status()
+    {
+        var battle = TestContent.Battle(new Stats(), TestContent.Chart(TestContent.Track(), TestContent.LeftApplying(4, TestContent.Weak(250))), enemyDmg: 20);
+        battle.GrantImmunity(StatusTarget.Player, StatusKind.Weak);
+        battle.Press(TestContent.SlotD, TestContent.LeftAttack10, 500 + Perfect);
+
+        battle.AdvanceToBeat(2);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(battle.PlayerStatuses.Has(StatusKind.Weak), Is.False);
+            Assert.That(battle.Events.OfType<StatusApplied>(), Is.Empty);
+        });
+    }
+
+    [Test]
+    public void true_dmg_ignores_block_and_reductions()
+    {
+        var battle = TestContent.Battle(4);
+        battle.GrantBlock(StatusTarget.Enemy, 10);
+        battle.ReduceEnemyDamageTaken(800, beats: 5);
+
+        battle.DealTrueDamage(StatusTarget.Enemy, 7);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(battle.EnemyHp, Is.EqualTo(battle.EnemyMaxHp - 7));
+            Assert.That(battle.EnemyBlock, Is.EqualTo(10));
+        });
+    }
+
+    [Test]
     public void rounds_to_nearest()
     {
         var battle = TestContent.Battle(4, 12);

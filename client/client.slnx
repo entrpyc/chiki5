@@ -1,2 +1,4 @@
 ﻿<Solution>
+  <Project Path="Chiki.Client.csproj" />
+  <Project Path="Chiki.Client.Tests.PlayMode.csproj" />
 </Solution>

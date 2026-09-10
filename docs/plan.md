@@ -364,26 +364,26 @@ Ties broken: 3.2.3 is delivered twice, the stat holder in Phase 1 and the Base D
 - Needs: P3.1
 - Test (unit): `Sim.Battle › died_at_zero_ard` — given ARD 15 and an enemy attack of 20 with no input, when resolved, then ARD is 0 and the outcome is Died.
 
-### Phase 4 — Cooldowns and the Signature Chain
+### ✅ Phase 4 — Cooldowns and the Signature Chain
 
 *Delivers the two things a press can do besides playing a card: start a cooldown, or bank toward a Signature; and pins down what no input leaves untouched. Done when every P4 test is green and the suite passes.*
 
-#### P4.1 Cooldown on any press
+#### ✅ P4.1 Cooldown on any press
 
 - PRD: 3.3.5.1
-- Does: Sixteen slots (2 lines × 8 keys) each hold an independent cooldown counter. Any accepted press of a card starts that slot's cooldown at the card's cooldown value (2–6 beats), regardless of grade; it decrements one per beat tick from the press.
+- Does: Sixteen slots (2 lines × 8 keys) each hold an independent cooldown counter. Any accepted press of a card starts that slot's cooldown at the card's cooldown value (2–6 beats), regardless of grade; it decrements one per beat tick from the press. Assumption: until P7.1 loads it from data, `CardDefinition` takes the cooldown as an optional constructor argument that defaults to the 2-beat minimum; the cooldown starts at the press, not at the window close, and emits CooldownStarted.
 - Needs: P2.8, P2.6
 - Test (unit): `Sim.Cooldown › missed_card_still_cools` — given a card with cooldown 4, when it is pressed with a Miss, then the slot reads 4 and after 4 ticks reads 0.
 - Test (unit): `Sim.Cooldown › slots_independent_across_lines` — given key D on line 1 pressed, when key D on line 2 is read, then it is 0.
 
-#### P4.2 Slot on cooldown cannot be played
+#### ✅ P4.2 Slot on cooldown cannot be played
 
 - PRD: 3.3.5.3
-- Does: A press on a slot with cooldown above 0 returns a Disabled result carrying the remaining beats, emits a SlotDisabled event for feedback, consumes no card, records no judgment, and does not use up the enemy action.
+- Does: A press on a slot with cooldown above 0 returns a Disabled result carrying the remaining beats, emits a SlotDisabled event for feedback, consumes no card, records no judgment, and does not use up the enemy action. Assumption: the cooldown check runs before the window check, so a cooling slot pressed between enemy actions still gives disabled feedback.
 - Needs: P4.1
 - Test (unit): `Sim.Cooldown › disabled_press_is_not_a_miss` — given a slot with 2 beats left, when it is pressed, then the result is Disabled, the judgment log has no entry, and another slot can still be played this beat.
 
-#### P4.3 No input
+#### ✅ P4.3 No input
 
 - PRD: 3.3.3.2
 - Does: An enemy action with no accepted press consumes no card, starts no cooldown, records a no-input log entry (not a judgment), fires no Miss-triggered effect, and resolves at IncomingMult 100%.
@@ -391,29 +391,29 @@ Ties broken: 3.2.3 is delivered twice, the stat holder in Phase 1 and the Base D
 - Test (unit): `Sim.Judgment › no_input_starts_nothing` — given an enemy action with no press, when its window closes, then all 16 cooldowns are unchanged and the log entry is NoInput.
 - Test (unit): `Sim.Judgment › no_input_takes_full_damage` — given enemy DMG 12 and Block 0, when no input, then ARD loss is 12.
 
-#### P4.4 Banking into the Signature Chain
+#### ✅ P4.4 Banking into the Signature Chain
 
 - PRD: 3.3.6.1
-- Does: A Signature-send press (Space plus slot) answering an enemy action moves that slot's card into the first empty of three chain slots instead of resolving its effect; the beat's incoming damage resolves by the press's grade as usual (P3.1). Sending with the chain full is rejected like a disabled press.
+- Does: A Signature-send press (Space plus slot) answering an enemy action moves that slot's card into the first empty of three chain slots instead of resolving its effect; the beat's incoming damage resolves by the press's grade as usual (P3.1). Sending with the chain full is rejected like a disabled press. Assumption: because the third bank fires at once (P4.5) a full chain is never observable, so the guard is defensive: outcome SignatureChainFull plus a SlotDisabled event with that reason.
 - Needs: P3.5
 - Test (unit): `Sim.Signature › send_banks_not_plays` — given an attack card sent with Perfect while the enemy attacks, when resolved, then enemy HP is unchanged, the chain holds 1 card, and ARD loss is 0.
 - Test (unit): `Sim.Signature › good_send_takes_half` — given a send with Good against DMG 20, when resolved, then ARD loss is 10.
 
-#### P4.5 Signature fires at three
+#### ✅ P4.5 Signature fires at three
 
 - PRD: 3.3.6.2
-- Does: When the third card is banked the Signature fires in the same beat: 30 damage to the enemy (a constant in one place), the chain empties, and a SignatureFired event is emitted.
+- Does: When the third card is banked the Signature fires in the same beat: 30 damage to the enemy (a constant in one place), the chain empties, and a SignatureFired event is emitted. Assumption: the Signature damage is flat, untouched by grade, Base DMG or the efficacy matrix, and is applied through a DamageDealt event that follows SignatureFired.
 - Needs: P4.4
 - Test (unit): `Sim.Signature › third_bank_fires_30` — given two banked cards and enemy HP 100, when a third is banked, then enemy HP is 70 and the chain is empty.
 
-#### P4.6 Missed send still banks and cools
+#### ✅ P4.6 Missed send still banks and cools
 
 - PRD: 3.3.6.3
 - Does: A Signature send graded Miss still banks the card; every send starts the slot's cooldown per P4.1.
 - Needs: P4.4, P4.1
 - Test (unit): `Sim.Signature › missed_send_banks_and_cools` — given a send graded Miss on a card with cooldown 3, when resolved, then the chain holds 1 and the slot reads 3.
 
-#### P4.7 Perfect Defense recorded
+#### ✅ P4.7 Perfect Defense recorded
 
 - PRD: 3.3.9.4
 - Does: The battle tracks total damage taken to ARD; at BattleEnded, Perfect Defense is true if that total is 0 and is stored on the battle record and in the event.

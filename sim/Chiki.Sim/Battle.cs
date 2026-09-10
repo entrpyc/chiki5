@@ -15,12 +15,17 @@ namespace Chiki.Sim
     /// the key event. An enemy action resolves when its Judgment Window closes, with the accepted
     /// press if there was one and as no input otherwise (PRD 3.3.3.2), in a fixed order: grade,
     /// incoming damage, player effect (PRD 3.3.4.1).
+    ///
+    /// Every accepted press starts its slot's cooldown (PRD 3.3.5.1); a cooling slot cannot be
+    /// played (PRD 3.3.5.3). A Signature send banks its card instead of playing it, and the
+    /// Signature fires when the chain is full (PRD 3.3.6).
     /// </summary>
     public sealed class Battle
     {
         private readonly List<BattleEvent> _events = new List<BattleEvent>();
         private readonly List<JudgmentEntry> _judgmentLog = new List<JudgmentEntry>();
         private readonly List<BeatTimer> _timers = new List<BeatTimer>();
+        private readonly Dictionary<Slot, BeatTimer> _cooldowns = new Dictionary<Slot, BeatTimer>();
         private readonly List<string> _signatureChain = new List<string>();
         private readonly List<ActionOpportunity> _opportunities = new List<ActionOpportunity>();
 
@@ -67,6 +72,17 @@ namespace Chiki.Sim
 
         /// <summary>Card ids banked in the Signature Chain (PRD 3.3.6.1).</summary>
         public IReadOnlyList<string> SignatureChain => _signatureChain;
+
+        /// <summary>Remaining cooldown of a slot in beats; 0 when it can be played (PRD 3.3.5.1).</summary>
+        public int CooldownOf(Slot slot)
+        {
+            if (slot is null)
+            {
+                throw new ArgumentNullException(nameof(slot));
+            }
+
+            return _cooldowns.TryGetValue(slot, out var timer) ? timer.RemainingBeats : 0;
+        }
 
         /// <summary>One entry per resolved enemy action (PRD 4.8).</summary>
         public IReadOnlyList<JudgmentEntry> JudgmentLog => _judgmentLog;
@@ -193,10 +209,12 @@ namespace Chiki.Sim
         /// A slot press that plays the slot's card, stamped with the audio time of the key event
         /// (PRD 3.3.3.1). The press is graded against the enemy action whose Judgment Window
         /// contains the time; the first press for an action is accepted and any later one
-        /// rejected, as is a press when no window is open (PRD 3.3.1.3). A rejected press
-        /// consumes nothing and records nothing. The card's effect resolves when the window
-        /// closes, by the efficacy matrix (PRD 3.3.4.4). Until the Loadout exists (P16) the
-        /// caller supplies the card the slot holds; it must belong to the slot's Category (PRD 3.4.1).
+        /// rejected, as is a press when no window is open (PRD 3.3.1.3) or on a slot still on
+        /// cooldown (PRD 3.3.5.3). A rejected press consumes nothing and records nothing. An
+        /// accepted press starts the slot's cooldown at once, whatever its grade (PRD 3.3.5.1).
+        /// The card's effect resolves when the window closes, by the efficacy matrix (PRD 3.3.4.4).
+        /// Until the Loadout exists (P16) the caller supplies the card the slot holds; it must
+        /// belong to the slot's Category (PRD 3.4.1).
         /// </summary>
         public PressResult Press(Slot slot, CardDefinition card, int audioTimeMs)
         {
@@ -206,7 +224,9 @@ namespace Chiki.Sim
         /// <summary>
         /// Space plus a slot key (PRD 3.3.2.3): the press is accepted and graded exactly like
         /// <see cref="Press"/>, but the card is banked into the Signature Chain instead of
-        /// resolving its effect (PRD 3.3.6.1); incoming damage on the beat follows the grade as normal.
+        /// resolving its effect (PRD 3.3.6.1); incoming damage on the beat follows the grade as
+        /// normal, a Missed send still banks (PRD 3.3.6.3) and a send with every chain slot
+        /// taken is rejected like a disabled press.
         /// </summary>
         public PressResult Send(Slot slot, CardDefinition card, int audioTimeMs)
         {
@@ -251,7 +271,26 @@ namespace Chiki.Sim
             }
 
             Advance(audioTimeMs);
-            if (Outcome != null || !_pending.Contains(audioTimeMs))
+            if (Outcome != null)
+            {
+                return PressResult.NoWindow;
+            }
+
+            // A cooling slot gives disabled feedback whether or not a window is open (PRD 3.3.5.3).
+            int remaining = CooldownOf(slot);
+            if (remaining > 0)
+            {
+                Emit(new SlotDisabled(PressPositionQb(audioTimeMs), slot, SlotDisabledReason.Cooldown, remaining));
+                return PressResult.OnCooldown(remaining);
+            }
+
+            if (signatureSend && _signatureChain.Count >= Tuning.SignatureChainSlots)
+            {
+                Emit(new SlotDisabled(PressPositionQb(audioTimeMs), slot, SlotDisabledReason.SignatureChainFull, 0));
+                return PressResult.ChainFull;
+            }
+
+            if (!_pending.Contains(audioTimeMs))
             {
                 return PressResult.NoWindow;
             }
@@ -265,7 +304,35 @@ namespace Chiki.Sim
             var grade = JudgmentWindow.Grade(offset, _pending.Bpm);
             _pendingPress = new PendingPress(slot, card, grade, signatureSend);
             Emit(new InputJudged(_pending.PositionQb, _pending.Index, slot, card.Id, grade, offset, signatureSend));
-            return new PressResult(PressOutcome.Accepted, _pending.Index, grade);
+            StartCooldown(slot, card, _pending.PositionQb);
+            return new PressResult(PressOutcome.Accepted, _pending.Index, grade, 0);
+        }
+
+        /// <summary>Any accepted press starts its slot's cooldown, regardless of grade (PRD 3.3.5.1).</summary>
+        private void StartCooldown(Slot slot, CardDefinition card, int positionQb)
+        {
+            _cooldowns[slot] = StartTimer(card.CooldownBeats);
+            Emit(new CooldownStarted(positionQb, slot, card.Id, card.CooldownBeats));
+        }
+
+        /// <summary>
+        /// The position a press event belongs to: the action it answers while a window is open,
+        /// otherwise the quarter beat the press time falls in, so the stream stays in order.
+        /// </summary>
+        private int PressPositionQb(int audioTimeMs)
+        {
+            if (_pending.Contains(audioTimeMs))
+            {
+                return _pending.PositionQb;
+            }
+
+            int position = Beats.ToQuarterBeats(Math.Max(CurrentBeat, 0));
+            while (BeatMap.TimeAtQb(position + 1) <= audioTimeMs)
+            {
+                position++;
+            }
+
+            return position;
         }
 
         private void Process(int audioTimeMs)
@@ -380,6 +447,11 @@ namespace Chiki.Sim
             {
                 _signatureChain.Add(card.Id);
                 Emit(new CardBanked(opportunity.PositionQb, press.Slot, card.Id));
+                if (_signatureChain.Count >= Tuning.SignatureChainSlots)
+                {
+                    FireSignature(opportunity);
+                }
+
                 return;
             }
 
@@ -398,14 +470,7 @@ namespace Chiki.Sim
                 {
                     int efficacy = Resolution.AttackEfficacy(opportunity.Action, card.Category);
                     int damage = Resolution.PlayerEffect(card.Value, press.Grade, Stats.BaseDmg, efficacy);
-                    damage = Math.Min(damage, EnemyHp);
-                    EnemyHp -= damage;
-                    Emit(new DamageDealt(opportunity.PositionQb, opportunity.Index, damage));
-                    if (EnemyHp == 0)
-                    {
-                        End(BattleOutcome.Won, opportunity.PositionQb);
-                    }
-
+                    DealDamage(opportunity, damage);
                     break;
                 }
 
@@ -419,10 +484,37 @@ namespace Chiki.Sim
             }
         }
 
+        /// <summary>
+        /// The third banked card fires the Signature in the same beat (PRD 3.3.6.2): the chain
+        /// empties and the enemy takes the flat Signature damage, untouched by grade, Base DMG
+        /// or the efficacy matrix.
+        /// </summary>
+        private void FireSignature(ActionOpportunity opportunity)
+        {
+            var cards = _signatureChain.ToArray();
+            _signatureChain.Clear();
+            int damage = Math.Min(Tuning.SignatureDamage, EnemyHp);
+            Emit(new SignatureFired(opportunity.PositionQb, opportunity.Index, cards, damage));
+            DealDamage(opportunity, damage);
+        }
+
+        /// <summary>Takes HP off the enemy, never below 0, and wins the battle at 0 (PRD 3.3.9.2).</summary>
+        private void DealDamage(ActionOpportunity opportunity, int damage)
+        {
+            damage = Math.Min(damage, EnemyHp);
+            EnemyHp -= damage;
+            Emit(new DamageDealt(opportunity.PositionQb, opportunity.Index, damage));
+            if (EnemyHp == 0)
+            {
+                End(BattleOutcome.Won, opportunity.PositionQb);
+            }
+        }
+
+        /// <summary>Ends the battle and records Perfect Defense on the closing event (PRD 3.3.9.4).</summary>
         private void End(BattleOutcome outcome, int positionQb)
         {
             Outcome = outcome;
-            Emit(new BattleEnded(positionQb, outcome));
+            Emit(new BattleEnded(positionQb, outcome, DamageTaken, PerfectDefense));
         }
 
         private void Emit(BattleEvent battleEvent)

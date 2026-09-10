@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace Chiki.Sim
 {
@@ -20,6 +21,9 @@ namespace Chiki.Sim
     {
         public const int LineCount = 2;
 
+        /// <summary>All sixteen slots, line by line in key order (PRD 3.3.2.1).</summary>
+        public static readonly IReadOnlyList<Slot> All = BuildAll();
+
         /// <summary>0 for the upper line, 1 for the lower line.</summary>
         public int Line { get; }
 
@@ -34,6 +38,22 @@ namespace Chiki.Sim
 
             Line = line;
             Key = key;
+        }
+
+        private static Slot[] BuildAll()
+        {
+            var keys = (SlotKey[])Enum.GetValues(typeof(SlotKey));
+            var slots = new Slot[LineCount * keys.Length];
+            int i = 0;
+            for (int line = 0; line < LineCount; line++)
+            {
+                foreach (var key in keys)
+                {
+                    slots[i++] = new Slot(line, key);
+                }
+            }
+
+            return slots;
         }
     }
 }

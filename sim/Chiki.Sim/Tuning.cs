@@ -49,5 +49,17 @@ namespace Chiki.Sim
 
         /// <summary>JudgmentMult on a Miss, in thousandths: 0% (PRD 3.3.4.3).</summary>
         public const int JudgmentMultMissThousandths = 0;
+
+        /// <summary>Shortest slot cooldown a card may define, in beats (PRD 3.3.5.1, 3.4.7).</summary>
+        public const int CooldownMinBeats = 2;
+
+        /// <summary>Longest slot cooldown a card may define, in beats (PRD 3.3.5.1, 3.4.7).</summary>
+        public const int CooldownMaxBeats = 6;
+
+        /// <summary>Cards the Signature Chain holds; the Signature fires when it is full (PRD 3.3.6.1, 3.3.6.2).</summary>
+        public const int SignatureChainSlots = 3;
+
+        /// <summary>Damage the Signature deals to the enemy (PRD 3.3.6.2).</summary>
+        public const int SignatureDamage = 30;
     }
 }

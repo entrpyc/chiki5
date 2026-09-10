@@ -40,6 +40,33 @@ public class Judgment
     }
 
     [Test]
+    public void no_input_starts_nothing()
+    {
+        var battle = TestContent.Battle(4); // action at 500 ms, window closes before beat 2
+
+        battle.AdvanceToBeat(2);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(Slot.All, Has.Count.EqualTo(16));
+            Assert.That(Slot.All.Select(battle.CooldownOf), Has.All.EqualTo(0));
+            Assert.That(battle.Events.OfType<CooldownStarted>(), Is.Empty);
+            Assert.That(battle.JudgmentLog.Single().NoInput, Is.True);
+        });
+    }
+
+    [Test]
+    public void no_input_takes_full_damage()
+    {
+        var stats = new Stats();
+        var battle = TestContent.Battle(stats, TestContent.Chart(TestContent.Track(), 4), enemyDmg: 12);
+
+        battle.AdvanceToBeat(2);
+
+        Assert.That(300 - stats.Ard, Is.EqualTo(12));
+    }
+
+    [Test]
     public void windows_scale_with_bpm()
     {
         // At BPM 240 a beat is 250 ms, so beat 2 sits at 500 ms; at BPM 120 beat 1 does.

@@ -94,6 +94,36 @@ public class Battle
         });
     }
 
+    [Test]
+    public void perfect_defense_when_no_ard_lost()
+    {
+        var allPerfect = TwoAttacksWonByPlayer(firstOffsetMs: 0, enemyHp: 20);
+        var oneGood = TwoAttacksWonByPlayer(firstOffsetMs: 60, enemyHp: 15);
+
+        Assume.That(allPerfect.Outcome, Is.EqualTo(BattleOutcome.Won));
+        Assume.That(oneGood.Outcome, Is.EqualTo(BattleOutcome.Won));
+        Assert.Multiple(() =>
+        {
+            Assert.That(allPerfect.PerfectDefense, Is.True);
+            Assert.That(allPerfect.Events.OfType<BattleEnded>().Single().PerfectDefense, Is.True);
+            Assert.That(oneGood.PerfectDefense, Is.False);
+            Assert.That(oneGood.Events.OfType<BattleEnded>().Single().PerfectDefense, Is.False);
+        });
+    }
+
+    /// <summary>
+    /// Left attacks on beats 1 and 3, each answered by a 10-damage Left Attack; the first with the
+    /// given offset, the second Perfect. The enemy HP is chosen so the second attack wins.
+    /// </summary>
+    private static SimBattle TwoAttacksWonByPlayer(int firstOffsetMs, int enemyHp)
+    {
+        var battle = TestContent.Battle(new Stats(), TestContent.Chart(TestContent.Track(), 4, 12), enemyHp: enemyHp);
+        battle.Press(TestContent.SlotD, TestContent.LeftAttack10, 500 + firstOffsetMs);
+        battle.Press(TestContent.SlotF, TestContent.LeftAttack10, 1500);
+        battle.AdvanceToBeat(4);
+        return battle;
+    }
+
     /// <summary>Five left attacks on beats 1..5; beats 1 and 3 are answered on the beat.</summary>
     private static SimBattle FiveActionBattleAnsweringFirstAndThird()
     {

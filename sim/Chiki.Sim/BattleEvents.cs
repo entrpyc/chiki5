@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace Chiki.Sim
 {
     /// <summary>How a battle ended (PRD 4.8, 3.3.9.2, 3.3.9.3).</summary>
@@ -5,6 +7,16 @@ namespace Chiki.Sim
     {
         Won,
         Died,
+    }
+
+    /// <summary>Why a press gave disabled feedback (PRD 3.3.5.3, 3.3.6.1).</summary>
+    public enum SlotDisabledReason
+    {
+        /// <summary>The slot is on cooldown (PRD 3.3.5.3).</summary>
+        Cooldown,
+
+        /// <summary>A Signature send while all chain slots are taken (PRD 3.3.6.1).</summary>
+        SignatureChainFull,
     }
 
     /// <summary>
@@ -24,8 +36,18 @@ namespace Chiki.Sim
     public sealed record InputJudged(int PositionQb, int ActionIndex, Slot Slot, string CardId, Judgment Grade, int OffsetMs, bool SignatureSend) : BattleEvent(PositionQb);
 
     /// <summary>
+    /// A press on a slot that cannot be played right now (PRD 3.3.5.3): the feedback hook for
+    /// the disabled sound and flash. Nothing was consumed and no judgment recorded.
+    /// <see cref="RemainingBeats"/> is the slot's cooldown left, 0 when the reason is not cooldown.
+    /// </summary>
+    public sealed record SlotDisabled(int PositionQb, Slot Slot, SlotDisabledReason Reason, int RemainingBeats) : BattleEvent(PositionQb);
+
+    /// <summary>An accepted press started its slot's cooldown of <see cref="Beats"/> beats (PRD 3.3.5.1).</summary>
+    public sealed record CooldownStarted(int PositionQb, Slot Slot, string CardId, int Beats) : BattleEvent(PositionQb);
+
+    /// <summary>
     /// The player's attack resolved against the enemy (PRD 3.3.4.3, 3.3.4.4); <see cref="Amount"/> is
-    /// the HP the enemy lost, 0 for a whiffed side.
+    /// the HP the enemy lost, 0 for a whiffed side. Also emitted for the Signature's damage (PRD 3.3.6.2).
     /// </summary>
     public sealed record DamageDealt(int PositionQb, int ActionIndex, int Amount) : BattleEvent(PositionQb);
 
@@ -44,9 +66,16 @@ namespace Chiki.Sim
     /// <summary>A card was banked into the Signature Chain (PRD 3.3.6.1).</summary>
     public sealed record CardBanked(int PositionQb, Slot Slot, string CardId) : BattleEvent(PositionQb);
 
-    /// <summary>The Signature Chain fired (PRD 3.3.6.2).</summary>
-    public sealed record SignatureFired(int PositionQb, int CardCount) : BattleEvent(PositionQb);
+    /// <summary>
+    /// The Signature Chain fired and emptied (PRD 3.3.6.2): <see cref="CardIds"/> are the cards
+    /// that were banked and <see cref="Damage"/> the HP the enemy loses, which the following
+    /// <see cref="DamageDealt"/> applies.
+    /// </summary>
+    public sealed record SignatureFired(int PositionQb, int ActionIndex, IReadOnlyList<string> CardIds, int Damage) : BattleEvent(PositionQb);
 
-    /// <summary>The battle ended (PRD 3.3.9.2, 3.3.9.3).</summary>
-    public sealed record BattleEnded(int PositionQb, BattleOutcome Outcome) : BattleEvent(PositionQb);
+    /// <summary>
+    /// The battle ended (PRD 3.3.9.2, 3.3.9.3) with the ARD lost over the whole battle and
+    /// whether that was a Perfect Defense (PRD 3.3.9.4), the trigger Charms read (PRD 3.9.8).
+    /// </summary>
+    public sealed record BattleEnded(int PositionQb, BattleOutcome Outcome, int DamageTaken, bool PerfectDefense) : BattleEvent(PositionQb);
 }

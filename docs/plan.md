@@ -178,18 +178,18 @@ Ties broken: 3.2.3 is delivered twice, the stat holder in Phase 1 and the Base D
 
 ## Phases
 
-### Phase 1 — The simulation exists and is testable
+### ✅ Phase 1 — The simulation exists and is testable
 
 *Delivers a `dotnet test` run that proves the rules library boots, uses integer arithmetic and a seeded PRNG, references no engine, and holds the four run stats. Done when every P1 test is green and the suite passes.*
 
-#### P1.1 Simulation library and test project
+#### ✅ P1.1 Simulation library and test project
 
 - PRD: — (groundwork for every later item)
 - Does: Creates `sim/Chiki.sln` with `Chiki.Sim` (netstandard2.1 class library, so Unity can reference it) and `Chiki.Sim.Tests` (NUnit, net8.0). Adds a smoke test and a CI script that runs `dotnet test sim/Chiki.sln`.
 - Needs: —
 - Test (unit): `Sim.Smoke › library_loads` — given the test project, when it references `Chiki.Sim`, then a type from the library instantiates and the test passes.
 
-#### P1.2 Integer rules arithmetic and seeded PRNG
+#### ✅ P1.2 Integer rules arithmetic and seeded PRNG
 
 - PRD: — (groundwork for P1.4, P2.1, P3.1, P19.1)
 - Does: All rule math uses integers or fixed-point (thousandths) with a single rounding helper; a `Rng` type wraps a seeded xorshift-class generator, is passed explicitly, and exposes `NextInt(min, max)` and `Fork(label)` so subsystems get independent, reproducible streams.
@@ -197,17 +197,17 @@ Ties broken: 3.2.3 is delivered twice, the stat holder in Phase 1 and the Base D
 - Test (unit): `Sim.Rng › same_seed_same_sequence` — given two `Rng` instances with seed 42, when 1000 values are drawn from each, then the sequences are identical.
 - Test (unit): `Sim.Rng › fork_is_independent` — given one `Rng`, when `Fork("map")` and `Fork("shop")` are drawn from, then neither draw changes the other's next value.
 
-#### P1.3 No rendering dependency
+#### ✅ P1.3 No rendering dependency
 
 - PRD: 6.7
 - Does: `Chiki.Sim` references only the base class library; a test inspects its referenced assemblies. Every rule item in this plan adds its test to this project, which is what the rest of 6.7 means.
 - Needs: P1.1
 - Test (unit): `Sim.Architecture › sim_references_no_engine` — given the compiled `Chiki.Sim` assembly, when its referenced assembly names are listed, then none starts with `UnityEngine` or `UnityEditor`.
 
-#### P1.4 Run stats holder
+#### ✅ P1.4 Run stats holder
 
 - PRD: 3.2.3
-- Does: A `RunStats` type with ARD current and maximum (maximum defaults to 300, current starts at maximum and is clamped to 0..maximum), Base DMG (starts 0), Essence (starts 0, never below 0) and CRP (starts 0, delegated to P17.6 for clamping). Raising maximum ARD raises current by the same amount; the holder persists across battle instances.
+- Does: A `RunStats` type with ARD current and maximum (maximum defaults to 300, current starts at maximum and is clamped to 0..maximum), Base DMG (starts 0), Essence (starts 0, never below 0) and CRP (starts 0, delegated to P17.6 for clamping). Raising maximum ARD raises current by the same amount; the holder persists across battle instances. Assumption: a battle context is the `Battle` aggregate, which is constructed with a reference to the run's `RunStats` and never copies it.
 - Needs: P1.1
 - Test (unit): `Sim.RunStats › ard_defaults_to_300` — given a new `RunStats`, when read, then max ARD is 300 and current ARD is 300.
 - Test (unit): `Sim.RunStats › ard_carries_between_battles` — given ARD set to 120, when two successive battle contexts are created from the same stats, then the second sees 120.

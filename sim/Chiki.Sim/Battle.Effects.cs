@@ -6,14 +6,15 @@ namespace Chiki.Sim
     /// <summary>
     /// The effect framework's runtime (P8.1): registered effects fire when their trigger event is
     /// appended to the stream, a card's on-play effects fire as the card resolves, and standing
-    /// multipliers live for their lifetime. Cards, enemy powers and Charms act through nothing else.
+    /// bonuses and multipliers live for their lifetime. Cards, enemy powers and Charms act
+    /// through nothing else.
     /// </summary>
     public sealed partial class Battle
     {
         private readonly EffectRegistry _effects = new EffectRegistry();
         private BeatContext? _resolving;
 
-        /// <summary>The effects registered on this battle and the multipliers alive right now.</summary>
+        /// <summary>The effects registered on this battle and the modifiers alive right now.</summary>
         public EffectRegistry Effects => _effects;
 
         /// <summary>
@@ -55,12 +56,35 @@ namespace Chiki.Sim
             return _effects.Remove(id);
         }
 
+        /// <summary>The enemy's abilities and traits act through the framework: each registers its effects on the enemy at battle start (PRD 3.6.4).</summary>
+        private void RegisterEnemyPowers()
+        {
+            foreach (var ability in Enemy.Abilities)
+            {
+                foreach (var effect in EnemyPowerEffects.Of(ability))
+                {
+                    RegisterEffect(Enemy.Id, effect);
+                }
+            }
+
+            foreach (var trait in Enemy.Traits)
+            {
+                foreach (var effect in EnemyPowerEffects.Of(trait))
+                {
+                    RegisterEffect(Enemy.Id, effect);
+                }
+            }
+        }
+
         private static EffectTrigger? TriggerOf(BattleEvent battleEvent)
         {
             switch (battleEvent)
             {
+                case BattleStarted _: return EffectTrigger.BattleStarted;
                 case BeatStarted _: return EffectTrigger.BeatStarted;
+                case BeatEnded _: return EffectTrigger.BeatEnded;
                 case InputJudged _: return EffectTrigger.InputJudged;
+                case ActionResolved _: return EffectTrigger.ActionResolved;
                 case DamageDealt _: return EffectTrigger.DamageDealt;
                 case DamageTaken _: return EffectTrigger.DamageTaken;
                 case BlockGained _: return EffectTrigger.BlockGained;
@@ -92,7 +116,7 @@ namespace Chiki.Sim
                     break;
                 }
 
-                if (!ConditionHolds(registered.Definition.Condition, battleEvent))
+                if (!ConditionHolds(registered.Definition, battleEvent))
                 {
                     continue;
                 }
@@ -102,43 +126,66 @@ namespace Chiki.Sim
         }
 
         /// <summary>
-        /// The reaction conditions of PRD 3.4.9 against the battle right now: the grade in play is
-        /// the press of the action being resolved (or the judged press for an InputJudged
-        /// trigger); a kill is the enemy at 0 HP; the enemy attacks when the action being
-        /// resolved, or else the pending one, is an attack.
+        /// The conditions of PRD 3.4.9 and the enemy powers against the battle right now: the
+        /// grade in play is the press of the action being resolved (or the judged press for an
+        /// InputJudged trigger); a kill is the enemy at 0 HP; the enemy attacks when the action
+        /// being resolved, or else the pending one, is an attack.
         /// </summary>
-        private bool ConditionHolds(EffectCondition condition, BattleEvent? trigger)
+        private bool ConditionHolds(EffectDefinition effect, BattleEvent? trigger)
         {
-            switch (condition)
+            switch (effect.Condition)
             {
                 case EffectCondition.None:
                     return true;
                 case EffectCondition.OnPerfect:
                     return GradeInPlay(trigger) == Judgment.Perfect;
+                case EffectCondition.OnGood:
+                    return GradeInPlay(trigger) == Judgment.Good;
+                case EffectCondition.OnMiss:
+                    return GradeInPlay(trigger) == Judgment.Miss;
+                case EffectCondition.IfNoInput:
+                    return GradeInPlay(trigger) is null;
                 case EffectCondition.IfKills:
                     return EnemyHp == 0;
                 case EffectCondition.IfEnemyAttacking:
-                    return (_resolving?.Opportunity ?? _pending).Action.IsAttack;
+                    return ActionInPlay().IsAttack;
+                case EffectCondition.IfDamageLanded:
+                    return trigger is DamageTaken taken ? taken.Amount > 0
+                        : trigger is DamageDealt dealt ? dealt.Amount > 0
+                        : trigger is TrueDamageDealt trueDamage && trueDamage.Amount > 0;
+                case EffectCondition.IfBuffAction:
+                    return ActionInPlay().Kind == EnemyActionKind.Buff;
+                case EffectCondition.IfEnemyQuietBeats:
+                    return EnemyQuietBeats > 0 && EnemyQuietBeats % effect.ConditionAmount == 0;
                 default:
-                    throw new ArgumentOutOfRangeException(nameof(condition), condition, "Unknown condition.");
+                    throw new ArgumentOutOfRangeException(nameof(effect), effect.Condition, "Unknown condition.");
             }
+        }
+
+        private EnemyAction ActionInPlay()
+        {
+            return (_resolving?.Opportunity ?? _pending).Action;
         }
 
         private Judgment? GradeInPlay(BattleEvent? trigger)
         {
-            if (trigger is InputJudged judged)
+            switch (trigger)
             {
-                return judged.Grade;
+                case InputJudged judged:
+                    return judged.Grade;
+                case ActionResolved resolved:
+                    return resolved.Grade;
+                default:
+                    return _resolving?.Press?.Grade;
             }
-
-            return _resolving?.Press?.Grade;
         }
 
         /// <summary>
         /// Applies a fired effect's modifier at <paramref name="scaleThousandths"/>: the JudgmentMult
         /// of the play for a card's on-play effects (PRD 3.3.4.3; a Missed card applies nothing),
         /// 100% for event-triggered ones. Card-value shaping (add-value, multiply card-value) is
-        /// folded into the value at play and does nothing here.
+        /// folded into the value at play and does nothing here; a standing bonus or multiplier
+        /// comes alive for its lifetime.
         /// </summary>
         private void ApplyModifier(string ownerId, EffectDefinition effect, int scaleThousandths, int positionQb, int actionIndex)
         {
@@ -173,14 +220,12 @@ namespace Chiki.Sim
                     break;
 
                 case EffectModifier.MultiplyValue:
-                    if (effect.Value != EffectValue.CardValue)
+                case EffectModifier.AddValue:
+                    if (effect.IsStanding)
                     {
                         Activate(ownerId, effect, positionQb);
                     }
 
-                    break;
-
-                case EffectModifier.AddValue:
                     break;
 
                 default:
@@ -246,11 +291,23 @@ namespace Chiki.Sim
             Emit(new StatChanged(positionQb, stat, delta, total));
         }
 
+        /// <summary>
+        /// Brings a standing modifier alive for its lifetime. A timed or until-consumed modifier
+        /// the same owner already has alive is restarted rather than stacked (PRD 3.6.8, 3.6.9);
+        /// battle- and run-long ones stack (PRD 3.6.5).
+        /// </summary>
         private void Activate(string ownerId, EffectDefinition effect, int positionQb)
         {
+            var duplicate = _effects.Duplicate(ownerId, effect);
+            if (duplicate != null)
+            {
+                _effects.Deactivate(duplicate.Id);
+                Emit(new ModifierExpired(positionQb, duplicate.Id, duplicate.OwnerId, duplicate.Value));
+            }
+
             var timer = effect.Lifetime == EffectLifetime.Beats ? StartTimer(effect.LifetimeBeats) : null;
             var modifier = _effects.Activate(ownerId, effect, timer);
-            Emit(new ModifierActivated(positionQb, modifier.Id, ownerId, modifier.Value, modifier.Thousandths, timer?.TotalBeats));
+            Emit(new ModifierActivated(positionQb, modifier.Id, ownerId, modifier.Value, modifier.Additive ? modifier.Bonus : modifier.Thousandths, timer?.TotalBeats, modifier.Additive));
         }
 
         private void PruneExpiredModifiers(int positionQb)
@@ -258,6 +315,15 @@ namespace Chiki.Sim
             foreach (var expired in _effects.PruneExpired())
             {
                 Emit(new ModifierExpired(positionQb, expired.Id, expired.OwnerId, expired.Value));
+            }
+        }
+
+        /// <summary>The value was just used: every modifier on it that lives until consumed is dropped (PRD 3.6.8).</summary>
+        private void ConsumeModifiers(EffectValue value, int positionQb)
+        {
+            foreach (var consumed in _effects.Consume(value))
+            {
+                Emit(new ModifierExpired(positionQb, consumed.Id, consumed.OwnerId, consumed.Value));
             }
         }
 
@@ -276,7 +342,7 @@ namespace Chiki.Sim
 
             foreach (var effect in card.Effects)
             {
-                if (effect.Trigger == EffectTrigger.OnPlay && effect.Modifier == EffectModifier.AddValue && ConditionHolds(effect.Condition, null))
+                if (effect.Trigger == EffectTrigger.OnPlay && effect.Modifier == EffectModifier.AddValue && effect.Value is null && ConditionHolds(effect, null))
                 {
                     value += effect.Amount;
                 }
@@ -285,7 +351,7 @@ namespace Chiki.Sim
             foreach (var effect in card.Effects)
             {
                 if (effect.Trigger == EffectTrigger.OnPlay && effect.Modifier == EffectModifier.MultiplyValue
-                    && effect.Value == EffectValue.CardValue && ConditionHolds(effect.Condition, null))
+                    && effect.Value == EffectValue.CardValue && ConditionHolds(effect, null))
                 {
                     value = Fixed.Mul(value, effect.Amount);
                 }
@@ -324,13 +390,12 @@ namespace Chiki.Sim
                     continue;
                 }
 
-                if (effect.Modifier == EffectModifier.AddValue
-                    || (effect.Modifier == EffectModifier.MultiplyValue && effect.Value == EffectValue.CardValue))
+                if (effect.ShapesCardValue)
                 {
                     continue;
                 }
 
-                if (!ConditionHolds(effect.Condition, null))
+                if (!ConditionHolds(effect, null))
                 {
                     continue;
                 }

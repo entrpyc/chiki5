@@ -113,6 +113,20 @@ namespace Chiki.Sim
                     {
                         violations.Add(new ChartViolation(chart.Id, i, RuleWindUp, $"Charge wind-up {action.WindUpBeats} is outside {Tuning.ChargeWindUpMinBeats}–{Tuning.ChargeWindUpMaxBeats} beats"));
                     }
+                    else
+                    {
+                        // The empowered move lands at the end of the wind-up, and is answered there (PRD 3.6.16).
+                        int landing = action.PositionBeatThousandths + action.WindUpBeats * Fixed.One;
+                        int? next = i + 1 < chart.Actions.Count ? chart.Actions[i + 1].PositionBeatThousandths : (int?)null;
+                        if (landing >= lengthThousandths)
+                        {
+                            violations.Add(new ChartViolation(chart.Id, i, RuleWindUp, $"Charge lands at {Fixed.ToDecimalText(landing)}, outside the track's {track.LengthBeats} beats"));
+                        }
+                        else if (next != null && landing >= next.Value)
+                        {
+                            violations.Add(new ChartViolation(chart.Id, i, RuleWindUp, $"Charge lands at {Fixed.ToDecimalText(landing)}, not before the next action at {Fixed.ToDecimalText(next.Value)}"));
+                        }
+                    }
                 }
                 else if (action.WindUpBeats != 0)
                 {

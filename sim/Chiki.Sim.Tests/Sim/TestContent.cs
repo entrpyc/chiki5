@@ -65,10 +65,33 @@ internal static class TestContent
         return new SimChart("chart-test", "enemy-test", track, actions);
     }
 
-    /// <summary>A valid Normal Fast Aggressor with one ability, 45 s intended, on the chart's own track.</summary>
+    /// <summary>A valid Normal Fast Aggressor with one ability that registers nothing (Charge / Buff acts through the chart), 45 s intended, on the chart's own track.</summary>
     public static EnemyDefinition Enemy(SimChart chart, int damagePerHit = DefaultEnemyDmg)
     {
         return Enemy(chart, EncounterTier.Normal, EnemyRole.Aggressor, RhythmProfile.Fast, 45, damagePerHit: damagePerHit);
+    }
+
+    /// <summary>A Normal Fast Aggressor carrying the given powers, for the power tests (P11).</summary>
+    public static EnemyDefinition EnemyWith(SimChart chart, EnemyAbility? ability = null, EnemyTrait? trait = null, int damagePerHit = DefaultEnemyDmg)
+    {
+        return Enemy(
+            chart,
+            EncounterTier.Normal,
+            EnemyRole.Aggressor,
+            RhythmProfile.Fast,
+            45,
+            ability is null ? null : new[] { ability.Value },
+            trait is null ? null : new[] { trait.Value },
+            damagePerHit: damagePerHit);
+    }
+
+    /// <summary>A telegraphed Charge (PRD 3.6.16): the wind-up starts at the position and the empowered move lands the wind-up later.</summary>
+    public static EnemyAction Charge(int positionQb, int windUpBeats) => new(EnemyActionKind.Charge, positionQb, windUpBeats: windUpBeats);
+
+    /// <summary>A battle in World 1 against the given definition with a fixed starting HP.</summary>
+    public static SimBattle BattleWith(EnemyDefinition enemy, int enemyHp = DefaultEnemyHp, Stats? stats = null)
+    {
+        return new SimBattle(stats ?? new Stats(), enemy, enemyHp, Rng());
     }
 
     public static EnemyDefinition Enemy(
@@ -92,7 +115,7 @@ internal static class TestContent
             intendedSeconds,
             chart,
             damagePerHit,
-            abilities ?? new[] { EnemyAbility.RisingTempo },
+            abilities ?? new[] { EnemyAbility.ChargeBuff },
             traits,
             statusesUsed,
             trackId: trackId);

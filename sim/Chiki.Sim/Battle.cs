@@ -35,8 +35,7 @@ namespace Chiki.Sim
         private int _nextBeat;
         private ActionOpportunity _pending;
         private PendingPress? _pendingPress;
-        private BeatTimer? _enemyDamageReduction;
-        private int _enemyDamageReductionThousandths;
+        private bool _enemyDamagedThisBeat;
 
         /// <summary>The run-wide stats this battle reads and writes; never a copy.</summary>
         public RunStats Stats { get; }
@@ -93,8 +92,19 @@ namespace Chiki.Sim
         /// How much less damage the enemy takes right now, in thousandths (PRD 3.6.9); 0 when no
         /// reduction runs. True DMG ignores it (PRD 3.3.4.7).
         /// </summary>
-        public int EnemyDamageReductionThousandths =>
-            _enemyDamageReduction != null && !_enemyDamageReduction.IsExpired ? _enemyDamageReductionThousandths : 0;
+        public int EnemyDamageReductionThousandths => Fixed.One - _effects.MultiplierFor(EffectValue.EnemyDamageTaken);
+
+        /// <summary>Whether Iron Veil is up: the enemy takes less damage right now (PRD 3.6.9); the presenter darkens the Rhythm Line on it.</summary>
+        public bool IronVeilActive => EnemyDamageReductionThousandths > 0;
+
+        /// <summary>The enemy's Base DMG bonus gained this battle (PRD 3.6.5), added to its damage per hit on every attack.</summary>
+        public int EnemyBaseDmg => _effects.BonusFor(EffectValue.EnemyDamage);
+
+        /// <summary>The damage the enemy's next attack carries before timing and the player's statuses: damage per hit plus Base DMG, times its standing multipliers (PRD 3.6.5, 3.6.8).</summary>
+        public int EnemyDamageNow => Fixed.Mul(EnemyDamagePerHit + EnemyBaseDmg, _effects.MultiplierFor(EffectValue.EnemyDamage));
+
+        /// <summary>Consecutive beats the enemy has ended without taking damage (PRD 3.6.20); 0 after any hit.</summary>
+        public int EnemyQuietBeats { get; private set; }
 
         /// <summary>Total ARD lost this battle (PRD 3.3.9.4).</summary>
         public int DamageTaken { get; private set; }
@@ -199,6 +209,8 @@ namespace Chiki.Sim
             }
 
             _pending = _opportunities[0];
+            RegisterEnemyPowers();
+            Emit(new BattleStarted(0));
             Process(0);
         }
 
@@ -418,8 +430,9 @@ namespace Chiki.Sim
 
         /// <summary>
         /// The enemy takes <paramref name="thousandths"/> less damage for <paramref name="beats"/>
-        /// beats from now, Iron Veil's shape (PRD 3.6.9); a new reduction replaces the running one.
-        /// True DMG ignores it (PRD 3.3.4.7). A no-op once the battle has ended.
+        /// beats from now, Iron Veil's shape (PRD 3.6.9), as a standing multiplier on the damage
+        /// it takes; a reduction the enemy already has of the same size restarts rather than
+        /// stacks. True DMG ignores it (PRD 3.3.4.7). A no-op once the battle has ended.
         /// </summary>
         public void ReduceEnemyDamageTaken(int thousandths, int beats)
         {
@@ -438,9 +451,15 @@ namespace Chiki.Sim
                 return;
             }
 
-            _enemyDamageReduction = StartTimer(beats);
-            _enemyDamageReductionThousandths = thousandths;
-            Emit(new DamageReductionStarted(PositionAt(CurrentTimeMs), thousandths, beats));
+            var reduction = new EffectDefinition(
+                EffectTrigger.Passive,
+                EffectModifier.MultiplyValue,
+                Fixed.One - thousandths,
+                target: StatusTarget.Enemy,
+                value: EffectValue.EnemyDamageTaken,
+                lifetime: EffectLifetime.Beats,
+                lifetimeBeats: beats);
+            Activate(Enemy.Id, reduction, PositionAt(CurrentTimeMs));
         }
 
         /// <summary>
@@ -681,18 +700,13 @@ namespace Chiki.Sim
                 }
             }
 
-            if (_enemyDamageReduction != null && _enemyDamageReduction.IsExpired)
-            {
-                _enemyDamageReduction = null;
-                Emit(new DamageReductionEnded(positionQb));
-            }
-
             PruneExpiredModifiers(positionQb);
         }
 
         /// <summary>
         /// The end of the beat that is about to give way to the next: damage over time acts
-        /// (PRD 3.3.7.2), then every timed status ticks down one beat (PRD 3.3.7.1).
+        /// (PRD 3.3.7.2), then every timed status ticks down one beat (PRD 3.3.7.1), the enemy's
+        /// run of quiet beats is counted (PRD 3.6.20) and the beat's end goes on the stream.
         /// </summary>
         private void EndBeat(int positionQb)
         {
@@ -705,6 +719,10 @@ namespace Chiki.Sim
 
             TickStatuses(StatusTarget.Player, positionQb);
             TickStatuses(StatusTarget.Enemy, positionQb);
+
+            EnemyQuietBeats = _enemyDamagedThisBeat ? 0 : EnemyQuietBeats + 1;
+            _enemyDamagedThisBeat = false;
+            Emit(new BeatEnded(positionQb, _nextBeat - 1, EnemyQuietBeats));
         }
 
         private void TickStatuses(StatusTarget target, int positionQb)
@@ -767,6 +785,13 @@ namespace Chiki.Sim
                     ResolvePlayerEffect(opportunity, press);
                 }
 
+                SettleOutcome(opportunity.PositionQb);
+                if (Outcome != null)
+                {
+                    return;
+                }
+
+                Emit(new ActionResolved(opportunity.PositionQb, opportunity.Index, opportunity.Action.Kind, press?.Grade, context.EnemySkipped));
                 SettleOutcome(opportunity.PositionQb);
                 if (Outcome != null)
                 {
@@ -914,13 +939,19 @@ namespace Chiki.Sim
         private void ResolveIncoming(BeatContext context)
         {
             var opportunity = context.Opportunity!;
-            int statusMult = Fixed.Mul(context.IncomingMultThousandths, _effects.MultiplierFor(EffectValue.DamageTaken));
-            var incoming = Resolution.Incoming(EnemyDamagePerHit, context.Press?.Grade, Block, statusMult);
+
+            // The enemy's side of the product: damage per hit plus Base DMG (PRD 3.6.5), times its
+            // standing multipliers (PRD 3.6.8) and the action's own (a Charge lands at 2x, PRD 3.6.16).
+            int enemyDmg = EnemyDamagePerHit + EnemyBaseDmg;
+            int enemyMult = Fixed.Mul(_effects.MultiplierFor(EffectValue.EnemyDamage), opportunity.Action.DamageMultiplierThousandths);
+            int statusMult = Fixed.Mul(Fixed.Mul(context.IncomingMultThousandths, _effects.MultiplierFor(EffectValue.DamageTaken)), enemyMult);
+            var incoming = Resolution.Incoming(enemyDmg, context.Press?.Grade, Block, statusMult);
             int ardLoss = TakeArd(incoming.ArdLoss);
 
             Block -= incoming.BlockAbsorbed;
             context.ThornsAtArrival = PlayerStatuses.Has(StatusKind.Thorns);
             Emit(new DamageTaken(opportunity.PositionQb, opportunity.Index, ardLoss, incoming.BlockAbsorbed));
+            ConsumeModifiers(EffectValue.EnemyDamage, opportunity.PositionQb);
 
             if (Stats.Ard == 0)
             {
@@ -1046,9 +1077,14 @@ namespace Chiki.Sim
         /// </summary>
         private int DamageEnemy(int amount, out int blockAbsorbed)
         {
-            int reduced = Fixed.Mul(amount, Fixed.One - EnemyDamageReductionThousandths);
+            int reduced = Fixed.Mul(amount, _effects.MultiplierFor(EffectValue.EnemyDamageTaken));
             blockAbsorbed = Math.Min(EnemyBlock, reduced);
             EnemyBlock -= blockAbsorbed;
+            if (reduced > 0)
+            {
+                _enemyDamagedThisBeat = true;
+            }
+
             return TakeEnemyHp(reduced - blockAbsorbed);
         }
 
@@ -1056,6 +1092,11 @@ namespace Chiki.Sim
         {
             int taken = Math.Min(amount, EnemyHp);
             EnemyHp -= taken;
+            if (taken > 0)
+            {
+                _enemyDamagedThisBeat = true;
+            }
+
             return taken;
         }
 
@@ -1119,11 +1160,11 @@ namespace Chiki.Sim
             return Chart.Actions[index % Chart.Actions.Count];
         }
 
-        /// <summary>The absolute quarter-beat position of the action with the given index: its charted position plus whole laps.</summary>
+        /// <summary>The absolute quarter-beat position the action with the given index lands on (a Charge at the end of its wind-up, PRD 3.6.16), plus whole laps.</summary>
         private int AbsolutePositionOf(int index)
         {
             int lap = index / Chart.Actions.Count;
-            return checked(ActionOf(index).PositionQb + lap * Chart.LengthQb);
+            return checked(ActionOf(index).LandingQb + lap * Chart.LengthQb);
         }
 
         private static int FloorMidpoint(int a, int b)

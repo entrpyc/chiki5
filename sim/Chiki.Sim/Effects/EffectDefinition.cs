@@ -14,8 +14,19 @@ namespace Chiki.Sim.Effects
         /// <summary>A standing modifier that applies for as long as its lifetime runs.</summary>
         Passive,
 
+        /// <summary>The battle began, before its first beat (PRD 3.6.25 Guard).</summary>
+        BattleStarted,
+
         BeatStarted,
+
+        /// <summary>A beat ended: damage over time acted and statuses ticked (PRD 3.3.7.1, 3.6.20 Stoneform).</summary>
+        BeatEnded,
+
         InputJudged,
+
+        /// <summary>An enemy action finished resolving with the grade that answered it (PRD 3.3.4.1); the hook for grade-conditioned enemy powers (PRD 3.6.6, 3.6.8, 3.6.9).</summary>
+        ActionResolved,
+
         DamageDealt,
         DamageTaken,
         BlockGained,
@@ -23,7 +34,7 @@ namespace Chiki.Sim.Effects
         BattleEnded,
     }
 
-    /// <summary>The reaction conditions of PRD 3.4.9, evaluated against battle state when the trigger fires.</summary>
+    /// <summary>The reaction conditions of PRD 3.4.9 and the enemy powers' (PRD 3.6), evaluated against battle state when the trigger fires.</summary>
     public enum EffectCondition
     {
         None,
@@ -31,11 +42,29 @@ namespace Chiki.Sim.Effects
         /// <summary>"on Perfect": the press that answered the action was Perfect.</summary>
         OnPerfect,
 
+        /// <summary>The press that answered the action was Good (PRD 3.6.6).</summary>
+        OnGood,
+
+        /// <summary>The press that answered the action was a Miss (PRD 3.6.6).</summary>
+        OnMiss,
+
+        /// <summary>The action went unanswered: no press, or a Stunned player's (PRD 3.3.3.2, 3.6.8).</summary>
+        IfNoInput,
+
         /// <summary>"if this kills": the card's damage took the enemy to 0 HP.</summary>
         IfKills,
 
         /// <summary>"if the enemy is attacking this beat": the action being answered is an attack.</summary>
         IfEnemyAttacking,
+
+        /// <summary>The triggering damage event took HP or ARD, not 0 (PRD 3.6.5).</summary>
+        IfDamageLanded,
+
+        /// <summary>The action being resolved is the enemy's Buff, the moment it uses a timed ability (PRD 3.6.9, 3.6.10).</summary>
+        IfBuffAction,
+
+        /// <summary>The enemy has just completed a run of <see cref="EffectDefinition.ConditionAmount"/> consecutive beats without taking damage (PRD 3.6.20).</summary>
+        IfEnemyQuietBeats,
     }
 
     /// <summary>What an effect does when it fires.</summary>
@@ -56,7 +85,11 @@ namespace Chiki.Sim.Effects
         /// <summary>A run stat changes by the amount (PRD 3.2.3); Ard upward is Repair (PRD 3.4.8).</summary>
         ChangeStat,
 
-        /// <summary>The card's value gains the amount before the multipliers (PRD 3.4.9 reaction bonus).</summary>
+        /// <summary>
+        /// With no <see cref="EffectDefinition.Value"/>: the card's value gains the amount before
+        /// the multipliers (PRD 3.4.9 reaction bonus). With one: a standing bonus on that value
+        /// for the lifetime (PRD 3.6.5 Rising Tempo).
+        /// </summary>
         AddValue,
 
         /// <summary>A value is multiplied by the amount in thousandths.</summary>
@@ -72,7 +105,7 @@ namespace Chiki.Sim.Effects
         Crp,
     }
 
-    /// <summary>What a <see cref="EffectModifier.MultiplyValue"/> modifier multiplies.</summary>
+    /// <summary>What a standing <see cref="EffectModifier.MultiplyValue"/> or <see cref="EffectModifier.AddValue"/> modifier acts on.</summary>
     public enum EffectValue
     {
         /// <summary>The playing card's value (PRD 3.3.4.3).</summary>
@@ -83,13 +116,23 @@ namespace Chiki.Sim.Effects
 
         /// <summary>Damage the player takes.</summary>
         DamageTaken,
+
+        /// <summary>The enemy's damage per hit: additive bonuses are its Base DMG (PRD 3.6.5), multipliers empower its next attacks (PRD 3.6.8).</summary>
+        EnemyDamage,
+
+        /// <summary>Damage the enemy takes other than True DMG (PRD 3.6.9); True DMG ignores it (PRD 3.3.4.7).</summary>
+        EnemyDamageTaken,
     }
 
-    /// <summary>How long a fired effect's modifier lives (P8.1): once, some beats, the battle or the run.</summary>
+    /// <summary>How long a fired effect's modifier lives (P8.1): once, some beats, until consumed, the battle or the run.</summary>
     public enum EffectLifetime
     {
         Instant,
         Beats,
+
+        /// <summary>Until the value it modifies is next used: an enemy attack for <see cref="EffectValue.EnemyDamage"/> (PRD 3.6.8).</summary>
+        Consumed,
+
         Battle,
         Run,
     }
@@ -107,6 +150,9 @@ namespace Chiki.Sim.Effects
 
         public EffectCondition Condition { get; }
 
+        /// <summary>The condition's number: the beats of <see cref="EffectCondition.IfEnemyQuietBeats"/>; 0 for the rest.</summary>
+        public int ConditionAmount { get; }
+
         public EffectModifier Modifier { get; }
 
         /// <summary>The side the modifier acts on.</summary>
@@ -120,13 +166,23 @@ namespace Chiki.Sim.Effects
         /// <summary>The stat a <see cref="EffectModifier.ChangeStat"/> modifier changes.</summary>
         public RunStat? Stat { get; }
 
-        /// <summary>The value a <see cref="EffectModifier.MultiplyValue"/> modifier multiplies.</summary>
+        /// <summary>The value a standing <see cref="EffectModifier.MultiplyValue"/> or <see cref="EffectModifier.AddValue"/> modifier acts on.</summary>
         public EffectValue? Value { get; }
 
         public EffectLifetime Lifetime { get; }
 
         /// <summary>Beats the modifier lives when <see cref="Lifetime"/> is <see cref="EffectLifetime.Beats"/>; otherwise 0.</summary>
         public int LifetimeBeats { get; }
+
+        /// <summary>Whether the modifier is a card-value bonus or multiplier, folded into the value at play (P8.7).</summary>
+        public bool ShapesCardValue =>
+            (Modifier == EffectModifier.AddValue && Value is null)
+            || (Modifier == EffectModifier.MultiplyValue && Value == EffectValue.CardValue);
+
+        /// <summary>Whether the modifier outlives its trigger as a standing bonus or multiplier on a battle value.</summary>
+        public bool IsStanding =>
+            (Modifier == EffectModifier.MultiplyValue && Value != EffectValue.CardValue)
+            || (Modifier == EffectModifier.AddValue && Value != null);
 
         public EffectDefinition(
             EffectTrigger trigger,
@@ -138,7 +194,8 @@ namespace Chiki.Sim.Effects
             RunStat? stat = null,
             EffectValue? value = null,
             EffectLifetime lifetime = EffectLifetime.Instant,
-            int lifetimeBeats = 0)
+            int lifetimeBeats = 0,
+            int conditionAmount = 0)
         {
             if (amount < 0 && modifier != EffectModifier.ChangeStat)
             {
@@ -168,10 +225,16 @@ namespace Chiki.Sim.Effects
                     }
 
                     break;
+                case EffectModifier.AddValue:
+                    if (value == EffectValue.CardValue)
+                    {
+                        throw new ArgumentException("An add-value effect on the card's own value names no value.", nameof(value));
+                    }
+
+                    break;
                 case EffectModifier.DealDamage:
                 case EffectModifier.DealTrueDamage:
                 case EffectModifier.GainBlock:
-                case EffectModifier.AddValue:
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(modifier), modifier, "Unknown modifier.");
@@ -187,19 +250,34 @@ namespace Chiki.Sim.Effects
                 throw new ArgumentException("Only a change-stat effect carries a stat.", nameof(stat));
             }
 
-            if (modifier != EffectModifier.MultiplyValue && value != null)
+            if (modifier != EffectModifier.MultiplyValue && modifier != EffectModifier.AddValue && value != null)
             {
-                throw new ArgumentException("Only a multiply-value effect carries a value.", nameof(value));
+                throw new ArgumentException("Only a multiply-value or add-value effect carries a value.", nameof(value));
             }
 
-            if (trigger == EffectTrigger.Passive && modifier != EffectModifier.MultiplyValue)
+            if (condition == EffectCondition.IfEnemyQuietBeats ? conditionAmount < 1 : conditionAmount != 0)
             {
-                throw new ArgumentException("A passive effect is a standing multiplier.", nameof(trigger));
+                throw new ArgumentOutOfRangeException(nameof(conditionAmount), "Only a quiet-beats condition has an amount, and it is at least 1.");
             }
 
-            bool shapesCardValue = modifier == EffectModifier.AddValue
-                || (modifier == EffectModifier.MultiplyValue && value == EffectValue.CardValue);
-            if (shapesCardValue && trigger != EffectTrigger.OnPlay)
+            Trigger = trigger;
+            Condition = condition;
+            ConditionAmount = conditionAmount;
+            Modifier = modifier;
+            Target = target;
+            Amount = amount;
+            Status = status;
+            Stat = stat;
+            Value = value;
+            Lifetime = lifetime;
+            LifetimeBeats = lifetimeBeats;
+
+            if (trigger == EffectTrigger.Passive && !IsStanding)
+            {
+                throw new ArgumentException("A passive effect is a standing bonus or multiplier.", nameof(trigger));
+            }
+
+            if (ShapesCardValue && trigger != EffectTrigger.OnPlay)
             {
                 throw new ArgumentException("A card-value modifier fires only on the play of its card.", nameof(trigger));
             }
@@ -209,22 +287,10 @@ namespace Chiki.Sim.Effects
                 throw new ArgumentOutOfRangeException(nameof(lifetimeBeats), "Only a lifetime in beats has a beat count, and it is at least 1.");
             }
 
-            bool standing = modifier == EffectModifier.MultiplyValue && !shapesCardValue;
-            if (standing ? lifetime == EffectLifetime.Instant : lifetime != EffectLifetime.Instant)
+            if (IsStanding ? lifetime == EffectLifetime.Instant : lifetime != EffectLifetime.Instant)
             {
-                throw new ArgumentException("Exactly a damage multiplier outlives its trigger: give it a lifetime in beats, the battle or the run.", nameof(lifetime));
+                throw new ArgumentException("Exactly a standing bonus or multiplier outlives its trigger: give it a lifetime in beats, until consumed, the battle or the run.", nameof(lifetime));
             }
-
-            Trigger = trigger;
-            Condition = condition;
-            Modifier = modifier;
-            Target = target;
-            Amount = amount;
-            Status = status;
-            Stat = stat;
-            Value = value;
-            Lifetime = lifetime;
-            LifetimeBeats = lifetimeBeats;
         }
     }
 }

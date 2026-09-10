@@ -50,7 +50,18 @@ namespace Chiki.Sim
             Applies = applies ?? Array.Empty<StatusApplication>();
         }
 
-        public bool IsAttack => Kind == EnemyActionKind.AttackLeft || Kind == EnemyActionKind.AttackRight;
+        /// <summary>Whether the action deals damage when it lands: a Left or Right attack, or a Charge's empowered move (PRD 3.6.16).</summary>
+        public bool IsAttack => Kind == EnemyActionKind.AttackLeft || Kind == EnemyActionKind.AttackRight || Kind == EnemyActionKind.Charge;
+
+        /// <summary>
+        /// The position the action lands on and is answered at: the charted position, or for a
+        /// Charge the end of its wind-up, the charted position being where the telegraph starts
+        /// (PRD 3.6.16).
+        /// </summary>
+        public int LandingQb => Kind == EnemyActionKind.Charge ? PositionQb + Beats.ToQuarterBeats(WindUpBeats) : PositionQb;
+
+        /// <summary>The multiplier on the enemy's damage when this action lands, in thousandths: 2x for a Charge (PRD 3.6.16), 1x otherwise.</summary>
+        public int DamageMultiplierThousandths => Kind == EnemyActionKind.Charge ? Tuning.ChargeDamageMultiplierThousandths : Fixed.One;
     }
 
     /// <summary>
@@ -100,20 +111,20 @@ namespace Chiki.Sim
                 throw new ArgumentNullException(nameof(actions));
             }
 
-            int lastPosition = -1;
+            int lastLanding = -1;
             foreach (var action in actions)
             {
-                if (action.PositionQb <= lastPosition)
+                if (action.PositionQb <= lastLanding)
                 {
-                    throw new ArgumentException("Chart actions must be in strictly ascending position order.", nameof(actions));
+                    throw new ArgumentException("Chart actions must be in strictly ascending position order, each after the previous one lands.", nameof(actions));
                 }
 
-                if (action.PositionQb >= track.LengthQb)
+                if (action.LandingQb >= track.LengthQb)
                 {
-                    throw new ArgumentException("Chart actions must lie inside the track's length.", nameof(actions));
+                    throw new ArgumentException("Chart actions must land inside the track's length.", nameof(actions));
                 }
 
-                lastPosition = action.PositionQb;
+                lastLanding = action.LandingQb;
             }
 
             Id = id;

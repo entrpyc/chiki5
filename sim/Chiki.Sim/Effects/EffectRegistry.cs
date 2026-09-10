@@ -7,8 +7,9 @@ namespace Chiki.Sim.Effects
     public sealed record RegisteredEffect(int Id, string OwnerId, EffectDefinition Definition);
 
     /// <summary>
-    /// A standing multiplier that a fired or passive effect left behind, alive for its lifetime:
-    /// <see cref="Thousandths"/> on every value of kind <see cref="Value"/> until it expires.
+    /// A standing modifier that a fired or passive effect left behind, alive for its lifetime:
+    /// <see cref="Thousandths"/> on every value of kind <see cref="Value"/> for a multiplier, or
+    /// <see cref="Bonus"/> added to it for an additive one, until it expires or is consumed.
     /// </summary>
     public sealed class ActiveModifier
     {
@@ -18,21 +19,30 @@ namespace Chiki.Sim.Effects
 
         public EffectValue Value { get; }
 
+        /// <summary>Whether the modifier adds <see cref="Bonus"/> rather than multiplying by <see cref="Thousandths"/>.</summary>
+        public bool Additive { get; }
+
+        /// <summary>The multiplier in thousandths; <see cref="Fixed.One"/> for an additive modifier.</summary>
         public int Thousandths { get; }
+
+        /// <summary>The whole-number bonus; 0 for a multiplier.</summary>
+        public int Bonus { get; }
 
         public EffectLifetime Lifetime { get; }
 
-        /// <summary>The beat clock of a lifetime in beats; null for a battle- or run-long modifier.</summary>
+        /// <summary>The beat clock of a lifetime in beats; null for the other lifetimes.</summary>
         public BeatTimer? Timer { get; }
 
         public bool IsExpired => Timer != null && Timer.IsExpired;
 
-        internal ActiveModifier(int id, string ownerId, EffectValue value, int thousandths, EffectLifetime lifetime, BeatTimer? timer)
+        internal ActiveModifier(int id, string ownerId, EffectValue value, bool additive, int amount, EffectLifetime lifetime, BeatTimer? timer)
         {
             Id = id;
             OwnerId = ownerId;
             Value = value;
-            Thousandths = thousandths;
+            Additive = additive;
+            Thousandths = additive ? Fixed.One : amount;
+            Bonus = additive ? amount : 0;
             Lifetime = lifetime;
             Timer = timer;
         }
@@ -41,7 +51,7 @@ namespace Chiki.Sim.Effects
     /// <summary>
     /// The effects registered on a battle and the modifiers currently alive (P8.1). The battle
     /// evaluates a registered effect when its trigger event is appended to the stream and reads
-    /// the alive multipliers when it resolves damage. Only the battle mutates the registry.
+    /// the alive bonuses and multipliers when it resolves damage. Only the battle mutates the registry.
     /// </summary>
     public sealed class EffectRegistry
     {
@@ -59,13 +69,28 @@ namespace Chiki.Sim.Effects
             int product = Fixed.One;
             foreach (var modifier in _active)
             {
-                if (modifier.Value == value && !modifier.IsExpired)
+                if (modifier.Value == value && !modifier.Additive && !modifier.IsExpired)
                 {
                     product = Fixed.Mul(product, modifier.Thousandths);
                 }
             }
 
             return product;
+        }
+
+        /// <summary>The sum of every alive additive bonus on a value; 0 when none.</summary>
+        public int BonusFor(EffectValue value)
+        {
+            int sum = 0;
+            foreach (var modifier in _active)
+            {
+                if (modifier.Value == value && modifier.Additive && !modifier.IsExpired)
+                {
+                    sum += modifier.Bonus;
+                }
+            }
+
+            return sum;
         }
 
         internal RegisteredEffect Add(string ownerId, EffectDefinition definition)
@@ -95,11 +120,52 @@ namespace Chiki.Sim.Effects
             return fired;
         }
 
+        /// <summary>
+        /// A modifier already alive that a new activation of the same effect by the same owner
+        /// would restart rather than stack: a lifetime in beats or until consumed (PRD 3.6.8,
+        /// 3.6.9); battle- and run-long modifiers stack (PRD 3.6.5).
+        /// </summary>
+        internal ActiveModifier? Duplicate(string ownerId, EffectDefinition definition)
+        {
+            if (definition.Lifetime != EffectLifetime.Beats && definition.Lifetime != EffectLifetime.Consumed)
+            {
+                return null;
+            }
+
+            bool additive = definition.Modifier == EffectModifier.AddValue;
+            foreach (var modifier in _active)
+            {
+                if (modifier.OwnerId == ownerId
+                    && modifier.Value == definition.Value
+                    && modifier.Additive == additive
+                    && modifier.Lifetime == definition.Lifetime
+                    && (additive ? modifier.Bonus : modifier.Thousandths) == definition.Amount
+                    && !modifier.IsExpired)
+                {
+                    return modifier;
+                }
+            }
+
+            return null;
+        }
+
         internal ActiveModifier Activate(string ownerId, EffectDefinition definition, BeatTimer? timer)
         {
-            var modifier = new ActiveModifier(_nextId++, ownerId, definition.Value!.Value, definition.Amount, definition.Lifetime, timer);
+            var modifier = new ActiveModifier(
+                _nextId++,
+                ownerId,
+                definition.Value!.Value,
+                definition.Modifier == EffectModifier.AddValue,
+                definition.Amount,
+                definition.Lifetime,
+                timer);
             _active.Add(modifier);
             return modifier;
+        }
+
+        internal bool Deactivate(int id)
+        {
+            return _active.RemoveAll(m => m.Id == id) > 0;
         }
 
         /// <summary>Drops the modifiers whose beats have run out, returning them in order.</summary>
@@ -117,6 +183,23 @@ namespace Chiki.Sim.Effects
 
             expired.Reverse();
             return expired;
+        }
+
+        /// <summary>Drops the modifiers on a value that live until it is used, returning them in order; the value has just been used.</summary>
+        internal List<ActiveModifier> Consume(EffectValue value)
+        {
+            var consumed = new List<ActiveModifier>();
+            for (int i = _active.Count - 1; i >= 0; i--)
+            {
+                if (_active[i].Value == value && _active[i].Lifetime == EffectLifetime.Consumed)
+                {
+                    consumed.Add(_active[i]);
+                    _active.RemoveAt(i);
+                }
+            }
+
+            consumed.Reverse();
+            return consumed;
         }
     }
 }

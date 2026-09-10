@@ -29,8 +29,25 @@ namespace Chiki.Sim
     /// </summary>
     public abstract record BattleEvent(int PositionQb);
 
+    /// <summary>The battle began, before its first beat; battle-start powers act here (PRD 3.6.25).</summary>
+    public sealed record BattleStarted(int PositionQb) : BattleEvent(PositionQb);
+
     /// <summary>A whole beat has started; durations tick here (PRD 3.3.1.4).</summary>
     public sealed record BeatStarted(int PositionQb, int Beat) : BattleEvent(PositionQb);
+
+    /// <summary>
+    /// Beat <see cref="Beat"/> ended (PRD 3.3.7.1): damage over time has acted and statuses have
+    /// ticked; <see cref="EnemyQuietBeats"/> is the enemy's run of consecutive beats without taking
+    /// damage, this one included (PRD 3.6.20).
+    /// </summary>
+    public sealed record BeatEnded(int PositionQb, int Beat, int EnemyQuietBeats) : BattleEvent(PositionQb);
+
+    /// <summary>
+    /// An enemy action finished resolving (PRD 3.3.4.1): <see cref="Grade"/> is the press that
+    /// answered it, or null for no input (PRD 3.3.3.2); <see cref="EnemySkipped"/> is true when
+    /// Stun stopped the action itself (PRD 3.3.7.5). Grade-conditioned enemy powers act here.
+    /// </summary>
+    public sealed record ActionResolved(int PositionQb, int ActionIndex, EnemyActionKind Kind, Judgment? Grade, bool EnemySkipped) : BattleEvent(PositionQb);
 
     /// <summary>
     /// The track and chart reached their end and restarted together (PRD 3.6.32): <see cref="Loop"/>
@@ -85,25 +102,17 @@ namespace Chiki.Sim
     /// <summary>One side's Block was cleared at battle end (PRD 3.3.9.5); <see cref="Amount"/> is what it held.</summary>
     public sealed record BlockCleared(int PositionQb, StatusTarget Target, int Amount) : BattleEvent(PositionQb);
 
-    /// <summary>
-    /// The enemy takes <see cref="Thousandths"/> less damage for <see cref="Beats"/> beats
-    /// (PRD 3.6.9); True DMG ignores it (PRD 3.3.4.7). A new reduction replaces the running one.
-    /// </summary>
-    public sealed record DamageReductionStarted(int PositionQb, int Thousandths, int Beats) : BattleEvent(PositionQb);
-
-    /// <summary>The enemy's damage reduction ran out (PRD 3.6.9).</summary>
-    public sealed record DamageReductionEnded(int PositionQb) : BattleEvent(PositionQb);
-
     /// <summary>A run stat changed by an effect (PRD 3.2.3): <see cref="Delta"/> was applied and <see cref="Total"/> is the stat afterwards.</summary>
     public sealed record StatChanged(int PositionQb, Effects.RunStat Stat, int Delta, int Total) : BattleEvent(PositionQb);
 
     /// <summary>
-    /// A standing multiplier came alive (P8.1): <see cref="Thousandths"/> on every
-    /// <see cref="Value"/> for <see cref="Beats"/> beats, or for the battle when null.
+    /// A standing modifier came alive (P8.1): <see cref="Amount"/> is the multiplier in
+    /// thousandths, or the bonus when <see cref="Additive"/>, on every <see cref="Value"/> for
+    /// <see cref="Beats"/> beats, or until consumed or the battle ends when null.
     /// </summary>
-    public sealed record ModifierActivated(int PositionQb, int ModifierId, string OwnerId, Effects.EffectValue Value, int Thousandths, int? Beats) : BattleEvent(PositionQb);
+    public sealed record ModifierActivated(int PositionQb, int ModifierId, string OwnerId, Effects.EffectValue Value, int Amount, int? Beats, bool Additive = false) : BattleEvent(PositionQb);
 
-    /// <summary>A standing multiplier's beats ran out (P8.1).</summary>
+    /// <summary>A standing modifier ended: its beats ran out, it was consumed, or it was restarted (P8.1).</summary>
     public sealed record ModifierExpired(int PositionQb, int ModifierId, string OwnerId, Effects.EffectValue Value) : BattleEvent(PositionQb);
 
     /// <summary>

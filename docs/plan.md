@@ -758,53 +758,53 @@ Ties broken: 3.2.3 is delivered twice, the stat holder in Phase 1 and the Base D
 - Needs: P9.6, P9.9, P10.1
 - Test (unit): `Sim.Fixtures › fixture_enemies_validate` — given the fixture set, when definitions and charts are validated, then there are zero violations, one definition per tier exists, and no two enemies share a track.
 
-### Phase 11 — The framework runs enemy powers
+### ✅ Phase 11 — The framework runs enemy powers
 
 *Delivers the seven exerciser abilities and traits through the shared framework, one per trigger shape. Done when every P11 test is green and the suite passes.*
 
-#### P11.1 Rising Tempo
+#### ✅ P11.1 Rising Tempo
 
 - PRD: 3.6.5
-- Does: Passive: each time this enemy deals ARD damage, its Base DMG rises by 3 for the rest of the battle.
+- Does: Passive: each time this enemy deals ARD damage, its Base DMG rises by 3 for the rest of the battle. Assumption: every in-scope power is a list of framework effects registered on the enemy at battle start; the framework gained the triggers BattleStarted, BeatEnded and ActionResolved, grade and quiet-beat conditions, standing additive bonuses, a lifetime "until consumed" and the values EnemyDamage and EnemyDamageTaken to express them; powers outside this phase register nothing yet.
 - Needs: P8.1, P3.1
 - Test (unit): `Sim.Powers › rising_tempo_adds_3_per_hit` — given damage 10 and two landed hits, when the third attack resolves on a Miss, then ARD loss is 16.
 
-#### P11.2 Misstep Pain
+#### ✅ P11.2 Misstep Pain
 
 - PRD: 3.6.6
-- Does: Passive: the player takes 5 damage on a Good and 10 on a Miss, applied after the beat's incoming damage; no-input beats are exempt (P4.3).
+- Does: Passive: the player takes 5 damage on a Good and 10 on a Miss, applied after the beat's incoming damage; no-input beats are exempt (P4.3). Assumption: it fires on every charted action the player answers, attack or not, once the action has fully resolved, and its damage takes Block first like any effect damage.
 - Needs: P8.1, P4.3
 - Test (unit): `Sim.Powers › misstep_pain_by_grade` — given three charted Buff actions, when the player answers Good, Miss and then takes no input, then ARD losses are 5, 10 and 0.
 
-#### P11.3 Pressure
+#### ✅ P11.3 Pressure
 
 - PRD: 3.6.8
-- Does: Passive: after an enemy action with no input, the enemy's next attack deals 2× damage; the multiplier is consumed by that attack.
+- Does: Passive: after an enemy action with no input, the enemy's next attack deals 2× damage; the multiplier is consumed by that attack. Assumption: consecutive no-input actions do not stack the multiplier, and the attack consumes it whatever its grade.
 - Needs: P8.1, P4.3
 - Test (unit): `Sim.Powers › pressure_doubles_after_no_input` — given damage 10, when the player takes no input and then Misses the next attack, then that attack costs 20 and the one after costs 10.
 
-#### P11.4 Iron Veil
+#### ✅ P11.4 Iron Veil
 
 - PRD: 3.6.9
-- Does: Timed: for 5 beats from activation the enemy takes 80% less damage; an IronVeilActive flag is on the battle state for the presenter.
+- Does: Timed: for 5 beats from activation the enemy takes 80% less damage; an IronVeilActive flag is on the battle state for the presenter. Assumption: the enemy activates it on its charted Buff action (P2.10), and a second activation while it runs restarts it rather than stacking.
 - Needs: P8.1, P3.2
 - Test (unit): `Sim.Powers › iron_veil_reduces_80_for_5_beats` — given Iron Veil on beat 2, when a 10 Perfect lands on beat 4 and another on beat 8, then the enemy loses 2 and then 10.
 
-#### P11.5 Charge / Buff
+#### ✅ P11.5 Charge / Buff
 
 - PRD: 3.6.16
-- Does: Telegraphed: a Charge action in the chart shows a wind-up of 3–5 beats on the upcoming-actions list (P9.5), then resolves as an empowered move at 2× its base damage; the validator (P9.9) rejects wind-ups outside 3–5.
+- Does: Telegraphed: a Charge action in the chart shows a wind-up of 3–5 beats on the upcoming-actions list (P9.5), then resolves as an empowered move at 2× its base damage; the validator (P9.9) rejects wind-ups outside 3–5. Assumption: the charted position is where the wind-up starts and the move lands, and is answered, at that position plus the wind-up; the validator also requires the landing to fall inside the track and before the next action; the 2× is a property of the Charge action kind and the ability itself registers no effect.
 - Needs: P8.1, P9.5
 - Test (unit): `Sim.Powers › charge_telegraphs_then_hits_double` — given Charge(4) at beat 2 with damage 10, when upcoming actions are read at beat 2, then the hit shows at beat 6 with 4 remaining; when it lands on a Miss, ARD loss is 20.
 
-#### P11.6 Stoneform
+#### ✅ P11.6 Stoneform
 
 - PRD: 3.6.20
-- Does: Conditional: after three consecutive beats in which the enemy took no damage, it gains 10 Block; the counter resets on any damage.
+- Does: Conditional: after three consecutive beats in which the enemy took no damage, it gains 10 Block; the counter resets on any damage. Assumption: beats are counted from beat 0 at each beat's end, a hit fully absorbed by Block still counts as damage, and the grant repeats every three quiet beats.
 - Needs: P8.1
 - Test (unit): `Sim.Powers › stoneform_after_three_quiet_beats` — given the enemy undamaged for beats 1–3, when beat 3 ends, then the enemy has 10 Block; when damaged on beat 2, none by beat 4.
 
-#### P11.7 Guard
+#### ✅ P11.7 Guard
 
 - PRD: 3.6.25
 - Does: Battle-start: the enemy begins with 30 Block, which absorbs damage before HP.

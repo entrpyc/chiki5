@@ -156,6 +156,36 @@ namespace Chiki.Sim
         public const int BossStatusesMin = 1;
         public const int BossStatusesMax = 2;
 
+        /// <summary>Rising Tempo: Base DMG the enemy gains each time it deals damage (PRD 3.6.5).</summary>
+        public const int RisingTempoBaseDmgPerHit = 3;
+
+        /// <summary>Misstep Pain: damage the player takes on a Good (PRD 3.6.6).</summary>
+        public const int MisstepPainGoodDamage = 5;
+
+        /// <summary>Misstep Pain: damage the player takes on a Miss (PRD 3.6.6).</summary>
+        public const int MisstepPainMissDamage = 10;
+
+        /// <summary>Pressure: the multiplier on the enemy's next attack after a no-input action, in thousandths: 2x (PRD 3.6.8).</summary>
+        public const int PressureMultiplierThousandths = 2000;
+
+        /// <summary>Iron Veil: how much less damage the enemy takes, in thousandths: 80% (PRD 3.6.9).</summary>
+        public const int IronVeilReductionThousandths = 800;
+
+        /// <summary>Iron Veil: beats it lasts (PRD 3.6.9).</summary>
+        public const int IronVeilBeats = 5;
+
+        /// <summary>Charge: the multiplier on the empowered move's damage, in thousandths: 2x (PRD 3.6.16).</summary>
+        public const int ChargeDamageMultiplierThousandths = 2000;
+
+        /// <summary>Stoneform: consecutive beats without taking damage that grant Block (PRD 3.6.20).</summary>
+        public const int StoneformQuietBeats = 3;
+
+        /// <summary>Stoneform: Block granted (PRD 3.6.20).</summary>
+        public const int StoneformBlock = 10;
+
+        /// <summary>Guard: Block the enemy starts combat with (PRD 3.6.25).</summary>
+        public const int GuardBlock = 30;
+
         /// <summary>Shortest Charge wind-up in beats (PRD 3.6.16, 3.6.31).</summary>
         public const int ChargeWindUpMinBeats = 3;
 

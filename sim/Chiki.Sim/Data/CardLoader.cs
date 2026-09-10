@@ -108,7 +108,8 @@ namespace Chiki.Sim.Data
                 statId is null ? (RunStat?)null : StatFromId(statId),
                 valueId is null ? (EffectValue?)null : ValueFromId(valueId),
                 LifetimeFromId(lifetimeId ?? "instant"),
-                json.Optional("beats")?.AsInt() ?? 0);
+                json.Optional("beats")?.AsInt() ?? 0,
+                json.Optional("conditionAmount")?.AsInt() ?? 0);
         }
 
         public static CardCategory CategoryFromId(string id)
@@ -176,8 +177,11 @@ namespace Chiki.Sim.Data
             {
                 case "on-play": return EffectTrigger.OnPlay;
                 case "passive": return EffectTrigger.Passive;
+                case "battle-started": return EffectTrigger.BattleStarted;
                 case "beat-started": return EffectTrigger.BeatStarted;
+                case "beat-ended": return EffectTrigger.BeatEnded;
                 case "input-judged": return EffectTrigger.InputJudged;
+                case "action-resolved": return EffectTrigger.ActionResolved;
                 case "damage-dealt": return EffectTrigger.DamageDealt;
                 case "damage-taken": return EffectTrigger.DamageTaken;
                 case "block-gained": return EffectTrigger.BlockGained;
@@ -193,8 +197,14 @@ namespace Chiki.Sim.Data
             {
                 case "none": return EffectCondition.None;
                 case "on-perfect": return EffectCondition.OnPerfect;
+                case "on-good": return EffectCondition.OnGood;
+                case "on-miss": return EffectCondition.OnMiss;
+                case "if-no-input": return EffectCondition.IfNoInput;
                 case "if-kills": return EffectCondition.IfKills;
                 case "if-enemy-attacking": return EffectCondition.IfEnemyAttacking;
+                case "if-damage-landed": return EffectCondition.IfDamageLanded;
+                case "if-buff-action": return EffectCondition.IfBuffAction;
+                case "if-enemy-quiet-beats": return EffectCondition.IfEnemyQuietBeats;
                 default: throw new JsonException($"Unknown effect condition '{id}'.");
             }
         }
@@ -243,6 +253,8 @@ namespace Chiki.Sim.Data
                 case "card-value": return EffectValue.CardValue;
                 case "damage-dealt": return EffectValue.DamageDealt;
                 case "damage-taken": return EffectValue.DamageTaken;
+                case "enemy-damage": return EffectValue.EnemyDamage;
+                case "enemy-damage-taken": return EffectValue.EnemyDamageTaken;
                 default: throw new JsonException($"Unknown effect value '{id}'.");
             }
         }
@@ -253,6 +265,7 @@ namespace Chiki.Sim.Data
             {
                 case "instant": return EffectLifetime.Instant;
                 case "beats": return EffectLifetime.Beats;
+                case "consumed": return EffectLifetime.Consumed;
                 case "battle": return EffectLifetime.Battle;
                 case "run": return EffectLifetime.Run;
                 default: throw new JsonException($"Unknown effect lifetime '{id}'.");

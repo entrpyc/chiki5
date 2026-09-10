@@ -299,11 +299,11 @@ Ties broken: 3.2.3 is delivered twice, the stat holder in Phase 1 and the Base D
 - Needs: P2.10, P2.1
 - Test (unit): `Sim.Beats › opportunities_equal_chart_actions` — given a chart with actions at 1, 2.5 and 4.25 beats, when the battle enumerates its opportunities, then there are exactly three, at those times, and none on beats 3 or 5.
 
-### Phase 3 — Damage resolves
+### ✅ Phase 3 — Damage resolves
 
 *Delivers the full resolution of one enemy action: incoming damage by timing, player effect by timing and category, and the two ways a battle ends. Done when every P3 test is green and the suite passes.*
 
-#### P3.1 Incoming damage formula
+#### ✅ P3.1 Incoming damage formula
 
 - PRD: 3.3.4.2
 - Does: When the enemy attacks on a beat, `Incoming = EnemyDMG × IncomingMult × StatusMults − Block` with IncomingMult 0% Perfect, 50% Good, 100% Miss, 100% no input; Block absorbs first and is reduced; the remainder reduces ARD; result is never negative.
@@ -311,53 +311,53 @@ Ties broken: 3.2.3 is delivered twice, the stat holder in Phase 1 and the Base D
 - Test (unit): `Sim.Resolve › incoming_by_judgment` — given enemy DMG 20 and no Block, when the judgment is Perfect, Good, Miss and no-input, then ARD loss is 0, 10, 20 and 20.
 - Test (unit): `Sim.Resolve › block_absorbs_first` — given Block 6 and Good against DMG 20, when resolved, then Block is 0 and ARD loss is 4.
 
-#### P3.2 Player effect formula
+#### ✅ P3.2 Player effect formula
 
 - PRD: 3.3.4.3
-- Does: `Effect = CardValue × JudgmentMult × (1 + BaseDMG%) × StatusMults` with JudgmentMult 100% Perfect, 50% Good, 0% Miss; for Defense cards the value is Block gained. The Base DMG term is realised so that the rule in 3.2.3 holds (P3.3).
+- Does: `Effect = CardValue × JudgmentMult × (1 + BaseDMG%) × StatusMults` with JudgmentMult 100% Perfect, 50% Good, 0% Miss; for Defense cards the value is Block gained. The Base DMG term is realised so that the rule in 3.2.3 holds (P3.3). Assumption: until P7.1 the card is a minimal `CardDefinition` (id, name, Category, CardValue), and until the Loadout exists (P16) `Battle.Press` takes the card the slot holds from the caller.
 - Needs: P2.8, P1.4
 - Test (unit): `Sim.Resolve › effect_by_judgment` — given a 10-damage attack card, when Perfect, Good and Miss, then damage is 10, 5 and 0.
 - Test (unit): `Sim.Resolve › defense_block_by_judgment` — given an 8-Block Defense card, when Good, then Block gained is 4.
 
-#### P3.3 Base DMG adds one per point
+#### ✅ P3.3 Base DMG adds one per point
 
 - PRD: 3.2.3
-- Does: Each +1 Base DMG adds exactly +1 to every attack card's Perfect output before multipliers; Defense and Ability values are unaffected.
+- Does: Each +1 Base DMG adds exactly +1 to every attack card's Perfect output before multipliers; Defense and Ability values are unaffected. Assumption: the Good case is 13 × 50% = 6.5, which P3.6 rounds up to 7; the earlier figure of 6 was an arithmetic slip.
 - Needs: P3.2
-- Test (unit): `Sim.Resolve › base_dmg_adds_flat` — given Base DMG 3 and a 10-damage attack, when Perfect, then damage is 13; when Good, 6 (rounded per P3.6).
+- Test (unit): `Sim.Resolve › base_dmg_adds_flat` — given Base DMG 3 and a 10-damage attack, when Perfect, then damage is 13; when Good, 7 (six and a half rounds up per P3.6).
 - Test (unit): `Sim.Resolve › base_dmg_ignores_defense` — given Base DMG 3 and an 8-Block card, when Perfect, then Block gained is 8.
 
-#### P3.4 Efficacy matrix
+#### ✅ P3.4 Efficacy matrix
 
 - PRD: 3.3.4.4
-- Does: Player effect is applied by the matrix: against a Left or Right attack a correct-side attack deals full damage, a wrong-side attack deals 0, Defense gains Block, Ability resolves, Signature send banks; against Defends an attack is reduced by the enemy's defense level; against Buffs or idle any attack deals full damage.
+- Does: Player effect is applied by the matrix: against a Left or Right attack a correct-side attack deals full damage, a wrong-side attack deals 0, Defense gains Block, Ability resolves, Signature send banks; against Defends an attack is reduced by the enemy's defense level; against Buffs or idle any attack deals full damage. Assumption: against a Defend both attack sides are reduced by the same defense level; a Charge wind-up (3.6.16) resolves as the Buff row; an Ability has nothing to resolve until P8.1 attaches effects.
 - Needs: P3.2
 - Test (unit): `Sim.Resolve › wrong_side_whiffs` — given the enemy attacks Left, when the player plays a Right Attack with Perfect, then damage dealt is 0.
 - Test (unit): `Sim.Resolve › no_wrong_side_on_buff` — given the enemy's charted action is a Buff, when the player plays a Right Attack with Perfect, then full damage is dealt.
 - Test (unit): `Sim.Resolve › attack_into_defend_reduced` — given the enemy Defends with defense level 50%, when a 10-damage correct attack lands Perfect, then damage dealt is 5.
 
-#### P3.5 Timing governs incoming, category governs efficacy
+#### ✅ P3.5 Timing governs incoming, category governs efficacy
 
 - PRD: 3.3.4.1
-- Does: The resolution order is fixed: grade, incoming damage, player effect. Incoming damage never reads the card's category.
+- Does: The resolution order is fixed: grade, incoming damage, player effect. Incoming damage never reads the card's category. Assumption: because incoming resolves before the effect, Block gained on an action absorbs from the next enemy action on, not the one it answered.
 - Needs: P3.1, P3.4
 - Test (unit): `Sim.Resolve › incoming_independent_of_category` — given the enemy attacks for 20, when the player plays Defense, wrong-side Attack, Ability and Signature send each with Perfect, then ARD loss is 0 in all four cases; with Good, 10 in all four.
 
-#### P3.6 Rounding
+#### ✅ P3.6 Rounding
 
 - PRD: 3.3.4.5
 - Does: Damage and Block are computed in thousandths and rounded to the nearest whole number once, at display and application, with halves rounding up.
 - Needs: P3.2
 - Test (unit): `Sim.Resolve › rounds_to_nearest` — given a 7-damage card at Good, when applied, then damage is 4 (three and a half rounds up); given 9 at Good, 5 (four and a half rounds up).
 
-#### P3.7 Battle won at HP 0
+#### ✅ P3.7 Battle won at HP 0
 
 - PRD: 3.3.9.2
-- Does: When enemy HP reaches 0 the battle ends with outcome Won and emits BattleEnded; no further beats are processed.
+- Does: When enemy HP reaches 0 the battle ends with outcome Won and emits BattleEnded; no further beats are processed. Assumption: until P10.2 derives it, enemy HP is a `Battle` constructor argument.
 - Needs: P3.4
 - Test (unit): `Sim.Battle › won_at_zero_hp` — given enemy HP 10, when a 10-damage Perfect lands, then the outcome is Won and the next beat tick is a no-op.
 
-#### P3.8 Player dies at ARD 0
+#### ✅ P3.8 Player dies at ARD 0
 
 - PRD: 3.3.9.3
 - Does: When ARD reaches 0 the battle ends with outcome Died and emits BattleEnded.

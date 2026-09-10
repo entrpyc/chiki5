@@ -17,14 +17,26 @@ namespace Chiki.Sim
     /// <summary>A whole beat has started; durations tick here (PRD 3.3.1.4).</summary>
     public sealed record BeatStarted(int PositionQb, int Beat) : BattleEvent(PositionQb);
 
-    /// <summary>A pressed input was graded against an enemy action (PRD 3.3.3.1).</summary>
-    public sealed record InputJudged(int PositionQb, int ActionIndex, Slot Slot, Judgment Grade, int OffsetMs) : BattleEvent(PositionQb);
+    /// <summary>
+    /// A pressed input was graded against an enemy action (PRD 3.3.3.1). <see cref="SignatureSend"/>
+    /// is true when the press was Space plus the slot key (PRD 3.3.2.3).
+    /// </summary>
+    public sealed record InputJudged(int PositionQb, int ActionIndex, Slot Slot, string CardId, Judgment Grade, int OffsetMs, bool SignatureSend) : BattleEvent(PositionQb);
 
-    /// <summary>The player dealt damage to the enemy (PRD 3.3.4.3).</summary>
-    public sealed record DamageDealt(int PositionQb, int Amount) : BattleEvent(PositionQb);
+    /// <summary>
+    /// The player's attack resolved against the enemy (PRD 3.3.4.3, 3.3.4.4); <see cref="Amount"/> is
+    /// the HP the enemy lost, 0 for a whiffed side.
+    /// </summary>
+    public sealed record DamageDealt(int PositionQb, int ActionIndex, int Amount) : BattleEvent(PositionQb);
 
-    /// <summary>An enemy attack resolved against the player (PRD 3.3.4.2).</summary>
-    public sealed record DamageTaken(int PositionQb, int ActionIndex, int Amount) : BattleEvent(PositionQb);
+    /// <summary>
+    /// An enemy attack resolved against the player (PRD 3.3.4.2): <see cref="BlockAbsorbed"/> came
+    /// off Block first and <see cref="Amount"/> is the ARD lost.
+    /// </summary>
+    public sealed record DamageTaken(int PositionQb, int ActionIndex, int Amount, int BlockAbsorbed) : BattleEvent(PositionQb);
+
+    /// <summary>A Defense card gave the player Block (PRD 3.3.4.3, 3.3.4.4).</summary>
+    public sealed record BlockGained(int PositionQb, int ActionIndex, int Amount) : BattleEvent(PositionQb);
 
     /// <summary>A status landed on the player or the enemy (PRD 3.3.7.1).</summary>
     public sealed record StatusApplied(int PositionQb, string StatusId, bool OnPlayer, int Beats) : BattleEvent(PositionQb);

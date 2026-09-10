@@ -1,8 +1,10 @@
+using System;
+
 namespace Chiki.Sim
 {
     /// <summary>
     /// Fixed-point arithmetic in thousandths. Rule code multiplies in thousandths and
-    /// calls <see cref="Round"/> exactly once at the end; halves round up (PRD 3.3.4.5).
+    /// calls <see cref="Round(long)"/> exactly once at the end; halves round up (PRD 3.3.4.5).
     /// </summary>
     public static class Fixed
     {
@@ -15,9 +17,24 @@ namespace Chiki.Sim
         /// </summary>
         public static int Round(long thousandths)
         {
-            long shifted = thousandths + One / 2;
-            long quotient = shifted / One;
-            if (shifted < 0 && shifted % One != 0)
+            return Round(thousandths, One);
+        }
+
+        /// <summary>
+        /// The same rounding for a value whose whole unit is <paramref name="scale"/> (for a
+        /// product of several thousandths multipliers, a power of 1000). Rounds to nearest with
+        /// halves rounding up; the division happens once, so no intermediate truncation occurs.
+        /// </summary>
+        public static int Round(long value, long scale)
+        {
+            if (scale <= 0 || scale % 2 != 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(scale), "Scale must be a positive even number.");
+            }
+
+            long shifted = value + scale / 2;
+            long quotient = shifted / scale;
+            if (shifted < 0 && shifted % scale != 0)
             {
                 quotient--; // floor division for negatives
             }

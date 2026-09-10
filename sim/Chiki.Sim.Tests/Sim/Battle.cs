@@ -13,8 +13,8 @@ public class Battle
 
         Assert.Multiple(() =>
         {
-            Assert.That(() => new SimBattle(new Stats(), new[] { enemy, enemy }), Throws.ArgumentException);
-            Assert.That(() => new SimBattle(new Stats(), new[] { enemy }), Throws.Nothing);
+            Assert.That(() => new SimBattle(new Stats(), new[] { enemy, enemy }, TestContent.DefaultEnemyHp), Throws.ArgumentException);
+            Assert.That(() => new SimBattle(new Stats(), new[] { enemy }, TestContent.DefaultEnemyHp), Throws.Nothing);
         });
     }
 
@@ -57,12 +57,49 @@ public class Battle
         });
     }
 
+    [Test]
+    public void won_at_zero_hp()
+    {
+        // Enemy HP 10, left attacks on beats 1 and 3; a 10-damage Perfect on beat 1.
+        var battle = TestContent.Battle(new Stats(), TestContent.Chart(TestContent.Track(), 4, 12), enemyHp: 10);
+        battle.Press(TestContent.SlotD, TestContent.LeftAttack10, 500);
+
+        battle.AdvanceToBeat(2);
+        int eventsAtEnd = battle.Events.Count;
+        battle.AdvanceToBeat(3);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(battle.EnemyHp, Is.EqualTo(0));
+            Assert.That(battle.Outcome, Is.EqualTo(BattleOutcome.Won));
+            Assert.That(battle.Events.OfType<BattleEnded>().Single().Outcome, Is.EqualTo(BattleOutcome.Won));
+            Assert.That(battle.Events, Has.Count.EqualTo(eventsAtEnd), "the beat tick after the win was not a no-op");
+            Assert.That(battle.Events.OfType<BeatStarted>().Select(b => b.Beat), Has.None.EqualTo(3));
+        });
+    }
+
+    [Test]
+    public void died_at_zero_ard()
+    {
+        var stats = new Stats { Ard = 15 };
+        var battle = TestContent.Battle(stats, TestContent.Chart(TestContent.Track(), 4), enemyDmg: 20);
+
+        battle.AdvanceToBeat(2);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(stats.Ard, Is.EqualTo(0));
+            Assert.That(battle.Outcome, Is.EqualTo(BattleOutcome.Died));
+            Assert.That(battle.Events.OfType<BattleEnded>().Single().Outcome, Is.EqualTo(BattleOutcome.Died));
+        });
+    }
+
     /// <summary>Five left attacks on beats 1..5; beats 1 and 3 are answered on the beat.</summary>
     private static SimBattle FiveActionBattleAnsweringFirstAndThird()
     {
         var battle = TestContent.Battle(4, 8, 12, 16, 20);
-        battle.Press(TestContent.SlotD, 500);
-        battle.Press(TestContent.SlotD, 1500);
+        battle.Press(TestContent.SlotD, TestContent.LeftAttack10, 500);
+        battle.Press(TestContent.SlotD, TestContent.LeftAttack10, 1500);
         return battle;
     }
 

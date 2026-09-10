@@ -28,5 +28,26 @@ namespace Chiki.Sim
         /// region at their midpoint (see <see cref="Battle"/>).
         /// </summary>
         public const int JudgmentWindowBeatThousandths = 250;
+
+        /// <summary>IncomingMult on a Perfect, in thousandths: 0% (PRD 3.3.4.2).</summary>
+        public const int IncomingMultPerfectThousandths = 0;
+
+        /// <summary>IncomingMult on a Good, in thousandths: 50% (PRD 3.3.4.2).</summary>
+        public const int IncomingMultGoodThousandths = 500;
+
+        /// <summary>IncomingMult on a Miss, in thousandths: 100% (PRD 3.3.4.2).</summary>
+        public const int IncomingMultMissThousandths = 1000;
+
+        /// <summary>IncomingMult on no input, in thousandths: 100% (PRD 3.3.4.2, 3.3.3.2).</summary>
+        public const int IncomingMultNoInputThousandths = 1000;
+
+        /// <summary>JudgmentMult on a Perfect, in thousandths: 100% (PRD 3.3.4.3).</summary>
+        public const int JudgmentMultPerfectThousandths = 1000;
+
+        /// <summary>JudgmentMult on a Good, in thousandths: 50% (PRD 3.3.4.3).</summary>
+        public const int JudgmentMultGoodThousandths = 500;
+
+        /// <summary>JudgmentMult on a Miss, in thousandths: 0% (PRD 3.3.4.3).</summary>
+        public const int JudgmentMultMissThousandths = 0;
     }
 }

@@ -204,6 +204,23 @@ public class Cards
         });
     }
 
+    [Test]
+    public void instances_are_distinct()
+    {
+        var definition = Attack(id: "card-fleeting", cardClass: CardClass.Unstable, lifespan: 3);
+        var first = new CardInstance(1, definition);
+        var second = new CardInstance(2, definition);
+
+        first.CountBattle();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(first.BattlesRemaining, Is.EqualTo(2));
+            Assert.That(second.BattlesRemaining, Is.EqualTo(3));
+            Assert.That(first, Is.Not.SameAs(second));
+        });
+    }
+
     /// <summary>A Left Attack that is valid unless an argument says otherwise: Common, 10 damage, cooldown 2, Normal.</summary>
     private static CardDefinition Attack(
         string id = "card-attack",

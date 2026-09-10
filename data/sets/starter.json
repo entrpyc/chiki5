@@ -1,0 +1,256 @@
+{
+  "id": "starter",
+  "cards": [
+    {
+      "id": "card-jab",
+      "name": "Jab",
+      "category": "left-attack",
+      "rarity": "common",
+      "class": "normal",
+      "value": 8,
+      "cooldownBeats": 2,
+      "upgradeStep": 2,
+      "flavorText": "The first blow Griit taught, and the last one Zarr forgot.",
+      "unlockSource": "starter"
+    },
+    {
+      "id": "card-cleave",
+      "name": "Cleave",
+      "category": "left-attack",
+      "rarity": "common",
+      "class": "normal",
+      "value": 12,
+      "cooldownBeats": 4,
+      "upgradeStep": 2,
+      "unlockSource": "starter"
+    },
+    {
+      "id": "card-rend",
+      "name": "Rend",
+      "category": "left-attack",
+      "rarity": "common",
+      "class": "normal",
+      "value": 10,
+      "cooldownBeats": 3,
+      "effects": [
+        { "trigger": "on-play", "modifier": "apply-status", "status": "bleed", "stacks": 1, "target": "enemy" }
+      ],
+      "specialRules": "Applies 1 Bleed.",
+      "upgradeStep": 2,
+      "unlockSource": "starter"
+    },
+    {
+      "id": "card-starter-1",
+      "name": "Starter 1",
+      "category": "left-attack",
+      "rarity": "common",
+      "class": "normal",
+      "value": 9,
+      "cooldownBeats": 2,
+      "upgradeStep": 2,
+      "unlockSource": "starter"
+    },
+    {
+      "id": "card-starter-2",
+      "name": "Starter 2",
+      "category": "left-attack",
+      "rarity": "common",
+      "class": "normal",
+      "value": 11,
+      "cooldownBeats": 3,
+      "upgradeStep": 2,
+      "unlockSource": "starter"
+    },
+    {
+      "id": "card-cross",
+      "name": "Cross",
+      "category": "right-attack",
+      "rarity": "common",
+      "class": "normal",
+      "value": 8,
+      "cooldownBeats": 2,
+      "upgradeStep": 2,
+      "flavorText": "Vult crossed the river and the river crossed back.",
+      "unlockSource": "starter"
+    },
+    {
+      "id": "card-hook",
+      "name": "Hook",
+      "category": "right-attack",
+      "rarity": "common",
+      "class": "normal",
+      "value": 12,
+      "cooldownBeats": 4,
+      "upgradeStep": 2,
+      "unlockSource": "starter"
+    },
+    {
+      "id": "card-fang",
+      "name": "Fang",
+      "category": "right-attack",
+      "rarity": "common",
+      "class": "normal",
+      "value": 10,
+      "cooldownBeats": 3,
+      "effects": [
+        { "trigger": "on-play", "condition": "on-perfect", "modifier": "add-value", "amount": 2 }
+      ],
+      "specialRules": "+2 damage on a Perfect.",
+      "upgradeStep": 2,
+      "unlockSource": "starter"
+    },
+    {
+      "id": "card-starter-3",
+      "name": "Starter 3",
+      "category": "right-attack",
+      "rarity": "common",
+      "class": "normal",
+      "value": 9,
+      "cooldownBeats": 2,
+      "upgradeStep": 2,
+      "unlockSource": "starter"
+    },
+    {
+      "id": "card-starter-4",
+      "name": "Starter 4",
+      "category": "right-attack",
+      "rarity": "common",
+      "class": "normal",
+      "value": 11,
+      "cooldownBeats": 3,
+      "upgradeStep": 2,
+      "unlockSource": "starter"
+    },
+    {
+      "id": "card-guard",
+      "name": "Guard",
+      "category": "defense",
+      "rarity": "common",
+      "class": "normal",
+      "value": 6,
+      "cooldownBeats": 2,
+      "upgradeStep": 2,
+      "flavorText": "Hold, and the beat holds with you.",
+      "unlockSource": "starter"
+    },
+    {
+      "id": "card-brace",
+      "name": "Brace",
+      "category": "defense",
+      "rarity": "common",
+      "class": "normal",
+      "value": 10,
+      "cooldownBeats": 4,
+      "upgradeStep": 2,
+      "unlockSource": "starter"
+    },
+    {
+      "id": "card-starter-5",
+      "name": "Starter 5",
+      "category": "defense",
+      "rarity": "common",
+      "class": "normal",
+      "value": 8,
+      "cooldownBeats": 3,
+      "upgradeStep": 2,
+      "unlockSource": "starter"
+    },
+    {
+      "id": "card-starter-6",
+      "name": "Starter 6",
+      "category": "defense",
+      "rarity": "common",
+      "class": "normal",
+      "value": 5,
+      "cooldownBeats": 2,
+      "upgradeStep": 2,
+      "unlockSource": "starter"
+    },
+    {
+      "id": "card-ember-mark",
+      "name": "Ember Mark",
+      "category": "ability",
+      "rarity": "common",
+      "class": "normal",
+      "value": 0,
+      "cooldownBeats": 4,
+      "effects": [
+        { "trigger": "on-play", "modifier": "apply-status", "status": "scar", "stacks": 3, "target": "enemy" }
+      ],
+      "specialRules": "Applies 3 Scar.",
+      "flavorText": "Griit lit the mark; the mark remembers.",
+      "unlockSource": "starter"
+    },
+    {
+      "id": "card-hollow-cut",
+      "name": "Hollow Cut",
+      "category": "ability",
+      "rarity": "common",
+      "class": "normal",
+      "value": 0,
+      "cooldownBeats": 4,
+      "effects": [
+        { "trigger": "on-play", "modifier": "apply-status", "status": "bleed", "stacks": 2, "target": "enemy" }
+      ],
+      "specialRules": "Applies 2 Bleed.",
+      "unlockSource": "starter"
+    },
+    {
+      "id": "card-dull-edge",
+      "name": "Dull Edge",
+      "category": "ability",
+      "rarity": "common",
+      "class": "normal",
+      "value": 0,
+      "cooldownBeats": 5,
+      "effects": [
+        { "trigger": "on-play", "modifier": "apply-status", "status": "weak", "statusValue": 250, "target": "enemy" }
+      ],
+      "specialRules": "Applies Weak 25%.",
+      "unlockSource": "starter"
+    },
+    {
+      "id": "card-spark",
+      "name": "Spark",
+      "category": "ability",
+      "rarity": "common",
+      "class": "normal",
+      "value": 0,
+      "cooldownBeats": 3,
+      "effects": [
+        { "trigger": "on-play", "modifier": "deal-damage", "amount": 6, "target": "enemy" }
+      ],
+      "specialRules": "Deals 6 damage.",
+      "unlockSource": "starter"
+    },
+    {
+      "id": "card-starter-7",
+      "name": "Starter 7",
+      "category": "ability",
+      "rarity": "common",
+      "class": "normal",
+      "value": 0,
+      "cooldownBeats": 4,
+      "effects": [
+        { "trigger": "on-play", "modifier": "deal-damage", "amount": 4, "target": "enemy" },
+        { "trigger": "on-play", "modifier": "apply-status", "status": "bleed", "stacks": 1, "target": "enemy" }
+      ],
+      "specialRules": "Deals 4 damage and applies 1 Bleed.",
+      "unlockSource": "starter"
+    },
+    {
+      "id": "card-starter-8",
+      "name": "Starter 8",
+      "category": "ability",
+      "rarity": "common",
+      "class": "normal",
+      "value": 0,
+      "cooldownBeats": 6,
+      "effects": [
+        { "trigger": "on-play", "modifier": "apply-status", "status": "scar", "stacks": 2, "target": "enemy" }
+      ],
+      "specialRules": "Applies 2 Scar.",
+      "unlockSource": "starter"
+    }
+  ]
+}

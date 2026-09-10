@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Chiki.Sim.Effects;
 
 namespace Chiki.Sim
 {
@@ -21,7 +22,7 @@ namespace Chiki.Sim
     /// Signature fires when the chain is full (PRD 3.3.6). Statuses on either side act in the
     /// order of <see cref="StatusPriority"/> (PRD 3.3.7.2) and tick down at beat end (PRD 3.3.7.1).
     /// </summary>
-    public sealed class Battle
+    public sealed partial class Battle
     {
         private readonly List<BattleEvent> _events = new List<BattleEvent>();
         private readonly List<JudgmentEntry> _judgmentLog = new List<JudgmentEntry>();
@@ -380,23 +381,31 @@ namespace Chiki.Sim
             }
 
             int positionQb = PositionAt(CurrentTimeMs);
-            if (target == StatusTarget.Enemy)
+            TrueDamage(target, amount, positionQb);
+            SettleOutcome(positionQb);
+        }
+
+        private void TrueDamage(StatusTarget target, int amount, int positionQb)
+        {
+            int taken = target == StatusTarget.Enemy ? TakeEnemyHp(amount) : TakeArd(amount);
+            Emit(new TrueDamageDealt(positionQb, target, taken));
+        }
+
+        /// <summary>Ends the battle if a side has just reached 0; a kill takes precedence over a death on the same beat.</summary>
+        private void SettleOutcome(int positionQb)
+        {
+            if (Outcome != null)
             {
-                int dealt = TakeEnemyHp(amount);
-                Emit(new TrueDamageDealt(positionQb, target, dealt));
-                if (EnemyHp == 0)
-                {
-                    End(BattleOutcome.Won, positionQb);
-                }
+                return;
             }
-            else
+
+            if (EnemyHp == 0)
             {
-                int lost = TakeArd(amount);
-                Emit(new TrueDamageDealt(positionQb, target, lost));
-                if (Stats.Ard == 0)
-                {
-                    End(BattleOutcome.Died, positionQb);
-                }
+                End(BattleOutcome.Won, positionQb);
+            }
+            else if (Stats.Ard == 0)
+            {
+                End(BattleOutcome.Died, positionQb);
             }
         }
 
@@ -583,6 +592,8 @@ namespace Chiki.Sim
                 _enemyDamageReduction = null;
                 Emit(new DamageReductionEnded(positionQb));
             }
+
+            PruneExpiredModifiers(positionQb);
         }
 
         /// <summary>
@@ -592,6 +603,7 @@ namespace Chiki.Sim
         private void EndBeat(int positionQb)
         {
             RunStatusPhases(StatusMoment.BeatEnd, new BeatContext(positionQb, null, null));
+            SettleOutcome(positionQb);
             if (Outcome != null)
             {
                 return;
@@ -625,45 +637,54 @@ namespace Chiki.Sim
             var opportunity = _pending;
             var context = new BeatContext(opportunity.PositionQb, opportunity, _pendingPress);
             _pendingPress = null;
-
-            RunStatusPhases(StatusMoment.ActionArrives, context);
-            var press = context.Press;
-
-            _judgmentLog.Add(new JudgmentEntry(
-                opportunity.Index,
-                opportunity.PositionQb,
-                opportunity.Action.Kind,
-                press?.Grade,
-                press?.Slot,
-                press?.Card.Id));
-
-            if (!context.EnemySkipped)
+            _resolving = context;
+            try
             {
-                if (opportunity.Action.IsAttack)
+                RunStatusPhases(StatusMoment.ActionArrives, context);
+                var press = context.Press;
+
+                _judgmentLog.Add(new JudgmentEntry(
+                    opportunity.Index,
+                    opportunity.PositionQb,
+                    opportunity.Action.Kind,
+                    press?.Grade,
+                    press?.Slot,
+                    press?.Card.Id));
+
+                if (!context.EnemySkipped)
                 {
-                    ResolveIncoming(context);
-                    if (Outcome != null)
+                    if (opportunity.Action.IsAttack)
                     {
-                        return;
+                        ResolveIncoming(context);
+                        if (Outcome != null)
+                        {
+                            return;
+                        }
+                    }
+
+                    foreach (var application in opportunity.Action.Applies)
+                    {
+                        Land(StatusTarget.Player, application, opportunity.PositionQb);
                     }
                 }
 
-                foreach (var application in opportunity.Action.Applies)
+                if (press != null)
                 {
-                    Land(StatusTarget.Player, application, opportunity.PositionQb);
+                    ResolvePlayerEffect(opportunity, press);
                 }
-            }
 
-            if (press != null)
-            {
-                ResolvePlayerEffect(opportunity, press);
+                SettleOutcome(opportunity.PositionQb);
                 if (Outcome != null)
                 {
                     return;
                 }
-            }
 
-            _pending = OpportunityAt(opportunity.Index + 1);
+                _pending = OpportunityAt(opportunity.Index + 1);
+            }
+            finally
+            {
+                _resolving = null;
+            }
         }
 
         /// <summary>Walks the priority table (PRD 3.3.7.2) and lets each status that acts at this moment act.</summary>
@@ -742,10 +763,14 @@ namespace Chiki.Sim
             Emit(new StatusTriggered(context.PositionQb, StatusKind.Weak, StatusTarget.Enemy, context.IncomingMultThousandths, 0));
         }
 
-        /// <summary>Thorns on the player: the enemy attack that just landed takes one stack's damage (PRD 3.3.7.7).</summary>
+        /// <summary>
+        /// Thorns on the player: the enemy attack that just landed takes one stack's damage
+        /// (PRD 3.3.7.7). Only Thorns held as the attack arrived answers it; a stack an effect
+        /// lands in reaction to this very hit waits for the next attack.
+        /// </summary>
         private void ResolveThorns(BeatContext context)
         {
-            if (!PlayerStatuses.ConsumeOne(StatusKind.Thorns, out int damage, out int left))
+            if (!context.ThornsAtArrival || !PlayerStatuses.ConsumeOne(StatusKind.Thorns, out int damage, out int left))
             {
                 return;
             }
@@ -795,10 +820,12 @@ namespace Chiki.Sim
         private void ResolveIncoming(BeatContext context)
         {
             var opportunity = context.Opportunity!;
-            var incoming = Resolution.Incoming(Enemy.DamagePerHit, context.Press?.Grade, Block, context.IncomingMultThousandths);
+            int statusMult = Fixed.Mul(context.IncomingMultThousandths, _effects.MultiplierFor(EffectValue.DamageTaken));
+            var incoming = Resolution.Incoming(Enemy.DamagePerHit, context.Press?.Grade, Block, statusMult);
             int ardLoss = TakeArd(incoming.ArdLoss);
 
             Block -= incoming.BlockAbsorbed;
+            context.ThornsAtArrival = PlayerStatuses.Has(StatusKind.Thorns);
             Emit(new DamageTaken(opportunity.PositionQb, opportunity.Index, ardLoss, incoming.BlockAbsorbed));
 
             if (Stats.Ard == 0)
@@ -810,6 +837,13 @@ namespace Chiki.Sim
             RunStatusPhases(StatusMoment.AttackLanded, context);
         }
 
+        /// <summary>
+        /// The player's card resolves (PRD 3.3.4.3, 3.3.4.4): a send banks it; otherwise its
+        /// value in play (P8.4, P8.5, P8.7) drives its Category's own effect, then its on-play
+        /// effects fire at the play's JudgmentMult (P8.6, P8.7). The outcome is settled by the
+        /// caller once everything the play does has landed, so a kill still lets the card's
+        /// "if this kills" effects act.
+        /// </summary>
         private void ResolvePlayerEffect(ActionOpportunity opportunity, PendingPress press)
         {
             var card = press.Card;
@@ -825,21 +859,23 @@ namespace Chiki.Sim
                 return;
             }
 
+            int value = CardValueInPlay(card);
             switch (card.Category)
             {
                 case CardCategory.Defense:
-                    AddBlock(StatusTarget.Player, Resolution.PlayerEffect(card.Value, press.Grade, 0), opportunity.PositionQb);
+                    AddBlock(StatusTarget.Player, Resolution.PlayerEffect(value, press.Grade, 0), opportunity.PositionQb);
                     break;
 
                 case CardCategory.LeftAttack:
                 case CardCategory.RightAttack:
                 {
                     int efficacy = Resolution.AttackEfficacy(opportunity.Action, card.Category);
-                    int statusMult = PlayerStatuses.DealtMultiplierThousandths;
-                    int damage = Resolution.PlayerEffect(card.Value, press.Grade, Stats.BaseDmg, efficacy, statusMult);
+                    int weakMult = PlayerStatuses.DealtMultiplierThousandths;
+                    int statusMult = Fixed.Mul(weakMult, _effects.MultiplierFor(EffectValue.DamageDealt));
+                    int damage = Resolution.PlayerEffect(value, press.Grade, Stats.BaseDmg, efficacy, statusMult);
                     if (PlayerStatuses.WeakThousandths > 0)
                     {
-                        Emit(new StatusTriggered(opportunity.PositionQb, StatusKind.Weak, StatusTarget.Player, statusMult, 0));
+                        Emit(new StatusTriggered(opportunity.PositionQb, StatusKind.Weak, StatusTarget.Player, weakMult, 0));
                     }
 
                     if (press.Grade == Judgment.Perfect && damage > 0)
@@ -852,14 +888,16 @@ namespace Chiki.Sim
                 }
 
                 case CardCategory.Ability:
-                    // An Ability's effect resolves through the effect framework (P8.1) at the
-                    // scale of its grade: fully on a Perfect (PRD 3.3.4.8).
+                    // An Ability has no effect of its own beyond its on-play effects, which
+                    // resolve at the scale of its grade: fully on a Perfect (PRD 3.3.4.8).
                     Emit(new AbilityResolved(opportunity.PositionQb, opportunity.Index, press.Slot, card.Id, Resolution.JudgmentMultiplier(press.Grade)));
                     break;
 
                 default:
                     throw new InvalidOperationException($"Unknown card category {card.Category}.");
             }
+
+            ResolveOnPlayEffects(card, press, opportunity);
         }
 
         /// <summary>
@@ -899,15 +937,11 @@ namespace Chiki.Sim
             DealDamage(opportunity, Tuning.SignatureDamage);
         }
 
-        /// <summary>Damages the enemy for an action, never below 0, and wins the battle at 0 (PRD 3.3.9.2).</summary>
+        /// <summary>Damages the enemy for an action, never below 0; the caller settles the win at 0 (PRD 3.3.9.2).</summary>
         private void DealDamage(ActionOpportunity opportunity, int damage)
         {
             int dealt = DamageEnemy(damage, out int absorbed);
             Emit(new DamageDealt(opportunity.PositionQb, opportunity.Index, dealt, absorbed));
-            if (EnemyHp == 0)
-            {
-                End(BattleOutcome.Won, opportunity.PositionQb);
-            }
         }
 
         /// <summary>
@@ -973,9 +1007,11 @@ namespace Chiki.Sim
             }
         }
 
+        /// <summary>Appends an event to the stream and fires the registered effects it triggers (P8.1).</summary>
         private void Emit(BattleEvent battleEvent)
         {
             _events.Add(battleEvent);
+            Dispatch(battleEvent);
         }
 
         private int CentreOf(int index)
@@ -1022,6 +1058,9 @@ namespace Chiki.Sim
             public PendingPress? Press { get; set; }
             public bool EnemySkipped { get; set; }
             public int IncomingMultThousandths { get; set; } = Fixed.One;
+
+            /// <summary>Whether the player held Thorns as the enemy's attack arrived (PRD 3.3.7.7).</summary>
+            public bool ThornsAtArrival { get; set; }
 
             public BeatContext(int positionQb, ActionOpportunity? opportunity, PendingPress? press)
             {

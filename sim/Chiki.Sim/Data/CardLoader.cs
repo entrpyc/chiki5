@@ -7,7 +7,7 @@ namespace Chiki.Sim.Data
     /// <summary>
     /// Reads a <see cref="CardSet"/> from JSON (PRD 4.4): { id, cards: [ card ] } where a card is
     /// { id, name, category, rarity, class, value, cooldownBeats, effects?, specialRules?,
-    /// upgradeStep?, lifespan?, flavorText?, unlockSource } and an effect is { trigger,
+    /// upgradeStep?, lifespan?, flavorText?, unlockSource, scaling? } and an effect is { trigger,
     /// modifier, amount?, condition?, target?, status?, stacks?, statusValue?, stat?, value?,
     /// lifetime?, beats? }. Ids are lowercase kebab-case. Loading checks shape only; the rules
     /// of PRD 3.4 are <see cref="CardValidator"/>'s.
@@ -51,7 +51,38 @@ namespace Chiki.Sim.Data
                 json.Optional("upgradeStep")?.AsInt() ?? 0,
                 json.Optional("lifespan")?.AsInt(),
                 json.Optional("flavorText")?.AsString(),
-                UnlockSourceFromId(json["unlockSource"].AsString()));
+                UnlockSourceFromId(json["unlockSource"].AsString()),
+                ScalingFromJson(json.Optional("scaling")));
+        }
+
+        /// <summary>{ source, amount, per?, status? } (PRD 3.4.9, 3.8.8); null when absent.</summary>
+        public static ValueScaling? ScalingFromJson(JsonValue? json)
+        {
+            if (json is null)
+            {
+                return null;
+            }
+
+            var statusId = json.Optional("status")?.AsString();
+            return new ValueScaling(
+                ScalingSourceFromId(json["source"].AsString()),
+                json["amount"].AsInt(),
+                json.Optional("per")?.AsInt() ?? 1,
+                statusId is null ? (StatusKind?)null : ChartLoader.StatusFromId(statusId));
+        }
+
+        public static ScalingSource ScalingSourceFromId(string id)
+        {
+            switch (id)
+            {
+                case "block": return ScalingSource.Block;
+                case "ard": return ScalingSource.Ard;
+                case "base-dmg": return ScalingSource.BaseDmg;
+                case "essence": return ScalingSource.Essence;
+                case "crp": return ScalingSource.Crp;
+                case "status": return ScalingSource.Status;
+                default: throw new JsonException($"Unknown scaling source '{id}'.");
+            }
         }
 
         public static EffectDefinition EffectFromJson(JsonValue json)

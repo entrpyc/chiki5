@@ -30,6 +30,9 @@ namespace Chiki.Sim
         /// <summary>The card's effects beyond its CardValue, each with its trigger, condition and modifier (PRD 3.4.9).</summary>
         public IReadOnlyList<EffectDefinition> Effects { get; }
 
+        /// <summary>How the value grows with a player stat, Block or buff stacks, or CRP (PRD 3.4.9, 3.8.8); null when it does not.</summary>
+        public ValueScaling? Scaling { get; }
+
         /// <summary>Special rules as the designer wrote them; text for the card face, no runtime meaning.</summary>
         public string? SpecialRules { get; }
 
@@ -59,7 +62,8 @@ namespace Chiki.Sim
             int upgradeStep = 0,
             int? lifespan = null,
             string? flavorText = null,
-            UnlockSource unlockSource = UnlockSource.Pool)
+            UnlockSource unlockSource = UnlockSource.Pool,
+            ValueScaling? scaling = null)
         {
             if (string.IsNullOrWhiteSpace(id))
             {
@@ -99,6 +103,7 @@ namespace Chiki.Sim
             Lifespan = lifespan;
             FlavorText = flavorText;
             UnlockSource = unlockSource;
+            Scaling = scaling;
         }
     }
 }

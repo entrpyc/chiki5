@@ -140,9 +140,9 @@ namespace Chiki.Sim.Effects
             EffectLifetime lifetime = EffectLifetime.Instant,
             int lifetimeBeats = 0)
         {
-            if (amount < 0)
+            if (amount < 0 && modifier != EffectModifier.ChangeStat)
             {
-                throw new ArgumentOutOfRangeException(nameof(amount), "An effect's amount must not be negative.");
+                throw new ArgumentOutOfRangeException(nameof(amount), "Only a change-stat effect may have a negative amount.");
             }
 
             switch (modifier)
@@ -197,14 +197,22 @@ namespace Chiki.Sim.Effects
                 throw new ArgumentException("A passive effect is a standing multiplier.", nameof(trigger));
             }
 
+            bool shapesCardValue = modifier == EffectModifier.AddValue
+                || (modifier == EffectModifier.MultiplyValue && value == EffectValue.CardValue);
+            if (shapesCardValue && trigger != EffectTrigger.OnPlay)
+            {
+                throw new ArgumentException("A card-value modifier fires only on the play of its card.", nameof(trigger));
+            }
+
             if (lifetime == EffectLifetime.Beats ? lifetimeBeats < 1 : lifetimeBeats != 0)
             {
                 throw new ArgumentOutOfRangeException(nameof(lifetimeBeats), "Only a lifetime in beats has a beat count, and it is at least 1.");
             }
 
-            if (lifetime != EffectLifetime.Instant && modifier != EffectModifier.MultiplyValue)
+            bool standing = modifier == EffectModifier.MultiplyValue && !shapesCardValue;
+            if (standing ? lifetime == EffectLifetime.Instant : lifetime != EffectLifetime.Instant)
             {
-                throw new ArgumentException("Only a multiply-value modifier outlives its trigger.", nameof(lifetime));
+                throw new ArgumentException("Exactly a damage multiplier outlives its trigger: give it a lifetime in beats, the battle or the run.", nameof(lifetime));
             }
 
             Trigger = trigger;

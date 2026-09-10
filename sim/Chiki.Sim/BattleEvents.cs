@@ -87,6 +87,18 @@ namespace Chiki.Sim
     /// <summary>The enemy's damage reduction ran out (PRD 3.6.9).</summary>
     public sealed record DamageReductionEnded(int PositionQb) : BattleEvent(PositionQb);
 
+    /// <summary>A run stat changed by an effect (PRD 3.2.3): <see cref="Delta"/> was applied and <see cref="Total"/> is the stat afterwards.</summary>
+    public sealed record StatChanged(int PositionQb, Effects.RunStat Stat, int Delta, int Total) : BattleEvent(PositionQb);
+
+    /// <summary>
+    /// A standing multiplier came alive (P8.1): <see cref="Thousandths"/> on every
+    /// <see cref="Value"/> for <see cref="Beats"/> beats, or for the battle when null.
+    /// </summary>
+    public sealed record ModifierActivated(int PositionQb, int ModifierId, string OwnerId, Effects.EffectValue Value, int Thousandths, int? Beats) : BattleEvent(PositionQb);
+
+    /// <summary>A standing multiplier's beats ran out (P8.1).</summary>
+    public sealed record ModifierExpired(int PositionQb, int ModifierId, string OwnerId, Effects.EffectValue Value) : BattleEvent(PositionQb);
+
     /// <summary>
     /// An Ability card resolved (PRD 3.3.4.3, 3.3.4.4): its effect scales by
     /// <see cref="EffectMultThousandths"/>, the JudgmentMult of the press, which the effect

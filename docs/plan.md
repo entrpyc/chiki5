@@ -586,67 +586,67 @@ Ties broken: 3.2.3 is delivered twice, the stat holder in Phase 1 and the Base D
 - Test (unit): `Sim.Cards › shipped_sets_validate` — given every JSON card set under the data folder, when validated, then there are zero violations.
 - Test (unit): `Sim.Cards › validator_reports_all_violations` — given a set with three broken cards, when validated, then three violations are returned, each naming the card and the rule.
 
-### Phase 8 — Effects framework
+### ✅ Phase 8 — Effects framework
 
 *Delivers the one trigger-condition-modifier framework that cards, enemy powers and Charms all use, proven on the four card mechanic kinds. Done when every P8 test is green and the suite passes.*
 
-#### P8.1 Trigger, condition and modifier core
+#### ✅ P8.1 Trigger, condition and modifier core
 
 - PRD: — (groundwork for P8.3 to P8.7, P11.1 to P11.7, P18.4)
-- Does: An `Effect` is a trigger (an event type from the battle stream, or "on play"), an optional condition evaluated against battle state, and a modifier (deal damage, gain Block, apply status, change a stat, multiply a value) with a lifetime in beats, battles or "run". A registry attaches effects to an owner (card instance, enemy, Charm); the battle evaluates registered effects when their trigger event is appended.
+- Does: An `Effect` is a trigger (an event type from the battle stream, or "on play"), an optional condition evaluated against battle state, and a modifier (deal damage, gain Block, apply status, change a stat, multiply a value) with a lifetime in beats, battles or "run". A registry attaches effects to an owner (card instance, enemy, Charm); the battle evaluates registered effects when their trigger event is appended. Assumption: a "passive" trigger is a standing multiplier alive for its lifetime; only damage multipliers outlive their trigger, every other modifier is instant; battle and run lifetimes both last the current battle until the run-level registry (P18.4); nothing fires once the battle has ended; an on-play effect is evaluated from the card as it resolves and is refused by the registry; Thorns landed in reaction to a hit answers the next attack, not that hit.
 - Needs: P2.8, P5.1
 - Test (unit): `Sim.Effects › trigger_fires_on_event` — given an effect on DamageTaken that applies Thorns 2, when the player takes damage, then the player has Thorns 2.
 - Test (unit): `Sim.Effects › condition_gates_trigger` — given the same effect with condition "grade is Perfect", when damage is taken on a Good, then nothing is applied.
 - Test (unit): `Sim.Effects › lifetime_in_beats_expires` — given a 3-beat modifier, when 3 ticks pass, then it no longer applies.
 
-#### P8.2 Card instance
+#### ✅ P8.2 Card instance
 
 - PRD: 4.5
-- Does: A `CardInstance` references a definition and carries upgraded flag, Trait slot (empty in this plan), battles remaining for Unstable cards, and a shop price field (unset in this plan). Two instances of one definition are distinct.
+- Does: A `CardInstance` references a definition and carries upgraded flag, Trait slot (empty in this plan), battles remaining for Unstable cards, and a shop price field (unset in this plan). Two instances of one definition are distinct. Assumption: the owner (the Binder, P16.1) assigns the instance id; `CountBattle` decrements the lifespan and reports when it hits 0.
 - Needs: P7.1
 - Test (unit): `Sim.Cards › instances_are_distinct` — given two instances of one definition, when one's battles-remaining is decremented, then the other is unchanged.
 
-#### P8.3 Direct damage mechanic
+#### ✅ P8.3 Direct damage mechanic
 
 - PRD: 3.4.9
 - Does: A card whose only effect is "deal CardValue" resolves through P3.2 and the matrix.
 - Needs: P8.1, P8.2
 - Test (unit): `Sim.Mechanics › direct_damage` — given a direct 10-damage attack, when Perfect on the correct side, then the enemy loses 10.
 
-#### P8.4 Scaling with player buffs
+#### ✅ P8.4 Scaling with player buffs
 
 - PRD: 3.4.9
-- Does: A card may declare its value as base plus a multiple of a player stat or buff stack (for example +2 per Block held); the value is computed at play time.
+- Does: A card may declare its value as base plus a multiple of a player stat or buff stack (for example +2 per Block held); the value is computed at play time. Assumption: the declaration is a `scaling` field on the definition (source, amount, per) rather than an effect entry, with sources Block, ARD, Base DMG, Essence, CRP or a status's stacks on the player; the bonus is amount × floor(units / per) and joins CardValue before the multipliers.
 - Needs: P8.1, P8.2
 - Test (unit): `Sim.Mechanics › scales_with_block` — given a card with value 6 plus 1 per 2 Block and the player holding 8 Block, when Perfect, then damage is 10.
 
-#### P8.5 Scaling with CRP
+#### ✅ P8.5 Scaling with CRP
 
 - PRD: 3.8.8
 - Does: A card may declare its value as base plus a multiple of the run's CRP, and the declaration is part of the card's text; nothing scales with CRP unless declared.
 - Needs: P8.4, P1.4
 - Test (unit): `Sim.Mechanics › scales_with_crp_when_declared` — given a card with value 8 plus 1 per 10 CRP and CRP 40, when Perfect, then damage is 12; a card without the declaration deals 8 at any CRP.
 
-#### P8.6 Status application mechanic
+#### ✅ P8.6 Status application mechanic
 
 - PRD: 3.4.9
-- Does: A card effect may apply any in-scope status (Scar, Weak, Stun, Bleed, Thorns) with stacks and the status's duration; application follows P6.1 for enemy-sourced and P3.2 for the player's own judgment gating (a Missed card applies nothing).
+- Does: A card effect may apply any in-scope status (Scar, Weak, Stun, Bleed, Thorns) with stacks and the status's duration; application follows P6.1 for enemy-sourced and P3.2 for the player's own judgment gating (a Missed card applies nothing). Assumption: every on-play modifier scales by the play's JudgmentMult with one rounding, so a Good applies half the stacks rounded up and a Miss applies nothing; the same scaling covers on-play damage, Block and stat changes.
 - Needs: P8.1, P5.3, P5.4, P5.5, P5.7, P5.8
 - Test (unit): `Sim.Mechanics › applies_bleed_on_perfect_not_miss` — given a card applying Bleed 2, when Perfect then the enemy has Bleed 2; when Miss, none.
 
-#### P8.7 Reaction conditions
+#### ✅ P8.7 Reaction conditions
 
 - PRD: 3.4.9
-- Does: The three condition kinds from the PRD are available to cards: "on Perfect", "if this kills", "if the enemy is attacking this beat", each combinable with any modifier.
+- Does: The three condition kinds from the PRD are available to cards: "on Perfect", "if this kills", "if the enemy is attacking this beat", each combinable with any modifier. Assumption: card-value shaping (add-value, multiply card-value) is folded into the value before the Category's own effect, and every other on-play modifier fires after it, so "if this kills" sees the kill; because P6.2 clears Block at battle end, the Block a kill grants shows in the stream as BlockGained and is cleared by BattleEnded.
 - Needs: P8.1, P3.7
 - Test (unit): `Sim.Mechanics › on_perfect_bonus` — given a card with +5 damage on Perfect, when Perfect, then 15; when Good, 5.
 - Test (unit): `Sim.Mechanics › if_kills_grants_block` — given a card granting 10 Block if it kills, when it reduces enemy HP to 0, then the player has 10 Block; when it does not kill, 0.
 - Test (unit): `Sim.Mechanics › if_enemy_attacking` — given a card with double damage if the enemy attacks this beat, when the enemy attacks, then 20; when idle, 10.
 
-#### P8.8 Starter fixture content
+#### ✅ P8.8 Starter fixture content
 
 - PRD: — (groundwork for P16.3, P20.3)
-- Does: A `data/sets/starter.json` with 20 cards (6 Ability, 5 Left Attack, 5 Right Attack, 4 Defense, all Common, Normal class, cooldowns 2–6, values inside bands) that passes P7.8, and a `data/tracks/fixture-120.json` track at BPM 120. The ten drafted rows of `data/cards.csv` are carried into it with concrete values; the rest are filler named `Starter <n>`.
+- Does: A `data/sets/starter.json` with 20 cards (6 Ability, 5 Left Attack, 5 Right Attack, 4 Defense, all Common, Normal class, cooldowns 2–6, values inside bands) that passes P7.8, and a `data/tracks/fixture-120.json` track at BPM 120. The ten drafted rows of `data/cards.csv` are carried into it with concrete values; the rest are filler named `Starter <n>`. Assumption: `data/cards.csv` is not in the repository, so the twelve named cards were authored here (Jab, Cleave, Rend, Cross, Hook, Fang, Guard, Brace, Ember Mark, Hollow Cut, Dull Edge, Spark) and the other eight are `Starter 1`–`Starter 8`; Ability cards carry value 0 and act through their on-play effects.
 - Needs: P7.8, P2.1
 - Test (unit): `Sim.Fixtures › starter_set_validates_and_fills_two_lines` — given the starter set, when validated and grouped by category, then there are zero violations and at least 4 cards per category.
 

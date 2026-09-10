@@ -1,0 +1,11 @@
+{
+  "id": "track-test-120",
+  "world": 1,
+  "tier": "normal",
+  "lengthBeats": 32,
+  "offsetMs": 0,
+  "tempo": {
+    "bpm": 120,
+    "changes": []
+  }
+}

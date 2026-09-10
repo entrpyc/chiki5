@@ -213,11 +213,11 @@ Ties broken: 3.2.3 is delivered twice, the stat holder in Phase 1 and the Base D
 - Test (unit): `Sim.RunStats › ard_carries_between_battles` — given ARD set to 120, when two successive battle contexts are created from the same stats, then the second sees 120.
 - Test (unit): `Sim.RunStats › raising_max_ard_adds_to_current` — given ARD 250 of 300, when max ARD is raised by 20, then current is 270 and max 320.
 
-### Phase 2 — Beats and judgment
+### ✅ Phase 2 — Beats and judgment
 
 *Delivers a headless battle that ticks in beats from a track's tempo map, takes its action opportunities from a chart, grades a pressed input, and records everything in a judgment log. Done when every P2 test is green and the suite passes.*
 
-#### P2.1 Music track and beat map
+#### ✅ P2.1 Music track and beat map
 
 - PRD: 4.14
 - Does: A `Track` definition with id, World, encounter tier, length in beats, start offset in milliseconds and a tempo map (starting BPM plus BPM changes at beat positions, P2.9). A `BeatMap` derived from it gives the audio time of any position in quarter beats; all times are integer milliseconds.
@@ -232,7 +232,7 @@ Ties broken: 3.2.3 is delivered twice, the stat holder in Phase 1 and the Base D
 - Needs: —
 - Test (unit): withdrawn.
 
-#### P2.3 One card per enemy action
+#### ✅ P2.3 One card per enemy action
 
 - PRD: 3.3.1.3
 - Does: For each enemy action the first slot press inside its Judgment Window is accepted; any second press for the same action is rejected with an "action already answered" result that consumes nothing; a press when no enemy action's window is open is rejected the same way. Taking no action is legal.
@@ -240,44 +240,44 @@ Ties broken: 3.2.3 is delivered twice, the stat holder in Phase 1 and the Base D
 - Test (unit): `Sim.Beats › second_press_same_action_rejected` — given an enemy action with one accepted press, when another slot is pressed inside the same window, then the result is rejected and no card is consumed.
 - Test (unit): `Sim.Beats › press_between_actions_rejected` — given no enemy action within any window, when a slot is pressed, then it is rejected and no judgment is recorded.
 
-#### P2.4 Durations in beats
+#### ✅ P2.4 Durations in beats
 
 - PRD: 3.3.1.4
 - Does: Every duration API (status, cooldown, effect) accepts an integer beat count only; the battle advances them by one per beat tick; no API takes seconds.
 - Needs: P2.1
 - Test (unit): `Sim.Beats › durations_tick_per_beat` — given a timed effect of 3 beats, when 3 beat ticks pass, then it has expired, and after 2 it has not.
 
-#### P2.5 One enemy per battle
+#### ✅ P2.5 One enemy per battle
 
 - PRD: 3.3.1.7
-- Does: A battle is constructed from exactly one enemy definition and one player; constructing with zero or more than one enemy fails.
+- Does: A battle is constructed from exactly one enemy definition and one player; constructing with zero or more than one enemy fails. Assumption: until P16 the player is the run's `RunStats`.
 - Needs: P2.1
 - Test (unit): `Sim.Battle › exactly_one_enemy` — given battle construction, when called with two enemies, then it throws; with one, it succeeds.
 
-#### P2.6 Judgment grades
+#### ✅ P2.6 Judgment grades
 
 - PRD: 3.3.3.1
-- Does: A pressed input carries its audio time; the battle compares it with the charted position of the nearest enemy action (P2.11) and returns Perfect inside the inner window, Good inside the outer window, Miss outside both. Window widths at BPM 120 are Perfect ±40 ms and Good ±90 ms (tuning constants, one place), narrower than a quarter beat so adjacent actions never share a window. A Miss is only ever the grade of a pressed input.
+- Does: A pressed input carries its audio time; the battle compares it with the charted position of the nearest enemy action (P2.11) and returns Perfect inside the inner window, Good inside the outer window, Miss outside both. Window widths at BPM 120 are Perfect ±40 ms and Good ±90 ms (tuning constants, one place), narrower than a quarter beat so adjacent actions never share a window. A Miss is only ever the grade of a pressed input. Assumption: the Judgment Window in which a press is accepted at all is plus or minus a quarter beat around the action, clipped at the midpoint to a neighbouring action; a press inside it but outside the Good window is the Miss grade, and a press outside it is rejected (P2.3).
 - Needs: P2.11
 - Test (unit): `Sim.Judgment › perfect_good_miss_by_offset` — given BPM 120, when inputs arrive at +20, +60 and +120 ms from the window centre, then the grades are Perfect, Good and Miss.
 - Test (unit): `Sim.Judgment › miss_only_from_press` — given an enemy action with no press, when its window closes, then no judgment of any grade is recorded.
 
-#### P2.7 Windows scale with BPM
+#### ✅ P2.7 Windows scale with BPM
 
 - PRD: 3.3.1.5
 - Does: Window widths are stored as a fraction of a beat, so at BPM 240 they are half the milliseconds of BPM 120.
 - Needs: P2.6
 - Test (unit): `Sim.Judgment › windows_scale_with_bpm` — given BPM 240, when an input arrives +30 ms from centre, then it is Good, whereas at BPM 120 the same offset is Perfect.
 
-#### P2.8 Battle state and event stream
+#### ✅ P2.8 Battle state and event stream
 
 - PRD: 4.8
-- Does: A `Battle` aggregate holding enemy, track, tier, beat clock, player Block, statuses on both sides, Signature Chain contents, a judgment log with one entry per enemy action (grade or no-input, slot, card), damage taken, Perfect Defense flag and outcome. Every state change appends a typed event (BeatStarted, InputJudged, DamageDealt, DamageTaken, StatusApplied, CardBanked, SignatureFired, BattleEnded) to an ordered stream that subscribers read; later items add event types as they need them.
+- Does: A `Battle` aggregate holding enemy, track, tier, beat clock, player Block, statuses on both sides, Signature Chain contents, a judgment log with one entry per enemy action (grade or no-input, slot, card), damage taken, Perfect Defense flag and outcome. Every state change appends a typed event (BeatStarted, InputJudged, DamageDealt, DamageTaken, StatusApplied, CardBanked, SignatureFired, BattleEnded) to an ordered stream that subscribers read; later items add event types as they need them. Statuses are added to the aggregate by P5.1 and the DamageTaken amount by P3.1.
 - Needs: P2.6
 - Test (unit): `Sim.Battle › judgment_log_one_entry_per_enemy_action` — given a chart with 5 actions and presses answering the first and third, when the battle ends, then the log has 5 entries, two graded and three no-input.
 - Test (unit): `Sim.Battle › events_are_ordered` — given the same battle, when the stream is read, then events are in position order and each InputJudged precedes that action's DamageTaken.
 
-#### P2.9 Tempo map
+#### ✅ P2.9 Tempo map
 
 - PRD: 3.3.1.9
 - Does: The beat map follows the track's tempo map: a BPM change at beat n applies from beat n onward; quarter-beat times are computed piecewise; the judgment windows (P2.6) use the BPM in force at the action's position.
@@ -285,14 +285,14 @@ Ties broken: 3.2.3 is delivered twice, the stat holder in Phase 1 and the Base D
 - Test (unit): `Sim.Track › tempo_change_shifts_later_beats` — given BPM 120 changing to 240 at beat 8, when beat 12 is queried, then its time is 5000 ms (8 beats at 500 ms plus 4 at 250 ms).
 - Test (unit): `Sim.Track › quarter_beats_between_beats` — given BPM 120, when position 2.75 beats is queried, then its time is 1375 ms.
 
-#### P2.10 Chart record
+#### ✅ P2.10 Chart record
 
 - PRD: 4.16
-- Does: A `Chart` record with enemy id, track id and an ordered list of actions, each a kind (AttackLeft, AttackRight, Defend with level, Buff, Charge with wind-up) at a position in quarter beats; length in beats is derived from the track and actions per minute is computed from count and length.
+- Does: A `Chart` record with enemy id, track id and an ordered list of actions, each a kind (AttackLeft, AttackRight, Defend with level, Buff, Charge with wind-up) at a position in quarter beats; length in beats is derived from the track and actions per minute is computed from count and length. Assumption: the loader takes the already-loaded `Track` the chart names; actions per minute is kept exact in thousandths for 3.7.15 and its whole-number form drops the fraction (30 actions in 16 s is 112).
 - Needs: P2.1
 - Test (unit): `Sim.Chart › loads_and_derives` — given a JSON chart of 30 actions on a 32-beat track at BPM 120, when loaded, then the actions round-trip in order, length is 32 beats and actions per minute is 112 (30 actions in 16 seconds, rounded).
 
-#### P2.11 Enemy actions are the action opportunities
+#### ✅ P2.11 Enemy actions are the action opportunities
 
 - PRD: 3.3.1.8
 - Does: The battle's action opportunities are exactly the chart's actions: each opens a Judgment Window centred on its charted time; no opportunity exists anywhere else; a chart position on a quarter beat is honoured.

@@ -1,4 +1,4 @@
-using Chiki.Sim;
+using SimBattle = Chiki.Sim.Battle;
 using Stats = Chiki.Sim.RunStats;
 
 namespace Sim;
@@ -22,8 +22,9 @@ public class RunStats
     {
         var stats = new Stats { Ard = 120 };
 
-        var first = new Battle(stats);
-        var second = new Battle(stats);
+        var enemy = TestContent.Enemy(TestContent.Track(), 4);
+        var first = new SimBattle(stats, enemy);
+        var second = new SimBattle(stats, enemy);
 
         Assert.That(second.Stats.Ard, Is.EqualTo(120));
     }

@@ -17,6 +17,9 @@ namespace Chiki.Sim
 
         /// <summary>A Signature send while all chain slots are taken (PRD 3.3.6.1).</summary>
         SignatureChainFull,
+
+        /// <summary>The player is Stunned, so presses are ignored (PRD 3.3.3.3).</summary>
+        PlayerStunned,
     }
 
     /// <summary>
@@ -60,8 +63,23 @@ namespace Chiki.Sim
     /// <summary>A Defense card gave the player Block (PRD 3.3.4.3, 3.3.4.4).</summary>
     public sealed record BlockGained(int PositionQb, int ActionIndex, int Amount) : BattleEvent(PositionQb);
 
-    /// <summary>A status landed on the player or the enemy (PRD 3.3.7.1).</summary>
-    public sealed record StatusApplied(int PositionQb, string StatusId, bool OnPlayer, int Beats) : BattleEvent(PositionQb);
+    /// <summary>
+    /// A status landed on one side (PRD 3.3.7.1): <see cref="Stacks"/> and <see cref="Value"/>
+    /// are what this application brought, <see cref="TotalStacks"/> and
+    /// <see cref="RemainingBeats"/> the state afterwards (null when it lasts until consumed).
+    /// </summary>
+    public sealed record StatusApplied(int PositionQb, StatusKind Kind, StatusTarget Target, int Stacks, int Value, int TotalStacks, int? RemainingBeats) : BattleEvent(PositionQb);
+
+    /// <summary>
+    /// A status acted (PRD 3.3.7.2). <see cref="Amount"/> is the HP or ARD the target's opponent
+    /// or the target lost for Thorns and Bleed (with <see cref="BlockAbsorbed"/> off the player's
+    /// Block first), the damage multiplier in thousandths for Weak, the doubled damage for Scar,
+    /// and 0 for Stun, whose act is the skipped action.
+    /// </summary>
+    public sealed record StatusTriggered(int PositionQb, StatusKind Kind, StatusTarget Target, int Amount, int BlockAbsorbed) : BattleEvent(PositionQb);
+
+    /// <summary>Stacks of a status left one side, by expiry or consumption (PRD 3.3.7.1); <see cref="StacksLeft"/> is the kind's total afterwards.</summary>
+    public sealed record StatusRemoved(int PositionQb, StatusKind Kind, StatusTarget Target, int Stacks, int StacksLeft) : BattleEvent(PositionQb);
 
     /// <summary>A card was banked into the Signature Chain (PRD 3.3.6.1).</summary>
     public sealed record CardBanked(int PositionQb, Slot Slot, string CardId) : BattleEvent(PositionQb);

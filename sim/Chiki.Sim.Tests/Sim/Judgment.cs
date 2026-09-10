@@ -70,8 +70,8 @@ public class Judgment
     public void windows_scale_with_bpm()
     {
         // At BPM 240 a beat is 250 ms, so beat 2 sits at 500 ms; at BPM 120 beat 1 does.
-        var fast = new SimBattle(new Stats(), TestContent.Enemy(TestContent.Track(bpm: 240), 8), TestContent.DefaultEnemyHp);
-        var slow = new SimBattle(new Stats(), TestContent.Enemy(TestContent.Track(bpm: 120), 4), TestContent.DefaultEnemyHp);
+        var fast = new SimBattle(new Stats(), TestContent.Enemy(TestContent.Track(bpm: 240), 8), TestContent.DefaultEnemyHp, TestContent.Rng());
+        var slow = new SimBattle(new Stats(), TestContent.Enemy(TestContent.Track(bpm: 120), 4), TestContent.DefaultEnemyHp, TestContent.Rng());
 
         var atFast = fast.Press(TestContent.SlotD, TestContent.LeftAttack10, 530);
         var atSlow = slow.Press(TestContent.SlotD, TestContent.LeftAttack10, 530);

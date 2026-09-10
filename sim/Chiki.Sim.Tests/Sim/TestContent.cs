@@ -1,6 +1,7 @@
 using Chiki.Sim;
 using SimBattle = Chiki.Sim.Battle;
 using SimChart = Chiki.Sim.Chart;
+using SimRng = Chiki.Sim.Rng;
 using SimTrack = Chiki.Sim.Track;
 using Stats = Chiki.Sim.RunStats;
 
@@ -79,10 +80,13 @@ internal static class TestContent
         return Battle(new Stats(), Chart(Track(), actions));
     }
 
-    public static SimBattle Battle(Stats stats, SimChart chart, int enemyDmg = DefaultEnemyDmg, int enemyHp = DefaultEnemyHp)
+    public static SimBattle Battle(Stats stats, SimChart chart, int enemyDmg = DefaultEnemyDmg, int enemyHp = DefaultEnemyHp, SimRng? rng = null)
     {
-        return new SimBattle(stats, Enemy(chart, enemyDmg), enemyHp);
+        return new SimBattle(stats, Enemy(chart, enemyDmg), enemyHp, rng ?? Rng());
     }
+
+    /// <summary>A fresh generator with a fixed seed for tests that do not roll.</summary>
+    public static SimRng Rng() => new(1);
 
     public static string RepoRoot
     {

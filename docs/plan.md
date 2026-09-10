@@ -420,34 +420,34 @@ Ties broken: 3.2.3 is delivered twice, the stat holder in Phase 1 and the Base D
 - Needs: P3.7, P3.1
 - Test (unit): `Sim.Battle › perfect_defense_when_no_ard_lost` — given a battle where every enemy attack met a Perfect, when it ends, then PerfectDefense is true; given one Good, false.
 
-### Phase 5 — Statuses
+### ✅ Phase 5 — Statuses
 
 *Delivers the status system and its five in-scope statuses in the fixed priority order. Done when every P5 test is green and the suite passes.*
 
-#### P5.1 Status rules
+#### ✅ P5.1 Status rules
 
 - PRD: 3.3.7.1
-- Does: Statuses on either side have a duration in beats, resolve after the beat's actions unless the status says otherwise, stack additively, and reapplication resets the timer to the new source's full duration. Icon rendering is P14.4.
+- Does: Statuses on either side have a duration in beats, resolve after the beat's actions unless the status says otherwise, stack additively, and reapplication resets the timer to the new source's full duration. Icon rendering is P14.4. Assumption: until P8.6 attaches status effects to content, `Battle.ApplyStatus` is the public way a status lands and tests call it directly; timers tick at beat end, after damage over time; Weak's X values from several sources add; Stun does not stack (a second Stun before the first is consumed adds nothing).
 - Needs: P2.4, P2.8
 - Test (unit): `Sim.Status › stacks_add_and_refresh_resets` — given Bleed 2 stacks with 3 beats left, when Bleed 1 stack is applied, then stacks are 3 and duration is 8.
 - Test (unit): `Sim.Status › resolves_after_actions` — given a Bleed on the enemy and a killing blow this beat, when the beat resolves, then the kill is recorded before the Bleed tick.
 
-#### P5.2 Same-beat priority
+#### ✅ P5.2 Same-beat priority
 
 - PRD: 3.3.7.2
-- Does: When several statuses trigger on one beat they resolve Stun, then damage multipliers (Weak), then Reflect and Thorns, then damage over time (Bleed) at beat end; the order is one table in code.
+- Does: When several statuses trigger on one beat they resolve Stun, then damage multipliers (Weak), then Reflect and Thorns, then damage over time (Bleed) at beat end; the order is one table in code. Assumption: the table also gives each status its moment in the beat (action arrives, attack landed, beat end) and the battle walks the table at every moment; each trigger emits a StatusTriggered event.
 - Needs: P5.1
 - Test (unit): `Sim.Status › priority_order` — given Stun, Weak, Thorns and Bleed all pending on one beat, when the beat resolves, then the event stream shows them in that order.
 
-#### P5.3 Scar
+#### ✅ P5.3 Scar
 
 - PRD: 3.3.7.3
-- Does: Each Scar stack on the enemy adds a 2% chance, rolled from the battle's `Rng`, that a Perfect hit deals double damage; each stack lasts 10 beats.
+- Does: Each Scar stack on the enemy adds a 2% chance, rolled from the battle's `Rng`, that a Perfect hit deals double damage; each stack lasts 10 beats. Assumption: `Battle` takes its `Rng` as a constructor argument; one roll of `NextInt(0, 1000)` per Perfect attack hit that deals damage while the enemy carries Scar, and no draw otherwise; every application of Scar keeps its own 10-beat clock.
 - Needs: P5.1, P1.2
 - Test (unit): `Sim.Status › scar_doubles_by_seeded_roll` — given 5 Scar stacks (10%) and a seed whose first roll is below 10, when a 10-damage Perfect lands, then damage is 20; with a seed rolling above, 10.
 - Test (unit): `Sim.Status › scar_stack_lasts_10_beats` — given one stack, when 10 ticks pass, then the enemy has no Scar.
 
-#### P5.4 Weak
+#### ✅ P5.4 Weak
 
 - PRD: 3.3.7.4
 - Does: Weak on a target reduces the damage it deals by the source's X% for 8 beats; on the enemy it reduces incoming damage to the player via StatusMults (P3.1); on the player it reduces card damage via StatusMults (P3.2).
@@ -455,31 +455,31 @@ Ties broken: 3.2.3 is delivered twice, the stat holder in Phase 1 and the Base D
 - Test (unit): `Sim.Status › weak_reduces_enemy_damage` — given Weak 25% on the enemy and DMG 20, when the player takes a Miss, then ARD loss is 15.
 - Test (unit): `Sim.Status › weak_expires_after_8` — given Weak applied, when 8 ticks pass, then it is gone.
 
-#### P5.5 Stun on the enemy
+#### ✅ P5.5 Stun on the enemy
 
 - PRD: 3.3.7.5
-- Does: A Stunned enemy skips its next action beat: the telegraphed action on that beat does not resolve and the status is consumed.
+- Does: A Stunned enemy skips its next action beat: the telegraphed action on that beat does not resolve and the status is consumed. Assumption: the skipped action still counts as the player's action opportunity, so an accepted press resolves its card against the charted row as usual, and the judgment log still gets its entry.
 - Needs: P5.2
 - Test (unit): `Sim.Status › stunned_enemy_skips_action` — given the enemy telegraphs an attack next beat, when Stun is applied and the beat resolves, then no DamageTaken is emitted and Stun is gone.
 
-#### P5.6 Stun on the player
+#### ✅ P5.6 Stun on the player
 
 - PRD: 3.3.3.3
-- Does: If the player is Stunned when an enemy action arrives, that action is treated exactly as no input (P4.3): presses are ignored, no cooldown starts, and the enemy resolves at full value.
+- Does: If the player is Stunned when an enemy action arrives, that action is treated exactly as no input (P4.3): presses are ignored, no cooldown starts, and the enemy resolves at full value. Assumption: an ignored press returns outcome PlayerStunned and emits SlotDisabled for feedback; the Stun is consumed when the action resolves.
 - Needs: P5.5, P4.3
 - Test (unit): `Sim.Status › stunned_player_action_is_no_input` — given the player Stunned and a press arriving, when the enemy action resolves, then the log entry is NoInput, cooldowns are unchanged, and full enemy damage is taken.
 
-#### P5.7 Bleed
+#### ✅ P5.7 Bleed
 
 - PRD: 3.3.7.6
-- Does: Bleed deals 1 damage per stack per beat at beat end for 8 beats; on the player it bypasses nothing but is not subject to timing mitigation.
+- Does: Bleed deals 1 damage per stack per beat at beat end for 8 beats; on the player it bypasses nothing but is not subject to timing mitigation. Assumption: at beat end the enemy's Bleed resolves before the player's, so a kill takes precedence over a death on the same beat; Bleed on the player is absorbed by Block first and counts toward damage taken (P4.7).
 - Needs: P5.2
 - Test (unit): `Sim.Status › bleed_ticks_per_stack` — given Bleed 3 on enemy HP 50, when 2 ticks pass, then HP is 44.
 
-#### P5.8 Thorns
+#### ✅ P5.8 Thorns
 
 - PRD: 3.3.7.7
-- Does: Thorns on the player makes the next enemy attack that lands take X damage, then one stack is consumed; stacks accumulate and last until consumed.
+- Does: Thorns on the player makes the next enemy attack that lands take X damage, then one stack is consumed; stacks accumulate and last until consumed. Assumption: an attack lands when it resolves against the player, whatever the grade, and not when a Stunned enemy skips it; each source keeps its own X and the oldest stack is consumed first.
 - Needs: P5.2
 - Test (unit): `Sim.Status › thorns_consumed_by_next_attack` — given Thorns 5 twice (two stacks), when the enemy attacks twice, then the enemy takes 5 each time and Thorns is gone after the second.
 

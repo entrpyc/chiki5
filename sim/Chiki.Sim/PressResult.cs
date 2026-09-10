@@ -17,6 +17,9 @@ namespace Chiki.Sim
 
         /// <summary>A Signature send while the chain is full (PRD 3.3.6.1): rejected like a disabled press.</summary>
         SignatureChainFull,
+
+        /// <summary>The player is Stunned, so the press is ignored (PRD 3.3.3.3): nothing consumed, no cooldown.</summary>
+        PlayerStunned,
     }
 
     /// <summary>
@@ -30,12 +33,14 @@ namespace Chiki.Sim
 
         public bool Rejected => !Accepted;
 
-        /// <summary>The press gave disabled feedback: a cooling slot or a full chain (PRD 3.3.5.3).</summary>
-        public bool Disabled => Outcome == PressOutcome.Disabled || Outcome == PressOutcome.SignatureChainFull;
+        /// <summary>The press gave disabled feedback: a cooling slot, a full chain or a Stunned player (PRD 3.3.5.3, 3.3.3.3).</summary>
+        public bool Disabled => Outcome == PressOutcome.Disabled || Outcome == PressOutcome.SignatureChainFull || Outcome == PressOutcome.PlayerStunned;
 
         public static readonly PressResult NoWindow = new PressResult(PressOutcome.NoOpenWindow, null, null, 0);
 
         public static readonly PressResult ChainFull = new PressResult(PressOutcome.SignatureChainFull, null, null, 0);
+
+        public static readonly PressResult Stunned = new PressResult(PressOutcome.PlayerStunned, null, null, 0);
 
         public static PressResult AlreadyAnswered(int actionIndex)
         {

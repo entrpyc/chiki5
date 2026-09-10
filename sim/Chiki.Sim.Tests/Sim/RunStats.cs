@@ -23,8 +23,8 @@ public class RunStats
         var stats = new Stats { Ard = 120 };
 
         var enemy = TestContent.Enemy(TestContent.Track(), 4);
-        var first = new SimBattle(stats, enemy, TestContent.DefaultEnemyHp);
-        var second = new SimBattle(stats, enemy, TestContent.DefaultEnemyHp);
+        var first = new SimBattle(stats, enemy, TestContent.DefaultEnemyHp, TestContent.Rng());
+        var second = new SimBattle(stats, enemy, TestContent.DefaultEnemyHp, TestContent.Rng());
 
         Assert.That(second.Stats.Ard, Is.EqualTo(120));
     }

@@ -61,5 +61,23 @@ namespace Chiki.Sim
 
         /// <summary>Damage the Signature deals to the enemy (PRD 3.3.6.2).</summary>
         public const int SignatureDamage = 30;
+
+        /// <summary>Per Scar stack, the chance in thousandths that a Perfect hit deals double damage: 2% (PRD 3.3.7.3).</summary>
+        public const int ScarChancePerStackThousandths = 20;
+
+        /// <summary>The multiplier a Scar-triggered hit gets, in thousandths: double (PRD 3.3.7.3).</summary>
+        public const int ScarHitMultiplierThousandths = 2000;
+
+        /// <summary>Beats each Scar stack lasts (PRD 3.3.7.3).</summary>
+        public const int ScarStackBeats = 10;
+
+        /// <summary>Beats Weak lasts (PRD 3.3.7.4).</summary>
+        public const int WeakBeats = 8;
+
+        /// <summary>Beats Bleed lasts (PRD 3.3.7.6).</summary>
+        public const int BleedBeats = 8;
+
+        /// <summary>Damage per Bleed stack per beat (PRD 3.3.7.6).</summary>
+        public const int BleedDamagePerStack = 1;
     }
 }

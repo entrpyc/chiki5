@@ -13,8 +13,8 @@ public class Battle
 
         Assert.Multiple(() =>
         {
-            Assert.That(() => new SimBattle(new Stats(), new[] { enemy, enemy }, TestContent.DefaultEnemyHp), Throws.ArgumentException);
-            Assert.That(() => new SimBattle(new Stats(), new[] { enemy }, TestContent.DefaultEnemyHp), Throws.Nothing);
+            Assert.That(() => new SimBattle(new Stats(), new[] { enemy, enemy }, TestContent.DefaultEnemyHp, TestContent.Rng()), Throws.ArgumentException);
+            Assert.That(() => new SimBattle(new Stats(), new[] { enemy }, TestContent.DefaultEnemyHp, TestContent.Rng()), Throws.Nothing);
         });
     }
 

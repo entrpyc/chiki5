@@ -17,6 +17,7 @@ If something is not in these documents, it is not a requirement. Do not invent f
 - An item is **done only when every listed test is green and the whole suite passes**. Then prefix the item heading with ✅. A phase gets ✅ when all its items have it. Never mark on any other evidence.
 - Never renumber, reorder or delete items or requirements. A withdrawn item keeps its id and the word *withdrawn*.
 - Commit messages reference the item id (`P3.4: efficacy matrix`). Commit only when asked and don't add yoruself as contributor.
+- When implementing a requirement from `docs/project/prd.md` or an item from `docs/plan.md`, finish your part, then hand the operator a numbered, step-by-step list of everything they must do to complete the work (Unity Editor steps, asset imports, scene wiring, manual test runs, settings changes). Each step names the exact menu, file, field or command. If the operator has nothing to do, say so explicitly.
 
 ## Architecture rules (non-negotiable)
 

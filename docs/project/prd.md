@@ -112,7 +112,7 @@ Node catalogue — each row is a node type the map can generate, and the feature
 - **3.3.2.3** Space held together with a slot key sends that slot's card to the Signature Chain instead of playing it (3.3.6.1); Space is used for nothing else in combat.
 - **3.3.2.4** Withdrawn. Line switching and Signature send use different keys (3.3.2.6), so no tap-versus-chord disambiguation exists.
 - **3.3.2.5** Keys are bound by physical position, so a keyboard layout other than QWERTY keeps the same hand shape; on-screen slot labels show the character the physical key actually produces.
-- **3.3.2.6** The line switch is its own dedicated key, Left Shift, and is never part of a chord. It takes effect on key-down, at any time including between enemy actions, is never graded, is never a Miss, and starts no cooldown.
+- **3.3.2.6** The line switch is its own dedicated key, V, and is never part of a chord. It takes effect on key-down, at any time including between enemy actions, is never graded, is never a Miss, and starts no cooldown.
 
 #### 3.3.3 Judgment
 
@@ -763,7 +763,7 @@ A free demo ships for Steam Next Fest, Oct 19–26, 2026, with this content budg
 
 ### 7.2 Hard parts & unknowns
 
-- **7.2.1** Line-switch reach: with the switch on Left Shift (3.3.2.6) the left pinky leaves the A slot to switch lines, and a switch pressed within the same beat as a Space chord must still resolve unambiguously; if the reach costs Perfects in fast fights, the two-line loadout (3.5.1) loses value. Borne by 3.3.2.6; verify in the first combat prototype. The former tap-versus-chord parser risk is retired by 3.3.2.4's withdrawal.
+- **7.2.1** Line-switch reach: with the switch on V (3.3.2.6) the left index finger leaves the F slot to switch lines, and a switch pressed within the same beat as a Space chord must still resolve unambiguously; if the reach costs Perfects in fast fights, the two-line loadout (3.5.1) loses value. Borne by 3.3.2.6; verify in the first combat prototype. The former tap-versus-chord parser risk is retired by 3.3.2.4's withdrawal.
 - **7.2.2** Audio latency on macOS and over Bluetooth: an uncalibrated offset of 100–300 ms makes every input a Miss; borne by 3.12.1 and 6.1, and the reason calibration is offered before the first battle.
 - **7.2.3** Perfect streams nullify incoming damage regardless of the card played (3.3.4.2), so at high skill Defense slots may lose their value; if playtests confirm it, Block economy or Good and Miss rates need retuning before World 2 and 3 content. Borne by 3.3.4.1 and 3.5.2.
 - **7.2.4** Heavy Hand (3.6.12) delays a card's effect by one beat, which breaks the input-to-effect causality the rest of the game relies on; if it does not read, the ability is cut rather than the rule bent.

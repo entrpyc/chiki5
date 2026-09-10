@@ -19,6 +19,7 @@ namespace Chiki.Client.Driver
         private readonly List<IBattlePresenter> _presenters = new List<IBattlePresenter>();
         private readonly List<ScriptedInput> _script = new List<ScriptedInput>();
         private readonly List<BeatTick> _ticks = new List<BeatTick>();
+        private readonly List<SlotPress> _inputs = new List<SlotPress>();
         private BeatClock? _clock;
         private int _dispatched;
         private int _scriptNext;
@@ -29,6 +30,30 @@ namespace Chiki.Client.Driver
 
         /// <summary>Every beat delivered to the simulation so far, in order.</summary>
         public IReadOnlyList<BeatTick> Ticks => _ticks;
+
+        /// <summary>Every slot press received from the keys so far, in order, whether or not a card sat in the slot.</summary>
+        public IReadOnlyList<SlotPress> Inputs => _inputs;
+
+        /// <summary>
+        /// A slot press from the keys (PRD 3.3.2.1): recorded, then forwarded to the battle with
+        /// the card the slot holds; an empty slot forwards nothing. Returns the battle's answer,
+        /// or null when nothing was forwarded.
+        /// </summary>
+        public PressResult? Receive(SlotPress press, CardDefinition? card)
+        {
+            if (press is null)
+            {
+                throw new ArgumentNullException(nameof(press));
+            }
+
+            _inputs.Add(press);
+            if (Battle == null || card is null)
+            {
+                return null;
+            }
+
+            return PressAt(press.Slot, card, press.AudioTimeMs, press.SignatureSend);
+        }
 
         /// <summary>
         /// Binds the driver to a battle and the clock that ticks it. Nothing is delivered until

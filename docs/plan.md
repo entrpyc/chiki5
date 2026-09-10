@@ -29,7 +29,7 @@ Technology, settled by the operator for this plan: Unity (C#) for the client, wi
 | 3.3.2.2 | Line-switch key changes the active line; both lines visible | 13 |
 | 3.3.2.3 | Space plus slot key sends to the Signature Chain; Space does nothing else | 13 |
 | 3.3.2.5 | Keys bound by physical position; labels show the real character | 13 |
-| 3.3.2.6 | Line switch on Left Shift: key-down, any beat, ungraded, no cooldown | 13 |
+| 3.3.2.6 | Line switch on V: key-down, any beat, ungraded, no cooldown | 13 |
 | 3.3.3.1 | Perfect / Good / Miss grading of pressed inputs | 2 |
 | 3.3.3.2 | No input: no card, no cooldown, no judgment; enemy resolves at full value | 4 |
 | 3.3.3.3 | Stun when an enemy action arrives is treated as no input | 5 |
@@ -850,40 +850,40 @@ Ties broken: 3.2.3 is delivered twice, the stat holder in Phase 1 and the Base D
 - Needs: P12.2
 - Test (integration): `Client.Harness › scripted_inputs_reach_sim` — given a script of three timestamped presses, when the driver runs them, then the simulation's judgment log holds three graded entries.
 
-### Phase 13 — Keys
+### ✅ Phase 13 — Keys
 
-*Delivers the fixed keyboard layout, physical-position binding, the Left Shift line switch and the Space chord, all feeding the driver. Done when every P13 test is green and the suite passes.*
+*Delivers the fixed keyboard layout, physical-position binding, the V line switch and the Space chord, all feeding the driver. Done when every P13 test is green and the suite passes.*
 
-#### P13.1 Fixed layout
+#### ✅ P13.1 Fixed layout
 
 - PRD: 3.3.2.1
-- Does: An `InputMap` binds A, S to Ability slots 1–2, D, F to Left Attack 1–2, J, K to Right Attack 1–2, L, ; to Defense 1–2 of the active line; the map is a constant with no rebinding path; a press produces a (line, slot) event with its audio-time stamp (P12.3).
+- Does: An `InputMap` binds A, S to Ability slots 1–2, D, F to Left Attack 1–2, J, K to Right Attack 1–2, L, ; to Defense 1–2 of the active line; the map is a constant with no rebinding path; a press produces a (line, slot) event with its audio-time stamp (P12.3). Assumption: the Input System actions deliver key events through the component's key-down and key-up entry points, which the play-mode tests call directly with timestamps because an unfocused headless player discards synthetic Input System events before they reach device state; the tests prove the bindings by the physical-key controls each action resolves to.
 - Needs: P12.5
 - Test (integration): `Client.Input › eight_keys_map_to_slots` — given the map, when each of the eight keys is pressed, then the driver receives slot indices 0–7 on the active line and nothing for any other key.
 
-#### P13.2 Physical-position binding
+#### ✅ P13.2 Physical-position binding
 
 - PRD: 3.3.2.5
 - Does: Keys are bound by Input System physical key (scancode) so the home-row shape holds on any layout; the slot label shows the character that key produces on the current layout via `Keyboard.current[key].displayName`.
 - Needs: P13.1
 - Test (integration): `Client.Input › labels_follow_layout` — given a simulated AZERTY layout, when labels are read, then the Ability-1 slot shows Q while the physical key is unchanged and still maps to Ability 1.
 
-#### P13.3 Left Shift switches lines
+#### ✅ P13.3 V switches lines
 
 - PRD: 3.3.2.6
-- Does: Left Shift is the dedicated line-switch key: on key-down, at any time including between enemy actions, the active line toggles; the press is never graded, never a Miss, starts no cooldown, and is ignored while Space is held (it is never part of a chord).
+- Does: V is the dedicated line-switch key (changed from Left Shift by the operator on 2026-09-10, see decisions.md): on key-down, at any time including between enemy actions, the active line toggles; the press is never graded, never a Miss, starts no cooldown, and is ignored while Space is held (it is never part of a chord).
 - Needs: P13.1
-- Test (integration): `Client.Input › shift_toggles_ungraded` — given a moment between enemy actions, when Left Shift is pressed, then the active line is 2, the judgment log is unchanged and no cooldown started.
-- Test (integration): `Client.Input › shift_ignored_during_chord` — given Space held, when Left Shift is pressed, then the active line is unchanged.
+- Test (integration): `Client.Input › switch_key_toggles_ungraded` — given a moment between enemy actions, when V is pressed, then the active line is 2, the judgment log is unchanged and no cooldown started.
+- Test (integration): `Client.Input › switch_key_ignored_during_chord` — given Space held, when V is pressed, then the active line is unchanged.
 
-#### P13.4 Active line routes presses
+#### ✅ P13.4 Active line routes presses
 
 - PRD: 3.3.2.2
 - Does: After a switch, slot presses route to the new active line's cards; both lines remain present in the loadout state at all times (rendering thinner is P14.2).
 - Needs: P13.3
 - Test (integration): `Client.Input › press_after_switch_hits_line_2` — given line 1 active and a switch, when D is pressed, then the card in Left-Attack-1 of line 2 is played.
 
-#### P13.5 Space chord sends to the chain
+#### ✅ P13.5 Space chord sends to the chain
 
 - PRD: 3.3.2.3
 - Does: A slot key pressed while Space is held produces a Signature-send event for that slot (P4.4); Space alone produces no event; releasing Space produces no event.

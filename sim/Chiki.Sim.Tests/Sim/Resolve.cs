@@ -17,9 +17,9 @@ public class Resolve
         // Enemy DMG 20, no Block; left attacks on beats 1, 3, 5 and 7.
         var stats = new Stats();
         var battle = TestContent.Battle(stats, TestContent.Chart(TestContent.Track(), 4, 12, 20, 28), enemyDmg: 20);
-        battle.Press(TestContent.SlotD, TestContent.LeftAttack10, 500 + Perfect);
-        battle.Press(TestContent.SlotD, TestContent.LeftAttack10, 1500 + Good);
-        battle.Press(TestContent.SlotD, TestContent.LeftAttack10, 2500 + Miss);
+        battle.Press(TestContent.SlotE, TestContent.LeftAttack10, 500 + Perfect);
+        battle.Press(TestContent.SlotE, TestContent.LeftAttack10, 1500 + Good);
+        battle.Press(TestContent.SlotE, TestContent.LeftAttack10, 2500 + Miss);
 
         battle.AdvanceToBeat(8);
 
@@ -36,10 +36,10 @@ public class Resolve
         // Perfect 6-Block Defense on beat 1 gives Block 6; Good against DMG 20 on beat 3 is 10 incoming.
         var stats = new Stats();
         var battle = TestContent.Battle(stats, TestContent.Chart(TestContent.Track(), 4, 12), enemyDmg: 20);
-        battle.Press(TestContent.SlotL, TestContent.Defense(6), 500 + Perfect);
+        battle.Press(TestContent.SlotO, TestContent.Defense(6), 500 + Perfect);
         battle.AdvanceToBeat(2);
         Assume.That(battle.Block, Is.EqualTo(6));
-        battle.Press(TestContent.SlotD, TestContent.LeftAttack10, 1500 + Good);
+        battle.Press(TestContent.SlotE, TestContent.LeftAttack10, 1500 + Good);
 
         battle.AdvanceToBeat(4);
 
@@ -57,9 +57,9 @@ public class Resolve
     public void effect_by_judgment()
     {
         var battle = TestContent.Battle(4, 12, 20);
-        battle.Press(TestContent.SlotD, TestContent.LeftAttack10, 500 + Perfect);
-        battle.Press(TestContent.SlotD, TestContent.LeftAttack10, 1500 + Good);
-        battle.Press(TestContent.SlotD, TestContent.LeftAttack10, 2500 + Miss);
+        battle.Press(TestContent.SlotE, TestContent.LeftAttack10, 500 + Perfect);
+        battle.Press(TestContent.SlotE, TestContent.LeftAttack10, 1500 + Good);
+        battle.Press(TestContent.SlotE, TestContent.LeftAttack10, 2500 + Miss);
 
         battle.AdvanceToBeat(6);
 
@@ -70,7 +70,7 @@ public class Resolve
     public void defense_block_by_judgment()
     {
         var battle = TestContent.Battle(4);
-        battle.Press(TestContent.SlotL, TestContent.Defense(8), 500 + Good);
+        battle.Press(TestContent.SlotO, TestContent.Defense(8), 500 + Good);
 
         battle.AdvanceToBeat(2);
 
@@ -86,8 +86,8 @@ public class Resolve
     {
         var stats = new Stats { BaseDmg = 3 };
         var battle = TestContent.Battle(stats, TestContent.Chart(TestContent.Track(), 4, 12));
-        battle.Press(TestContent.SlotD, TestContent.LeftAttack10, 500 + Perfect);
-        battle.Press(TestContent.SlotD, TestContent.LeftAttack10, 1500 + Good);
+        battle.Press(TestContent.SlotE, TestContent.LeftAttack10, 500 + Perfect);
+        battle.Press(TestContent.SlotE, TestContent.LeftAttack10, 1500 + Good);
 
         battle.AdvanceToBeat(4);
 
@@ -100,7 +100,7 @@ public class Resolve
     {
         var stats = new Stats { BaseDmg = 3 };
         var battle = TestContent.Battle(stats, TestContent.Chart(TestContent.Track(), 4));
-        battle.Press(TestContent.SlotL, TestContent.Defense(8), 500 + Perfect);
+        battle.Press(TestContent.SlotO, TestContent.Defense(8), 500 + Perfect);
 
         battle.AdvanceToBeat(2);
 
@@ -111,7 +111,7 @@ public class Resolve
     public void wrong_side_whiffs()
     {
         var battle = TestContent.Battle(TestContent.Left(4));
-        battle.Press(TestContent.SlotJ, TestContent.RightAttack(10), 500 + Perfect);
+        battle.Press(TestContent.SlotU, TestContent.RightAttack(10), 500 + Perfect);
 
         battle.AdvanceToBeat(2);
 
@@ -126,7 +126,7 @@ public class Resolve
     public void no_wrong_side_on_buff()
     {
         var battle = TestContent.Battle(TestContent.Buff(4));
-        battle.Press(TestContent.SlotJ, TestContent.RightAttack(10), 500 + Perfect);
+        battle.Press(TestContent.SlotU, TestContent.RightAttack(10), 500 + Perfect);
 
         battle.AdvanceToBeat(2);
 
@@ -141,7 +141,7 @@ public class Resolve
     public void attack_into_defend_reduced()
     {
         var battle = TestContent.Battle(TestContent.Defend(4, 500));
-        battle.Press(TestContent.SlotD, TestContent.LeftAttack10, 500 + Perfect);
+        battle.Press(TestContent.SlotE, TestContent.LeftAttack10, 500 + Perfect);
 
         battle.AdvanceToBeat(2);
 
@@ -154,10 +154,10 @@ public class Resolve
         // The enemy attacks Left for 20 on beat 1; each play answers it with the given offset.
         var plays = new (string Name, Action<SimBattle, int> Play)[]
         {
-            ("Defense", (b, t) => b.Press(TestContent.SlotL, TestContent.Defense(8), t)),
-            ("wrong-side Attack", (b, t) => b.Press(TestContent.SlotJ, TestContent.RightAttack(10), t)),
-            ("Ability", (b, t) => b.Press(TestContent.SlotA, TestContent.Ability(), t)),
-            ("Signature send", (b, t) => b.Send(TestContent.SlotD, TestContent.LeftAttack10, t)),
+            ("Defense", (b, t) => b.Press(TestContent.SlotO, TestContent.Defense(8), t)),
+            ("wrong-side Attack", (b, t) => b.Press(TestContent.SlotU, TestContent.RightAttack(10), t)),
+            ("Ability", (b, t) => b.Press(TestContent.SlotQ, TestContent.Ability(), t)),
+            ("Signature send", (b, t) => b.Send(TestContent.SlotE, TestContent.LeftAttack10, t)),
         };
 
         Assert.Multiple(() =>
@@ -175,7 +175,7 @@ public class Resolve
     {
         var stats = new Stats();
         var battle = TestContent.Battle(stats, TestContent.Chart(TestContent.Track(), TestContent.LeftApplying(4, TestContent.Weak(250))), enemyDmg: 20);
-        battle.Press(TestContent.SlotD, TestContent.LeftAttack10, 500 + Perfect);
+        battle.Press(TestContent.SlotE, TestContent.LeftAttack10, 500 + Perfect);
 
         battle.AdvanceToBeat(2);
 
@@ -191,7 +191,7 @@ public class Resolve
     {
         var battle = TestContent.Battle(new Stats(), TestContent.Chart(TestContent.Track(), TestContent.LeftApplying(4, TestContent.Weak(250))), enemyDmg: 20);
         battle.GrantImmunity(StatusTarget.Player, StatusKind.Weak);
-        battle.Press(TestContent.SlotD, TestContent.LeftAttack10, 500 + Perfect);
+        battle.Press(TestContent.SlotE, TestContent.LeftAttack10, 500 + Perfect);
 
         battle.AdvanceToBeat(2);
 
@@ -222,8 +222,8 @@ public class Resolve
     public void rounds_to_nearest()
     {
         var battle = TestContent.Battle(4, 12);
-        battle.Press(TestContent.SlotD, TestContent.LeftAttack(7), 500 + Good);
-        battle.Press(TestContent.SlotD, TestContent.LeftAttack(9), 1500 + Good);
+        battle.Press(TestContent.SlotE, TestContent.LeftAttack(7), 500 + Good);
+        battle.Press(TestContent.SlotE, TestContent.LeftAttack(9), 1500 + Good);
 
         battle.AdvanceToBeat(4);
 

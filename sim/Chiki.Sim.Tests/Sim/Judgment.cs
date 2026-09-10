@@ -13,9 +13,9 @@ public class Judgment
         // BPM 120: actions on beats 1, 3 and 5 (500, 1500, 2500 ms)
         var battle = TestContent.Battle(4, 12, 20);
 
-        var plus20 = battle.Press(TestContent.SlotD, TestContent.LeftAttack10, 520);
-        var plus60 = battle.Press(TestContent.SlotD, TestContent.LeftAttack10, 1560);
-        var plus120 = battle.Press(TestContent.SlotD, TestContent.LeftAttack10, 2620);
+        var plus20 = battle.Press(TestContent.SlotE, TestContent.LeftAttack10, 520);
+        var plus60 = battle.Press(TestContent.SlotE, TestContent.LeftAttack10, 1560);
+        var plus120 = battle.Press(TestContent.SlotE, TestContent.LeftAttack10, 2620);
 
         Assert.Multiple(() =>
         {
@@ -73,8 +73,8 @@ public class Judgment
         var fast = new SimBattle(new Stats(), TestContent.Enemy(TestContent.Track(bpm: 240), 8), TestContent.DefaultEnemyHp, TestContent.Rng());
         var slow = new SimBattle(new Stats(), TestContent.Enemy(TestContent.Track(bpm: 120), 4), TestContent.DefaultEnemyHp, TestContent.Rng());
 
-        var atFast = fast.Press(TestContent.SlotD, TestContent.LeftAttack10, 530);
-        var atSlow = slow.Press(TestContent.SlotD, TestContent.LeftAttack10, 530);
+        var atFast = fast.Press(TestContent.SlotE, TestContent.LeftAttack10, 530);
+        var atSlow = slow.Press(TestContent.SlotE, TestContent.LeftAttack10, 530);
 
         Assert.Multiple(() =>
         {

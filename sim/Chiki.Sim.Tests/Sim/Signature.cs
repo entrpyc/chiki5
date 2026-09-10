@@ -39,12 +39,12 @@ public class Signature
     {
         // Left attacks on beats 1, 3 and 5, each answered by a send from a different slot.
         var battle = TestContent.Battle(new Stats(), TestContent.Chart(TestContent.Track(), 4, 12, 20), enemyHp: 100);
-        battle.Send(TestContent.SlotD, TestContent.LeftAttack10, 500 + Perfect);
-        battle.Send(TestContent.SlotF, TestContent.LeftAttack10, 1500 + Perfect);
+        battle.Send(TestContent.SlotE, TestContent.LeftAttack10, 500 + Perfect);
+        battle.Send(TestContent.SlotR, TestContent.LeftAttack10, 1500 + Perfect);
         battle.AdvanceToBeat(4);
         Assume.That(battle.SignatureChain, Has.Count.EqualTo(2));
 
-        battle.Send(TestContent.SlotDLine2, TestContent.LeftAttack10, 2500 + Perfect);
+        battle.Send(TestContent.SlotELine2, TestContent.LeftAttack10, 2500 + Perfect);
         battle.AdvanceToBeat(6);
 
         Assert.Multiple(() =>
@@ -60,13 +60,13 @@ public class Signature
     {
         var battle = TestContent.Battle(4);
 
-        battle.Send(TestContent.SlotD, TestContent.LeftAttack(10, cooldownBeats: 3), 500 + Miss);
+        battle.Send(TestContent.SlotE, TestContent.LeftAttack(10, cooldownBeats: 3), 500 + Miss);
         battle.Advance(700); // the window has closed; beat 2 has not started
 
         Assert.Multiple(() =>
         {
             Assert.That(battle.SignatureChain, Has.Count.EqualTo(1));
-            Assert.That(battle.CooldownOf(TestContent.SlotD), Is.EqualTo(3));
+            Assert.That(battle.CooldownOf(TestContent.SlotE), Is.EqualTo(3));
         });
     }
 
@@ -74,7 +74,7 @@ public class Signature
     private static SimBattle SendAgainstLeft20(Stats stats, int offsetMs)
     {
         var battle = TestContent.Battle(stats, TestContent.Chart(TestContent.Track(), TestContent.Left(4)), enemyDmg: 20);
-        battle.Send(TestContent.SlotD, TestContent.LeftAttack10, 500 + offsetMs);
+        battle.Send(TestContent.SlotE, TestContent.LeftAttack10, 500 + offsetMs);
         battle.AdvanceToBeat(2);
         return battle;
     }

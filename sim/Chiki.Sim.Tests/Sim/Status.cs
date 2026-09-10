@@ -39,7 +39,7 @@ public class Status
         var battle = TestContent.Battle(new Stats(), TestContent.Chart(TestContent.Track(), 4), enemyHp: 10);
         battle.AdvanceToBeat(1);
         battle.ApplyStatus(StatusTarget.Enemy, StatusKind.Bleed);
-        battle.Press(TestContent.SlotD, TestContent.LeftAttack10, 500 + Perfect);
+        battle.Press(TestContent.SlotE, TestContent.LeftAttack10, 500 + Perfect);
 
         battle.AdvanceToBeat(3);
 
@@ -112,7 +112,7 @@ public class Status
         var stats = new Stats();
         var battle = TestContent.Battle(stats, TestContent.Chart(TestContent.Track(), 4), enemyDmg: 20);
         battle.ApplyStatus(StatusTarget.Enemy, StatusKind.Weak, value: Weak25);
-        battle.Press(TestContent.SlotD, TestContent.LeftAttack10, 500 + Miss);
+        battle.Press(TestContent.SlotE, TestContent.LeftAttack10, 500 + Miss);
 
         battle.AdvanceToBeat(2);
 
@@ -158,7 +158,7 @@ public class Status
         var battle = TestContent.Battle(stats, TestContent.Chart(TestContent.Track(), 4), enemyDmg: 12);
         battle.ApplyStatus(StatusTarget.Player, StatusKind.Stun);
 
-        var press = battle.Press(TestContent.SlotD, TestContent.LeftAttack10, 500 + Perfect);
+        var press = battle.Press(TestContent.SlotE, TestContent.LeftAttack10, 500 + Perfect);
         battle.AdvanceToBeat(2);
 
         Assert.Multiple(() =>
@@ -206,7 +206,7 @@ public class Status
     {
         var battle = TestContent.Battle(new Stats(), TestContent.Chart(TestContent.Track(), 4), rng: new SimRng(seed));
         battle.ApplyStatus(StatusTarget.Enemy, StatusKind.Scar, stacks: 5);
-        battle.Press(TestContent.SlotD, TestContent.LeftAttack10, 500 + Perfect);
+        battle.Press(TestContent.SlotE, TestContent.LeftAttack10, 500 + Perfect);
         battle.AdvanceToBeat(2);
         return battle.Events.OfType<DamageDealt>().Single().Amount;
     }

@@ -57,7 +57,7 @@ namespace Client
                 Tap(input, InputMap.PhysicalKey(slotKey), Now);
             }
 
-            foreach (var other in new[] { Key.G, Key.H, Key.Enter, Key.Q, Key.LeftShift, Key.Space })
+            foreach (var other in new[] { Key.G, Key.H, Key.Enter, Key.A, Key.D, Key.LeftShift, Key.Space })
             {
                 Tap(input, other, Now);
             }
@@ -77,19 +77,19 @@ namespace Client
         [Timeout(30000)]
         public IEnumerator labels_follow_layout()
         {
-            // On AZERTY the physical A key produces Q.
-            SetKeyInfo(Key.A, "q");
+            // On AZERTY the physical Q key produces A.
+            SetKeyInfo(Key.Q, "a");
             var rig = ClientTestContent.ScheduledRig("input-labels", Beats.ToQuarterBeats(60));
             var input = AddInput(rig);
             yield return rig.WaitUntilAudioMs(0);
 
-            string label = InputMap.Label(SlotKey.A, Keyboard.current);
-            Tap(input, Key.A, Now);
+            string label = InputMap.Label(SlotKey.Q, Keyboard.current);
+            Tap(input, Key.Q, Now);
 
-            Assert.That(label, Is.EqualTo("Q"));
-            Assert.That(InputMap.PhysicalKey(SlotKey.A), Is.EqualTo(Key.A));
-            Assert.That(input.BoundControl(Key.A), Is.SameAs(_keyboard.aKey), "Ability 1 is no longer bound to the physical A key");
-            Assert.That(rig.Driver.Inputs.Select(i => i.Slot), Is.EqualTo(new[] { new Slot(0, SlotKey.A) }), "the physical A key no longer maps to Ability 1");
+            Assert.That(label, Is.EqualTo("A"));
+            Assert.That(InputMap.PhysicalKey(SlotKey.Q), Is.EqualTo(Key.Q));
+            Assert.That(input.BoundControl(Key.Q), Is.SameAs(_keyboard.qKey), "Ability 1 is no longer bound to the physical Q key");
+            Assert.That(rig.Driver.Inputs.Select(i => i.Slot), Is.EqualTo(new[] { new Slot(0, SlotKey.Q) }), "the physical Q key no longer maps to Ability 1");
             rig.Destroy();
         }
 
@@ -139,8 +139,8 @@ namespace Client
             var line2 = new CardDefinition("card-line2", "Line 2", CardCategory.LeftAttack, 10, Tuning.CooldownMinBeats);
             var cards = new Dictionary<Slot, CardDefinition>
             {
-                [new Slot(0, SlotKey.D)] = line1,
-                [new Slot(1, SlotKey.D)] = line2,
+                [new Slot(0, SlotKey.E)] = line1,
+                [new Slot(1, SlotKey.E)] = line2,
             };
             var rig = ClientTestContent.ScheduledRig("input-line2", Beats.ToQuarterBeats(1)); // attack at beat 1 = 500 ms
             var input = AddInput(rig, slot => cards.TryGetValue(slot, out var card) ? card : null);
@@ -149,12 +149,12 @@ namespace Client
 
             Tap(input, InputMap.LineSwitch, Now);
             yield return rig.WaitUntilAudioMs(500);
-            Tap(input, Key.D, rig.Clock.RealtimeAt(500));
+            Tap(input, Key.E, rig.Clock.RealtimeAt(500));
 
             var judged = battle.Events.OfType<InputJudged>().Single();
             Assert.That(input.ActiveLine, Is.EqualTo(1));
             Assert.That(judged.CardId, Is.EqualTo("card-line2"));
-            Assert.That(judged.Slot, Is.EqualTo(new Slot(1, SlotKey.D)));
+            Assert.That(judged.Slot, Is.EqualTo(new Slot(1, SlotKey.E)));
             rig.Destroy();
         }
 
@@ -163,17 +163,17 @@ namespace Client
         public IEnumerator space_plus_key_sends()
         {
             var rig = ClientTestContent.ScheduledRig("input-send", Beats.ToQuarterBeats(1)); // attack at beat 1 = 500 ms
-            var input = AddInput(rig, slot => slot.Key == SlotKey.D ? ClientTestContent.LeftAttack10 : null);
+            var input = AddInput(rig, slot => slot.Key == SlotKey.E ? ClientTestContent.LeftAttack10 : null);
             var battle = rig.Driver.Battle!;
             yield return rig.WaitUntilAudioMs(500);
 
             input.KeyDown(InputMap.Chord, Now);
-            Tap(input, Key.D, rig.Clock.RealtimeAt(500));
+            Tap(input, Key.E, rig.Clock.RealtimeAt(500));
             input.KeyUp(InputMap.Chord, Now);
             yield return rig.WaitUntilAudioMs(800); // the window closes and the send resolves
 
             var press = rig.Driver.Inputs.Single();
-            Assert.That(press.Slot, Is.EqualTo(new Slot(0, SlotKey.D)));
+            Assert.That(press.Slot, Is.EqualTo(new Slot(0, SlotKey.E)));
             Assert.That(press.SignatureSend, Is.True, "the driver did not receive a send");
             Assert.That(input.BoundControl(InputMap.Chord), Is.SameAs(_keyboard.spaceKey));
             Assert.That(battle.SignatureChain, Has.Count.EqualTo(1));

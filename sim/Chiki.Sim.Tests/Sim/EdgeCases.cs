@@ -20,7 +20,7 @@ public class EdgeCases
     {
         var stats = new Stats();
         var battle = AttackedLeft(stats);
-        battle.Press(TestContent.SlotJ, TestContent.RightAttack(10), 500 + Perfect);
+        battle.Press(TestContent.SlotU, TestContent.RightAttack(10), 500 + Perfect);
 
         battle.AdvanceToBeat(2);
 
@@ -36,7 +36,7 @@ public class EdgeCases
     {
         var stats = new Stats();
         var battle = AttackedLeft(stats, block: 4);
-        battle.Press(TestContent.SlotD, TestContent.LeftAttack10, 500 + Good);
+        battle.Press(TestContent.SlotE, TestContent.LeftAttack10, 500 + Good);
 
         battle.AdvanceToBeat(2);
 
@@ -52,10 +52,10 @@ public class EdgeCases
     {
         var plays = new (string Name, Slot Slot, CardDefinition Card)[]
         {
-            ("Defense", TestContent.SlotL, TestContent.Defense(8)),
-            ("correct-side Attack", TestContent.SlotD, TestContent.LeftAttack10),
-            ("wrong-side Attack", TestContent.SlotJ, TestContent.RightAttack(10)),
-            ("Ability", TestContent.SlotA, TestContent.Ability()),
+            ("Defense", TestContent.SlotO, TestContent.Defense(8)),
+            ("correct-side Attack", TestContent.SlotE, TestContent.LeftAttack10),
+            ("wrong-side Attack", TestContent.SlotU, TestContent.RightAttack(10)),
+            ("Ability", TestContent.SlotQ, TestContent.Ability()),
         };
 
         Assert.Multiple(() =>
@@ -79,7 +79,7 @@ public class EdgeCases
     {
         var stats = new Stats();
         var battle = AttackedLeft(stats);
-        battle.Press(TestContent.SlotA, TestContent.Ability(), 500 + Perfect);
+        battle.Press(TestContent.SlotQ, TestContent.Ability(), 500 + Perfect);
 
         battle.AdvanceToBeat(2);
 
@@ -95,7 +95,7 @@ public class EdgeCases
     {
         var stats = new Stats();
         var battle = AttackedLeft(stats, block: 4);
-        battle.Press(TestContent.SlotL, TestContent.Defense(8), 500 + Good);
+        battle.Press(TestContent.SlotO, TestContent.Defense(8), 500 + Good);
 
         battle.AdvanceToBeat(2);
 
@@ -128,7 +128,7 @@ public class EdgeCases
     {
         var stats = new Stats();
         var battle = AttackedLeft(stats);
-        battle.Send(TestContent.SlotD, TestContent.LeftAttack10, 500 + Perfect);
+        battle.Send(TestContent.SlotE, TestContent.LeftAttack10, 500 + Perfect);
 
         battle.AdvanceToBeat(2);
 
@@ -145,7 +145,7 @@ public class EdgeCases
         var stats = new Stats();
         var battle = AttackedLeft(stats);
         battle.ApplyStatus(StatusTarget.Player, StatusKind.Stun);
-        battle.Press(TestContent.SlotD, TestContent.LeftAttack10, 500 + Perfect);
+        battle.Press(TestContent.SlotE, TestContent.LeftAttack10, 500 + Perfect);
 
         battle.AdvanceToBeat(2);
 
@@ -162,7 +162,7 @@ public class EdgeCases
     {
         var stats = new Stats();
         var battle = TestContent.Battle(stats, TestContent.Chart(TestContent.Track(), TestContent.LeftApplying(4, TestContent.Weak(Weak25))), enemyDmg: EnemyDmg);
-        battle.Press(TestContent.SlotD, TestContent.LeftAttack10, 500 + Perfect);
+        battle.Press(TestContent.SlotE, TestContent.LeftAttack10, 500 + Perfect);
 
         battle.AdvanceToBeat(2);
 

@@ -43,7 +43,7 @@ public class Effects
             condition: EffectCondition.OnPerfect,
             target: StatusTarget.Player,
             status: new StatusApplication(StatusKind.Thorns, 1, 2)));
-        battle.Press(TestContent.SlotD, TestContent.LeftAttack10, 500 + Good);
+        battle.Press(TestContent.SlotE, TestContent.LeftAttack10, 500 + Good);
 
         battle.AdvanceToBeat(2);
 
@@ -66,8 +66,8 @@ public class Effects
             value: EffectValue.DamageDealt,
             lifetime: EffectLifetime.Beats,
             lifetimeBeats: 3));
-        battle.Press(TestContent.SlotD, TestContent.LeftAttack10, 500 + Perfect);
-        battle.Press(TestContent.SlotF, TestContent.LeftAttack10, 1500 + Perfect);
+        battle.Press(TestContent.SlotE, TestContent.LeftAttack10, 500 + Perfect);
+        battle.Press(TestContent.SlotR, TestContent.LeftAttack10, 1500 + Perfect);
 
         battle.AdvanceToBeat(4);
 

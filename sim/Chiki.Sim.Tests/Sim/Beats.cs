@@ -8,10 +8,10 @@ public class Beats
     public void second_press_same_action_rejected()
     {
         var battle = TestContent.Battle(4); // one action at beat 1 = 500 ms
-        var first = battle.Press(TestContent.SlotD, TestContent.LeftAttack10, 500);
+        var first = battle.Press(TestContent.SlotE, TestContent.LeftAttack10, 500);
         Assume.That(first.Accepted, Is.True);
 
-        var second = battle.Press(TestContent.SlotJ, TestContent.RightAttack(10), 520);
+        var second = battle.Press(TestContent.SlotU, TestContent.RightAttack(10), 520);
 
         Assert.Multiple(() =>
         {
@@ -26,7 +26,7 @@ public class Beats
     {
         var battle = TestContent.Battle(4, 12); // actions at 500 ms and 1500 ms
 
-        var result = battle.Press(TestContent.SlotD, TestContent.LeftAttack10, 1000);
+        var result = battle.Press(TestContent.SlotE, TestContent.LeftAttack10, 1000);
 
         Assert.Multiple(() =>
         {

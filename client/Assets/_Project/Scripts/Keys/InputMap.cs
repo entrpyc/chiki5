@@ -6,10 +6,10 @@ using UnityEngine.InputSystem;
 namespace Chiki.Client.Keys
 {
     /// <summary>
-    /// The fixed keyboard layout (PRD 3.3.2.1): A and S are Ability slots, D and F Left Attack,
-    /// J and K Right Attack, L and ; Defense, on whichever line is active. V switches
+    /// The fixed keyboard layout (PRD 3.3.2.1): Q and W are Ability slots, E and R Left Attack,
+    /// U and I Right Attack, O and P Defense, on whichever line is active. V switches
     /// lines (PRD 3.3.2.6) and Space held with a slot key sends to the Signature Chain
-    /// (PRD 3.3.2.3). Keys are physical positions (PRD 3.3.2.5), so the home-row shape holds on
+    /// (PRD 3.3.2.3). Keys are physical positions (PRD 3.3.2.5), so the top-row shape holds on
     /// any layout; the label a slot shows is the character that key produces right now. The map
     /// is a constant: there is no rebinding path.
     /// </summary>
@@ -26,14 +26,14 @@ namespace Chiki.Client.Keys
         {
             switch (slotKey)
             {
-                case SlotKey.A: return Key.A;
-                case SlotKey.S: return Key.S;
-                case SlotKey.D: return Key.D;
-                case SlotKey.F: return Key.F;
-                case SlotKey.J: return Key.J;
-                case SlotKey.K: return Key.K;
-                case SlotKey.L: return Key.L;
-                case SlotKey.Semicolon: return Key.Semicolon;
+                case SlotKey.Q: return Key.Q;
+                case SlotKey.W: return Key.W;
+                case SlotKey.E: return Key.E;
+                case SlotKey.R: return Key.R;
+                case SlotKey.U: return Key.U;
+                case SlotKey.I: return Key.I;
+                case SlotKey.O: return Key.O;
+                case SlotKey.P: return Key.P;
                 default: throw new ArgumentOutOfRangeException(nameof(slotKey), slotKey, "Unknown slot key.");
             }
         }
@@ -43,14 +43,14 @@ namespace Chiki.Client.Keys
         {
             switch (key)
             {
-                case Key.A: return SlotKey.A;
-                case Key.S: return SlotKey.S;
-                case Key.D: return SlotKey.D;
-                case Key.F: return SlotKey.F;
-                case Key.J: return SlotKey.J;
-                case Key.K: return SlotKey.K;
-                case Key.L: return SlotKey.L;
-                case Key.Semicolon: return SlotKey.Semicolon;
+                case Key.Q: return SlotKey.Q;
+                case Key.W: return SlotKey.W;
+                case Key.E: return SlotKey.E;
+                case Key.R: return SlotKey.R;
+                case Key.U: return SlotKey.U;
+                case Key.I: return SlotKey.I;
+                case Key.O: return SlotKey.O;
+                case Key.P: return SlotKey.P;
                 default: return null;
             }
         }
@@ -88,7 +88,7 @@ namespace Chiki.Client.Keys
             string name = keyboard[key].displayName;
             if (string.IsNullOrWhiteSpace(name))
             {
-                name = key == Key.Semicolon ? ";" : key.ToString();
+                name = key.ToString();
             }
 
             return name.ToUpperInvariant();
@@ -98,7 +98,6 @@ namespace Chiki.Client.Keys
         {
             switch (key)
             {
-                case Key.Semicolon: return "semicolon";
                 case Key.Space: return "space";
                 default: return key.ToString().ToLowerInvariant();
             }

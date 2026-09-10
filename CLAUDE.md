@@ -38,7 +38,7 @@ If something is not in these documents, it is not a requirement. Do not invent f
 
 - The only clock is `AudioSettings.dspTime` through the `BeatClock`. Inputs are stamped with audio time at the event, not the frame. Anything that moves with the music (Rhythm Line, sprite frames, glows) reads the beat clock, never `Time.time`, `Time.deltaTime` or Animator time.
 - Never touch the audio source's pitch, position or pause state from gameplay code (PRD 3.3.1.6). The track and the chart loop together from the start (3.6.32).
-- Keys are bound by physical position (scancode) and never rebindable. A/S Ability, D/F Left Attack, J/K Right Attack, L/; Defense, V line switch, Space+key Signature send. Space alone does nothing.
+- Keys are bound by physical position (scancode) and never rebindable. Q/W Ability, E/R Left Attack, U/I Right Attack, O/P Defense, V line switch, Space+key Signature send. Space alone does nothing.
 - Rules never live in a `MonoBehaviour`. The client presents state and forwards inputs through `BattleDriver`; if you find yourself computing damage in the client, stop.
 - uGUI only. Visual lookups go through `VisualCatalogue` ScriptableObjects (id → sprite/prefab). HD art at 100 PPU, frame-by-frame sheets driven by `BeatAnimator`.
 - Nothing leaves the machine except Steam Cloud save. No telemetry, no analytics, no network calls (PRD 6.5, 6.6).

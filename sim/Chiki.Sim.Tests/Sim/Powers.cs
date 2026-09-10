@@ -27,7 +27,7 @@ public class Powers
         var chart = TestContent.Chart(TestContent.Track(), 4, 8, 12);
         var battle = TestContent.BattleWith(TestContent.EnemyWith(chart, EnemyAbility.RisingTempo, damagePerHit: 10));
 
-        battle.Press(TestContent.SlotD, TestContent.LeftAttack10, Ms(3) + Miss);
+        battle.Press(TestContent.SlotE, TestContent.LeftAttack10, Ms(3) + Miss);
         battle.AdvanceToBeat(4);
 
         Assert.That(ArdLossByAction(battle, 3), Is.EqualTo(new[] { 10, 13, 16 }));
@@ -39,8 +39,8 @@ public class Powers
         var chart = TestContent.Chart(TestContent.Track(), TestContent.Buff(4), TestContent.Buff(8), TestContent.Buff(12));
         var battle = TestContent.BattleWith(TestContent.EnemyWith(chart, EnemyAbility.MisstepPain));
 
-        battle.Press(TestContent.SlotD, TestContent.LeftAttack10, Ms(1) + Good);
-        battle.Press(TestContent.SlotF, TestContent.LeftAttack10, Ms(2) + Miss);
+        battle.Press(TestContent.SlotE, TestContent.LeftAttack10, Ms(1) + Good);
+        battle.Press(TestContent.SlotR, TestContent.LeftAttack10, Ms(2) + Miss);
         battle.AdvanceToBeat(4);
 
         Assert.That(ArdLossByAction(battle, 3), Is.EqualTo(new[] { 5, 10, 0 }));
@@ -53,8 +53,8 @@ public class Powers
         var chart = TestContent.Chart(TestContent.Track(), TestContent.Buff(4), TestContent.Left(8), TestContent.Left(12));
         var battle = TestContent.BattleWith(TestContent.EnemyWith(chart, EnemyAbility.Pressure, damagePerHit: 10));
 
-        battle.Press(TestContent.SlotD, TestContent.LeftAttack10, Ms(2) + Miss);
-        battle.Press(TestContent.SlotF, TestContent.LeftAttack10, Ms(3) + Miss);
+        battle.Press(TestContent.SlotE, TestContent.LeftAttack10, Ms(2) + Miss);
+        battle.Press(TestContent.SlotR, TestContent.LeftAttack10, Ms(3) + Miss);
         battle.AdvanceToBeat(4);
 
         Assert.That(ArdLossByAction(battle, 3), Is.EqualTo(new[] { 0, 20, 10 }));
@@ -69,8 +69,8 @@ public class Powers
 
         battle.AdvanceToBeat(3);
         bool activeAfterBuff = battle.IronVeilActive;
-        battle.Press(TestContent.SlotD, TestContent.LeftAttack10, Ms(4) + Perfect);
-        battle.Press(TestContent.SlotF, TestContent.LeftAttack10, Ms(8) + Perfect);
+        battle.Press(TestContent.SlotE, TestContent.LeftAttack10, Ms(4) + Perfect);
+        battle.Press(TestContent.SlotR, TestContent.LeftAttack10, Ms(8) + Perfect);
         battle.AdvanceToBeat(9);
 
         Assert.Multiple(() =>
@@ -90,7 +90,7 @@ public class Powers
         battle.AdvanceToBeat(2);
 
         var upcoming = battle.UpcomingActions(8).Single();
-        battle.Press(TestContent.SlotD, TestContent.LeftAttack10, Ms(6) + Miss);
+        battle.Press(TestContent.SlotE, TestContent.LeftAttack10, Ms(6) + Miss);
         battle.AdvanceToBeat(7);
 
         Assert.Multiple(() =>
@@ -113,7 +113,7 @@ public class Powers
         quiet.AdvanceToBeat(4);
 
         var hit = TestContent.BattleWith(TestContent.EnemyWith(chart, trait: EnemyTrait.Stoneform));
-        hit.Press(TestContent.SlotD, TestContent.LeftAttack10, Ms(2) + Perfect);
+        hit.Press(TestContent.SlotE, TestContent.LeftAttack10, Ms(2) + Perfect);
         hit.AdvanceToBeat(4);
 
         Assert.Multiple(() =>
@@ -130,7 +130,7 @@ public class Powers
         var battle = TestContent.BattleWith(TestContent.EnemyWith(chart, trait: EnemyTrait.Guard), enemyHp: 100);
         int blockAtStart = battle.EnemyBlock;
 
-        battle.Press(TestContent.SlotD, TestContent.LeftAttack(40), Ms(1) + Perfect);
+        battle.Press(TestContent.SlotE, TestContent.LeftAttack(40), Ms(1) + Perfect);
         battle.AdvanceToBeat(2);
 
         Assert.Multiple(() =>

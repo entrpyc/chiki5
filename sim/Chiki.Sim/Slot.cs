@@ -6,14 +6,14 @@ namespace Chiki.Sim
     /// <summary>The eight slot keys of one line, by physical position (PRD 3.3.2.1, 3.3.2.5).</summary>
     public enum SlotKey
     {
-        A,
-        S,
-        D,
-        F,
-        J,
-        K,
-        L,
-        Semicolon,
+        Q,
+        W,
+        E,
+        R,
+        U,
+        I,
+        O,
+        P,
     }
 
     /// <summary>One of the sixteen slots: a key on one of the two lines (PRD 3.3.2.1, 3.5.1).</summary>

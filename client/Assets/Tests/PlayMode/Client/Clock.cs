@@ -74,7 +74,7 @@ namespace Client
                     yield return null;
                 }
 
-                var result = rig.Driver.Press(ClientTestContent.SlotD, ClientTestContent.LeftAttack10, inputTime);
+                var result = rig.Driver.Press(ClientTestContent.SlotE, ClientTestContent.LeftAttack10, inputTime);
                 var judged = battle.Events.OfType<InputJudged>().Single();
                 results.Add((result.Grade!.Value, judged.OffsetMs));
                 rig.Destroy();
@@ -95,9 +95,9 @@ namespace Client
             var battle = rig.Driver.Battle!;
             rig.Driver.Script(new[]
             {
-                new Chiki.Client.Driver.ScriptedInput(500, ClientTestContent.SlotD, ClientTestContent.LeftAttack10, SignatureSend: true),
-                new Chiki.Client.Driver.ScriptedInput(1000, ClientTestContent.SlotF, ClientTestContent.LeftAttack10, SignatureSend: true),
-                new Chiki.Client.Driver.ScriptedInput(1500, ClientTestContent.SlotDLine2, ClientTestContent.LeftAttack10, SignatureSend: true),
+                new Chiki.Client.Driver.ScriptedInput(500, ClientTestContent.SlotE, ClientTestContent.LeftAttack10, SignatureSend: true),
+                new Chiki.Client.Driver.ScriptedInput(1000, ClientTestContent.SlotR, ClientTestContent.LeftAttack10, SignatureSend: true),
+                new Chiki.Client.Driver.ScriptedInput(1500, ClientTestContent.SlotELine2, ClientTestContent.LeftAttack10, SignatureSend: true),
             });
             var source = rig.Source;
 

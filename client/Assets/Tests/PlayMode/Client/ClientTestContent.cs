@@ -50,9 +50,9 @@ namespace Client
         public const int DefaultEnemyHp = 1000;
         public const int SampleRate = 48000;
 
-        public static readonly Slot SlotD = new Slot(0, SlotKey.D);
-        public static readonly Slot SlotF = new Slot(0, SlotKey.F);
-        public static readonly Slot SlotDLine2 = new Slot(1, SlotKey.D);
+        public static readonly Slot SlotE = new Slot(0, SlotKey.E);
+        public static readonly Slot SlotR = new Slot(0, SlotKey.R);
+        public static readonly Slot SlotELine2 = new Slot(1, SlotKey.E);
         public static readonly CardDefinition LeftAttack10 = new CardDefinition("card-left-10", "Left 10", CardCategory.LeftAttack, 10, Tuning.CooldownMinBeats);
 
         /// <summary>data/tracks/fixture-120.json: 64 beats at BPM 120, offset 0.</summary>

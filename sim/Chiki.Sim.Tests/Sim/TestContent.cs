@@ -13,16 +13,16 @@ internal static class TestContent
     public const int DefaultEnemyDmg = 10;
     public const int DefaultEnemyHp = 1000;
 
-    public static readonly Slot SlotA = new(0, SlotKey.A);
-    public static readonly Slot SlotD = new(0, SlotKey.D);
-    public static readonly Slot SlotF = new(0, SlotKey.F);
-    public static readonly Slot SlotJ = new(0, SlotKey.J);
-    public static readonly Slot SlotL = new(0, SlotKey.L);
+    public static readonly Slot SlotQ = new(0, SlotKey.Q);
+    public static readonly Slot SlotE = new(0, SlotKey.E);
+    public static readonly Slot SlotR = new(0, SlotKey.R);
+    public static readonly Slot SlotU = new(0, SlotKey.U);
+    public static readonly Slot SlotO = new(0, SlotKey.O);
 
-    /// <summary>Key D on the second line.</summary>
-    public static readonly Slot SlotDLine2 = new(1, SlotKey.D);
+    /// <summary>Key E on the second line.</summary>
+    public static readonly Slot SlotELine2 = new(1, SlotKey.E);
 
-    /// <summary>A 10-damage Left Attack card for slot D or F, with the minimum 2-beat cooldown.</summary>
+    /// <summary>A 10-damage Left Attack card for slot E or R, with the minimum 2-beat cooldown.</summary>
     public static readonly CardDefinition LeftAttack10 = LeftAttack(10);
 
     public static CardDefinition LeftAttack(int damage, int cooldownBeats = Tuning.CooldownMinBeats) =>

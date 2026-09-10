@@ -15,22 +15,22 @@ namespace Chiki.Sim
     /// <summary>The fixed mapping between Categories and slot keys (PRD 3.4.1, 3.3.2.1).</summary>
     public static class CardCategories
     {
-        /// <summary>The Category whose cards a key holds: A/S Ability, D/F Left Attack, J/K Right Attack, L/; Defense.</summary>
+        /// <summary>The Category whose cards a key holds: Q/W Ability, E/R Left Attack, U/I Right Attack, O/P Defense.</summary>
         public static CardCategory ForKey(SlotKey key)
         {
             switch (key)
             {
-                case SlotKey.A:
-                case SlotKey.S:
+                case SlotKey.Q:
+                case SlotKey.W:
                     return CardCategory.Ability;
-                case SlotKey.D:
-                case SlotKey.F:
+                case SlotKey.E:
+                case SlotKey.R:
                     return CardCategory.LeftAttack;
-                case SlotKey.J:
-                case SlotKey.K:
+                case SlotKey.U:
+                case SlotKey.I:
                     return CardCategory.RightAttack;
-                case SlotKey.L:
-                case SlotKey.Semicolon:
+                case SlotKey.O:
+                case SlotKey.P:
                     return CardCategory.Defense;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(key), key, "Unknown slot key.");

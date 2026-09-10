@@ -68,8 +68,8 @@ public class Cards
 
         Assert.That(slots, Is.EquivalentTo(new[]
         {
-            new Slot(0, SlotKey.L), new Slot(0, SlotKey.Semicolon),
-            new Slot(1, SlotKey.L), new Slot(1, SlotKey.Semicolon),
+            new Slot(0, SlotKey.O), new Slot(0, SlotKey.P),
+            new Slot(1, SlotKey.O), new Slot(1, SlotKey.P),
         }));
     }
 
@@ -157,7 +157,7 @@ public class Cards
               "value": 10, "cooldownBeats": 2, "unlockSource": "starter" }
             """));
         var battle = TestContent.Battle(new Stats { BaseDmg = 2 }, TestContent.Chart(TestContent.Track(), 4));
-        battle.Press(TestContent.SlotD, card, 500 + 60); // Good
+        battle.Press(TestContent.SlotE, card, 500 + 60); // Good
 
         battle.AdvanceToBeat(2);
 

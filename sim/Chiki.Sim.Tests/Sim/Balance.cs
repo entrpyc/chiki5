@@ -113,8 +113,8 @@ public class Balance
     /// </summary>
     private static int ArdAfterMistakes(SimBattle battle, int mistakes)
     {
-        var leftSlots = new[] { TestContent.SlotD, TestContent.SlotF, new Slot(1, SlotKey.D), new Slot(1, SlotKey.F) };
-        var rightSlots = new[] { TestContent.SlotJ, new Slot(0, SlotKey.K), new Slot(1, SlotKey.J), new Slot(1, SlotKey.K) };
+        var leftSlots = new[] { TestContent.SlotE, TestContent.SlotR, new Slot(1, SlotKey.E), new Slot(1, SlotKey.R) };
+        var rightSlots = new[] { TestContent.SlotU, new Slot(0, SlotKey.I), new Slot(1, SlotKey.U), new Slot(1, SlotKey.I) };
         int taken = 0;
         for (int index = 0; taken < mistakes && battle.Outcome is null; index++)
         {

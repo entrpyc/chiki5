@@ -17,7 +17,7 @@ public class Mechanics
     public void direct_damage()
     {
         var battle = TestContent.Battle(TestContent.Left(4));
-        battle.Press(TestContent.SlotD, TestContent.LeftAttack10, 500 + Perfect);
+        battle.Press(TestContent.SlotE, TestContent.LeftAttack10, 500 + Perfect);
 
         battle.AdvanceToBeat(2);
 
@@ -30,7 +30,7 @@ public class Mechanics
         var card = LeftAttack("card-scaling-block", 6, scaling: new ValueScaling(ScalingSource.Block, 1, per: 2));
         var battle = TestContent.Battle(TestContent.Left(4));
         battle.GrantBlock(StatusTarget.Player, 8);
-        battle.Press(TestContent.SlotD, card, 500 + Perfect);
+        battle.Press(TestContent.SlotE, card, 500 + Perfect);
 
         battle.AdvanceToBeat(2);
 
@@ -129,7 +129,7 @@ public class Mechanics
     private static SimBattle Play(CardDefinition card, int offsetMs, int enemyHp = TestContent.DefaultEnemyHp, EnemyAction? action = null)
     {
         var battle = TestContent.Battle(new Stats(), TestContent.Chart(TestContent.Track(), action ?? TestContent.Left(4)), enemyHp: enemyHp);
-        battle.Press(TestContent.SlotD, card, 500 + offsetMs);
+        battle.Press(TestContent.SlotE, card, 500 + offsetMs);
         battle.AdvanceToBeat(2);
         return battle;
     }
@@ -137,7 +137,7 @@ public class Mechanics
     private static int DealtAtCrp(CardDefinition card, int crp)
     {
         var battle = TestContent.Battle(new Stats { Crp = crp }, TestContent.Chart(TestContent.Track(), TestContent.Left(4)));
-        battle.Press(TestContent.SlotD, card, 500 + Perfect);
+        battle.Press(TestContent.SlotE, card, 500 + Perfect);
         battle.AdvanceToBeat(2);
         return Dealt(battle);
     }

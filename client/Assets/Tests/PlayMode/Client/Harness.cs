@@ -33,9 +33,9 @@ namespace Client
             rig.Driver.AttachPresenter(presenter);
             rig.Driver.Script(new[]
             {
-                new ScriptedInput(520, ClientTestContent.SlotD, ClientTestContent.LeftAttack10),
-                new ScriptedInput(1020, ClientTestContent.SlotF, ClientTestContent.LeftAttack10),
-                new ScriptedInput(1520, ClientTestContent.SlotDLine2, ClientTestContent.LeftAttack10),
+                new ScriptedInput(520, ClientTestContent.SlotE, ClientTestContent.LeftAttack10),
+                new ScriptedInput(1020, ClientTestContent.SlotR, ClientTestContent.LeftAttack10),
+                new ScriptedInput(1520, ClientTestContent.SlotELine2, ClientTestContent.LeftAttack10),
             });
 
             yield return rig.WaitUntilAudioMs(1800);

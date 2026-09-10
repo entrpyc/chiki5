@@ -62,7 +62,7 @@ public class Battle
     {
         // Enemy HP 10, left attacks on beats 1 and 3; a 10-damage Perfect on beat 1.
         var battle = TestContent.Battle(new Stats(), TestContent.Chart(TestContent.Track(), 4, 12), enemyHp: 10);
-        battle.Press(TestContent.SlotD, TestContent.LeftAttack10, 500);
+        battle.Press(TestContent.SlotE, TestContent.LeftAttack10, 500);
 
         battle.AdvanceToBeat(2);
         int eventsAtEnd = battle.Events.Count;
@@ -118,11 +118,11 @@ public class Battle
         // applied on beat 3, then a 10-damage Perfect on beat 3 kills.
         var stats = new Stats();
         var battle = TestContent.Battle(stats, TestContent.Chart(TestContent.Track(), 4, 12), enemyHp: 10);
-        battle.Press(TestContent.SlotL, TestContent.Defense(12), 500);
+        battle.Press(TestContent.SlotO, TestContent.Defense(12), 500);
         battle.AdvanceToBeat(3);
         battle.ApplyStatus(StatusTarget.Player, StatusKind.Bleed);
         Assume.That(battle.Block, Is.EqualTo(12));
-        battle.Press(TestContent.SlotD, TestContent.LeftAttack10, 1500);
+        battle.Press(TestContent.SlotE, TestContent.LeftAttack10, 1500);
         battle.AdvanceToBeat(4);
         Assume.That(battle.Outcome, Is.EqualTo(BattleOutcome.Won));
 
@@ -145,8 +145,8 @@ public class Battle
     private static SimBattle TwoAttacksWonByPlayer(int firstOffsetMs, int enemyHp)
     {
         var battle = TestContent.Battle(new Stats(), TestContent.Chart(TestContent.Track(), 4, 12), enemyHp: enemyHp);
-        battle.Press(TestContent.SlotD, TestContent.LeftAttack10, 500 + firstOffsetMs);
-        battle.Press(TestContent.SlotF, TestContent.LeftAttack10, 1500);
+        battle.Press(TestContent.SlotE, TestContent.LeftAttack10, 500 + firstOffsetMs);
+        battle.Press(TestContent.SlotR, TestContent.LeftAttack10, 1500);
         battle.AdvanceToBeat(4);
         return battle;
     }
@@ -155,8 +155,8 @@ public class Battle
     private static SimBattle FiveActionBattleAnsweringFirstAndThird()
     {
         var battle = TestContent.Battle(4, 8, 12, 16, 20);
-        battle.Press(TestContent.SlotD, TestContent.LeftAttack10, 500);
-        battle.Press(TestContent.SlotD, TestContent.LeftAttack10, 1500);
+        battle.Press(TestContent.SlotE, TestContent.LeftAttack10, 500);
+        battle.Press(TestContent.SlotE, TestContent.LeftAttack10, 1500);
         return battle;
     }
 

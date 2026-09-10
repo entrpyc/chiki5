@@ -25,7 +25,7 @@ Technology, settled by the operator for this plan: Unity (C#) for the client, wi
 | 3.3.1.7 | Every encounter is one player against one enemy | 2 |
 | 3.3.1.8 | Every action opportunity is a charted enemy action, on beats or quarter beats | 2 |
 | 3.3.1.9 | Tracks carry a tempo map the beat clock follows | 2 |
-| 3.3.2.1 | Fixed key layout A/S, D/F, J/K, L/; across two lines | 13 |
+| 3.3.2.1 | Fixed key layout Q/W, E/R, U/I, O/P across two lines | 13 |
 | 3.3.2.2 | Line-switch key changes the active line; both lines visible | 13 |
 | 3.3.2.3 | Space plus slot key sends to the Signature Chain; Space does nothing else | 13 |
 | 3.3.2.5 | Keys bound by physical position; labels show the real character | 13 |
@@ -538,9 +538,9 @@ Ties broken: 3.2.3 is delivered twice, the stat holder in Phase 1 and the Base D
 #### ✅ P7.2 Category fixes legal slots
 
 - PRD: 3.4.1
-- Does: Category is one of Ability, LeftAttack, RightAttack, Defense and maps to its two keys per line (A/S, D/F, J/K, L/;); a card can be slotted only where its category allows.
+- Does: Category is one of Ability, LeftAttack, RightAttack, Defense and maps to its two keys per line (Q/W, E/R, U/I, O/P); a card can be slotted only where its category allows.
 - Needs: P7.1
-- Test (unit): `Sim.Cards › category_to_slots` — given a Defense card, when its legal slots are listed, then they are L and ; on both lines and nothing else.
+- Test (unit): `Sim.Cards › category_to_slots` — given a Defense card, when its legal slots are listed, then they are O and P on both lines and nothing else.
 
 #### ✅ P7.3 Rarity bands
 
@@ -857,7 +857,7 @@ Ties broken: 3.2.3 is delivered twice, the stat holder in Phase 1 and the Base D
 #### ✅ P13.1 Fixed layout
 
 - PRD: 3.3.2.1
-- Does: An `InputMap` binds A, S to Ability slots 1–2, D, F to Left Attack 1–2, J, K to Right Attack 1–2, L, ; to Defense 1–2 of the active line; the map is a constant with no rebinding path; a press produces a (line, slot) event with its audio-time stamp (P12.3). Assumption: the Input System actions deliver key events through the component's key-down and key-up entry points, which the play-mode tests call directly with timestamps because an unfocused headless player discards synthetic Input System events before they reach device state; the tests prove the bindings by the physical-key controls each action resolves to.
+- Does: An `InputMap` binds Q, W to Ability slots 1–2, E, R to Left Attack 1–2, U, I to Right Attack 1–2, O, P to Defense 1–2 of the active line (moved from the home row by the operator on 2026-09-10, see decisions.md); the map is a constant with no rebinding path; a press produces a (line, slot) event with its audio-time stamp (P12.3). Assumption: the Input System actions deliver key events through the component's key-down and key-up entry points, which the play-mode tests call directly with timestamps because an unfocused headless player discards synthetic Input System events before they reach device state; the tests prove the bindings by the physical-key controls each action resolves to.
 - Needs: P12.5
 - Test (integration): `Client.Input › eight_keys_map_to_slots` — given the map, when each of the eight keys is pressed, then the driver receives slot indices 0–7 on the active line and nothing for any other key.
 
@@ -866,7 +866,7 @@ Ties broken: 3.2.3 is delivered twice, the stat holder in Phase 1 and the Base D
 - PRD: 3.3.2.5
 - Does: Keys are bound by Input System physical key (scancode) so the home-row shape holds on any layout; the slot label shows the character that key produces on the current layout via `Keyboard.current[key].displayName`.
 - Needs: P13.1
-- Test (integration): `Client.Input › labels_follow_layout` — given a simulated AZERTY layout, when labels are read, then the Ability-1 slot shows Q while the physical key is unchanged and still maps to Ability 1.
+- Test (integration): `Client.Input › labels_follow_layout` — given a simulated AZERTY layout, when labels are read, then the Ability-1 slot shows A while the physical key is unchanged and still maps to Ability 1.
 
 #### ✅ P13.3 V switches lines
 

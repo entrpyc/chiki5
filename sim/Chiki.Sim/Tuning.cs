@@ -110,5 +110,59 @@ namespace Chiki.Sim
 
         /// <summary>Legendary Defense Block band, open at the top (PRD 3.4.4).</summary>
         public const int LegendaryBlockMin = 22;
+
+        /// <summary>Intended duration band of a Normal encounter in seconds (PRD 3.3.9.1).</summary>
+        public const int NormalMinSeconds = 30;
+        public const int NormalMaxSeconds = 60;
+
+        /// <summary>Intended duration band of an Elite encounter in seconds (PRD 3.3.9.1).</summary>
+        public const int EliteMinSeconds = 60;
+        public const int EliteMaxSeconds = 90;
+
+        /// <summary>Intended duration band of a Boss encounter in seconds (PRD 3.3.9.1).</summary>
+        public const int BossMinSeconds = 90;
+        public const int BossMaxSeconds = 180;
+
+        /// <summary>Aggressor HP multiplier in thousandths: 0.8x (PRD 3.6.1).</summary>
+        public const int AggressorHpMultiplierThousandths = 800;
+
+        /// <summary>Tank HP multiplier in thousandths: 1.2x (PRD 3.6.1).</summary>
+        public const int TankHpMultiplierThousandths = 1200;
+
+        /// <summary>Mentalist HP multiplier in thousandths: 1.0x (PRD 3.6.1).</summary>
+        public const int MentalistHpMultiplierThousandths = 1000;
+
+        /// <summary>Normal tier capability budget: abilities, traits, statuses used (PRD 3.6.4).</summary>
+        public const int NormalAbilitiesMin = 1;
+        public const int NormalAbilitiesMax = 1;
+        public const int NormalTraitsMin = 0;
+        public const int NormalTraitsMax = 1;
+        public const int NormalStatusesMin = 0;
+        public const int NormalStatusesMax = 1;
+
+        /// <summary>Elite tier capability budget (PRD 3.6.4).</summary>
+        public const int EliteAbilitiesMin = 1;
+        public const int EliteAbilitiesMax = 1;
+        public const int EliteTraitsMin = 1;
+        public const int EliteTraitsMax = 2;
+        public const int EliteStatusesMin = 1;
+        public const int EliteStatusesMax = 2;
+
+        /// <summary>Boss tier capability budget (PRD 3.6.4).</summary>
+        public const int BossAbilitiesMin = 1;
+        public const int BossAbilitiesMax = 2;
+        public const int BossTraitsMin = 2;
+        public const int BossTraitsMax = 2;
+        public const int BossStatusesMin = 1;
+        public const int BossStatusesMax = 2;
+
+        /// <summary>Shortest Charge wind-up in beats (PRD 3.6.16, 3.6.31).</summary>
+        public const int ChargeWindUpMinBeats = 3;
+
+        /// <summary>Longest Charge wind-up in beats (PRD 3.6.16, 3.6.31).</summary>
+        public const int ChargeWindUpMaxBeats = 5;
+
+        /// <summary>The typical AttackRatio of the HP formula in thousandths: 0.6 (PRD 3.7.15).</summary>
+        public const int DefaultAttackRatioThousandths = 600;
     }
 }

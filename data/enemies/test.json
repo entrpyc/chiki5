@@ -1,0 +1,21 @@
+{
+  "id": "test",
+  "enemies": [
+    {
+      "id": "enemy-test",
+      "name": "Test Enemy",
+      "tier": "normal",
+      "role": "aggressor",
+      "profile": "fast",
+      "intendedSeconds": 45,
+      "track": "track-test-120",
+      "chart": "chart-test-thirty",
+      "damagePerHit": 10,
+      "abilities": ["rising-tempo"],
+      "traits": ["guard"],
+      "statusesUsed": ["bleed"],
+      "portrait": "portrait-enemy-test",
+      "quote": "Keep the beat or bleed for it."
+    }
+  ]
+}

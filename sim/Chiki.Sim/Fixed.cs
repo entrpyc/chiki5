@@ -47,5 +47,15 @@ namespace Chiki.Sim
         {
             return Round((long)value * multiplierThousandths);
         }
+
+        /// <summary>A value in thousandths as decimal text with trailing zeros dropped (2250 is "2.25"), for messages and content.</summary>
+        public static string ToDecimalText(int thousandths)
+        {
+            int magnitude = Math.Abs(thousandths);
+            string whole = (magnitude / One).ToString(System.Globalization.CultureInfo.InvariantCulture);
+            string fraction = (magnitude % One).ToString("000", System.Globalization.CultureInfo.InvariantCulture).TrimEnd('0');
+            string text = fraction.Length == 0 ? whole : whole + "." + fraction;
+            return thousandths < 0 ? "-" + text : text;
+        }
     }
 }

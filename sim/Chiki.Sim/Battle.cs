@@ -47,9 +47,20 @@ namespace Chiki.Sim
 
         public Track Track => Enemy.Track;
 
-        public EncounterTier Tier => Track.Tier;
+        /// <summary>The encounter tier, the enemy's (PRD 4.8, 3.3.9.1).</summary>
+        public EncounterTier Tier => Enemy.Tier;
 
+        /// <summary>The beat map of the enemy's own track (PRD 3.6.28); the chart's positions land on it.</summary>
         public BeatMap BeatMap => Track.BeatMap;
+
+        /// <summary>
+        /// Completed passes of the track and chart (PRD 3.6.32): 0 during the first pass. The
+        /// presenter and the audio scheduler read it; positions in the stream stay absolute.
+        /// </summary>
+        public int Loop { get; private set; }
+
+        /// <summary>The quarter beat the battle's current time falls in, absolute across laps.</summary>
+        public int CurrentPositionQb => QuarterBeatAt(CurrentTimeMs);
 
         /// <summary>The enemy's HP at battle start (PRD 3.7.15; derived by P10.2, supplied by the caller until then).</summary>
         public int EnemyMaxHp { get; }
@@ -185,10 +196,8 @@ namespace Chiki.Sim
                 throw new ArgumentOutOfRangeException(nameof(index), "Index must not be negative.");
             }
 
-            int count = Chart.Actions.Count;
-            int lap = index / count;
-            var action = Chart.Actions[index % count];
-            int positionQb = checked(action.PositionQb + lap * Chart.LengthQb);
+            var action = ActionOf(index);
+            int positionQb = AbsolutePositionOf(index);
             int bpm = BeatMap.BpmAt(positionQb);
             int centre = BeatMap.TimeAtQb(positionQb);
             int halfWidth = JudgmentWindow.AcceptHalfWidthMs(bpm);
@@ -207,6 +216,44 @@ namespace Chiki.Sim
             close = Math.Min(close, FloorMidpoint(centre, nextCentre));
 
             return new ActionOpportunity(index, action, positionQb, bpm, centre, open, close);
+        }
+
+        /// <summary>
+        /// The enemy's upcoming actions within <paramref name="horizonBeats"/> beats of the
+        /// current position (PRD 3.6.3): every action still to resolve whose position is at or
+        /// after the current quarter beat, in order, across laps (PRD 3.6.32), each with the
+        /// quarter beats remaining until it lands. The Rhythm Line presents them (P14.6).
+        /// </summary>
+        public IReadOnlyList<UpcomingAction> UpcomingActions(int horizonBeats)
+        {
+            if (horizonBeats < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(horizonBeats), "Horizon must not be negative.");
+            }
+
+            var upcoming = new List<UpcomingAction>();
+            if (Outcome != null)
+            {
+                return upcoming;
+            }
+
+            int now = CurrentPositionQb;
+            int limit = checked(now + Beats.ToQuarterBeats(horizonBeats));
+            for (int index = _pending.Index; ; index++)
+            {
+                int positionQb = AbsolutePositionOf(index);
+                if (positionQb > limit)
+                {
+                    break;
+                }
+
+                if (positionQb >= now)
+                {
+                    upcoming.Add(new UpcomingAction(index, ActionOf(index), positionQb, positionQb - now));
+                }
+            }
+
+            return upcoming;
         }
 
         /// <summary>
@@ -521,6 +568,12 @@ namespace Chiki.Sim
                 return _pending.PositionQb;
             }
 
+            return QuarterBeatAt(audioTimeMs);
+        }
+
+        /// <summary>The quarter beat an audio time falls in, absolute across laps; never before the current beat.</summary>
+        private int QuarterBeatAt(int audioTimeMs)
+        {
             int position = Beats.ToQuarterBeats(Math.Max(CurrentBeat, 0));
             while (BeatMap.TimeAtQb(position + 1) <= audioTimeMs)
             {
@@ -576,6 +629,13 @@ namespace Chiki.Sim
             }
 
             Emit(new BeatStarted(positionQb, _nextBeat));
+            if (Outcome is null && _nextBeat > 0 && _nextBeat % Track.LengthBeats == 0)
+            {
+                // The track and chart restart together at the end of every pass (PRD 3.6.32).
+                Loop++;
+                Emit(new TrackLooped(positionQb, Loop));
+            }
+
             _nextBeat++;
 
             for (int i = _timers.Count - 1; i >= 0; i--)
@@ -1016,10 +1076,20 @@ namespace Chiki.Sim
 
         private int CentreOf(int index)
         {
-            int count = Chart.Actions.Count;
-            int lap = index / count;
-            var action = Chart.Actions[index % count];
-            return BeatMap.TimeAtQb(checked(action.PositionQb + lap * Chart.LengthQb));
+            return BeatMap.TimeAtQb(AbsolutePositionOf(index));
+        }
+
+        /// <summary>The chart action behind the action with the given battle-wide index; indices wrap per lap (PRD 3.6.32).</summary>
+        private EnemyAction ActionOf(int index)
+        {
+            return Chart.Actions[index % Chart.Actions.Count];
+        }
+
+        /// <summary>The absolute quarter-beat position of the action with the given index: its charted position plus whole laps.</summary>
+        private int AbsolutePositionOf(int index)
+        {
+            int lap = index / Chart.Actions.Count;
+            return checked(ActionOf(index).PositionQb + lap * Chart.LengthQb);
         }
 
         private static int FloorMidpoint(int a, int b)

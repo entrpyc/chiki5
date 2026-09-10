@@ -33,6 +33,13 @@ namespace Chiki.Sim
     public sealed record BeatStarted(int PositionQb, int Beat) : BattleEvent(PositionQb);
 
     /// <summary>
+    /// The track and chart reached their end and restarted together (PRD 3.6.32): <see cref="Loop"/>
+    /// is the number of completed passes, so the pass now playing is one more. The presenter
+    /// and the audio scheduler read it; the music itself is never stopped (PRD 3.3.1.6).
+    /// </summary>
+    public sealed record TrackLooped(int PositionQb, int Loop) : BattleEvent(PositionQb);
+
+    /// <summary>
     /// A pressed input was graded against an enemy action (PRD 3.3.3.1). <see cref="SignatureSend"/>
     /// is true when the press was Space plus the slot key (PRD 3.3.2.3).
     /// </summary>

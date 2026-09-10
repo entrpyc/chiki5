@@ -650,53 +650,53 @@ Ties broken: 3.2.3 is delivered twice, the stat holder in Phase 1 and the Base D
 - Needs: P7.8, P2.1
 - Test (unit): `Sim.Fixtures › starter_set_validates_and_fills_two_lines` — given the starter set, when validated and grouped by category, then there are zero violations and at least 4 cards per category.
 
-### Phase 9 — Enemies are data
+### ✅ Phase 9 — Enemies are data
 
 *Delivers the enemy definition bound to its own track and chart, tiers, roles, profiles, the budget and chart validators, looping and the HP formula. Done when every P9 test is green and the suite passes.*
 
-#### P9.1 Enemy definition
+#### ✅ P9.1 Enemy definition
 
 - PRD: 4.7
 - Does: An `EnemyDefinition` record with id, name, tier, role, rhythm profile, track id, chart id (P2.10), damage per hit, abilities, traits, statuses used, portrait id, quote line, and an optional phase list for Bosses (field only in this plan). HP is not a field (P10.2).
 - Needs: P1.1, P2.10
 - Test (unit): `Sim.Enemies › loads_definition_with_chart_reference` — given a JSON enemy naming a track and a chart, when loaded, then every field round-trips and the chart resolves to a loaded `Chart`.
 
-#### P9.2 Encounter tiers
+#### ✅ P9.2 Encounter tiers
 
 - PRD: 3.3.9.1
 - Does: Tier is one of Normal (intended 30–60 s), Elite (60–90 s), Boss (90–180 s); each definition carries an intended duration in seconds inside its tier's band, which the validator enforces; P9.8 reads it.
 - Needs: P9.1
 - Test (unit): `Sim.Enemies › intended_duration_inside_tier_band` — given a Normal enemy with 75 s, when validated, then it fails; with 45 s, it passes.
 
-#### P9.3 Roles
+#### ✅ P9.3 Roles
 
 - PRD: 3.6.1
 - Does: Role is exactly one of Aggressor (HP 0.8×), Tank (1.2×), Mentalist (1.0×); the multiplier is exposed for P10.2.
 - Needs: P9.1
 - Test (unit): `Sim.Enemies › role_multiplier` — given each role, when its HP multiplier is read, then it is 800, 1200 and 1000 thousandths respectively.
 
-#### P9.4 Rhythm profiles
+#### ✅ P9.4 Rhythm profiles
 
 - PRD: 3.6.2
 - Does: Profile is exactly one of Fast or Slow; the validator requires it and rejects a definition with none.
 - Needs: P9.1
 - Test (unit): `Sim.Enemies › profile_required` — given a definition without a profile, when validated, then it fails.
 
-#### P9.5 Upcoming actions exposed
+#### ✅ P9.5 Upcoming actions exposed
 
 - PRD: 3.6.3
-- Does: The battle exposes, for any horizon, the enemy's upcoming actions as (action, target position, beats remaining) computed from the chart and the current position; display is P14.6.
+- Does: The battle exposes, for any horizon, the enemy's upcoming actions as (action, target position, beats remaining) computed from the chart and the current position; display is P14.6. Assumption: the horizon is in beats, an action is upcoming while its position is at or after the quarter beat the battle's current time falls in, and the remaining distance is kept exact in quarter beats with whole beats derived from it.
 - Needs: P9.1, P2.11
 - Test (unit): `Sim.Enemies › upcoming_actions_with_countdown` — given a chart with AttackLeft at beat 4 and the battle at beat 1, when upcoming actions are queried, then the first entry is AttackLeft, position 4, 3 remaining.
 
-#### P9.6 Tier budget
+#### ✅ P9.6 Tier budget
 
 - PRD: 3.6.4
 - Does: The validator enforces the table: Normal 1 ability, 0–1 traits, 0–1 statuses; Elite 1, 1–2, 1–2; Boss 1–2, 2, 1–2.
 - Needs: P9.2
 - Test (unit): `Sim.Enemies › normal_cannot_carry_two_abilities` — given a Normal enemy with 2 abilities, when validated, then it fails; a Boss with 2 passes.
 
-#### P9.7 Track binding
+#### ✅ P9.7 Track binding
 
 - PRD: 3.6.28
 - Does: An enemy's track id and chart id must resolve to a loaded track and a chart written for that same track; the validator rejects a chart whose track differs from the enemy's, and two enemies may not share a track. The battle's beat map comes from that track and the chart's positions land on it.
@@ -704,24 +704,24 @@ Ties broken: 3.2.3 is delivered twice, the stat holder in Phase 1 and the Base D
 - Test (unit): `Sim.Enemies › battle_tempo_from_enemy_track` — given an enemy bound to a BPM 140 track, when a battle starts, then its beat map is at 140 BPM and the chart's action at beat 4 lands at the map's beat 4 time.
 - Test (unit): `Sim.Enemies › chart_must_match_track` — given an enemy whose chart names a different track, when validated, then it fails.
 
-#### P9.8 HP formula
+#### ✅ P9.8 HP formula
 
 - PRD: 3.7.15
 - Does: `EnemyHp(actionsPerMinute, attackRatio, avgCardDmg, judgmentMix, intendedSeconds)` implementing AAPM = ActionsPerMinute × AttackRatio, AvgAttackDMG = AvgCardDMG × (P% + G% × 0.5), DPM, DPS and HP = DPS × duration, in thousandths, rounded once; ActionsPerMinute comes from the enemy's chart (P2.10).
 - Needs: P1.2, P2.10
 - Test (unit): `Sim.Balance › worked_check_360` — given a chart at 60 actions per minute, AttackRatio 0.6, AvgAttackDMG 10 (all Perfect), 60 s, when computed, then base HP is 360.
 
-#### P9.9 Chart validation
+#### ✅ P9.9 Chart validation
 
 - PRD: 3.6.31
-- Does: A `ChartValidator` rejects a chart with no actions, an action beyond the track's length, a position not on a quarter beat, an unknown action kind, or a Charge wind-up outside 3–5 beats; every shipped chart is validated in the suite.
+- Does: A `ChartValidator` rejects a chart with no actions, an action beyond the track's length, a position not on a quarter beat, an unknown action kind, or a Charge wind-up outside 3–5 beats; every shipped chart is validated in the suite. Assumption: chart JSON positions are authored in beats with up to three decimal places, read exactly as thousandths of a beat; the validator runs on that authored form and the loader refuses to build a chart with violations.
 - Needs: P2.10, P9.2
 - Test (unit): `Sim.Chart › rejects_off_grid_and_out_of_range` — given a chart with an action at 2.3 beats and another at beat 40 on a 32-beat track, when validated, then two violations name those actions; a chart with actions on 2.25 and 31.75 passes.
 
-#### P9.10 Chart and track loop together
+#### ✅ P9.10 Chart and track loop together
 
 - PRD: 3.6.32
-- Does: When the battle position reaches the track's length, the chart restarts at its first action and the beat map continues from beat 0 of the next pass with no gap; the loop count is exposed for the presenter and the audio scheduler.
+- Does: When the battle position reaches the track's length, the chart restarts at its first action and the beat map continues from beat 0 of the next pass with no gap; the loop count is exposed for the presenter and the audio scheduler. Assumption: positions in the stream stay absolute across passes, and each restart appends a `TrackLooped` event carrying the completed pass count.
 - Needs: P2.11, P9.7
 - Test (unit): `Sim.Chart › loops_from_start_seamlessly` — given a 32-beat chart whose first action is at beat 1 and the battle unfinished at beat 32, when the position passes 32, then the next opportunity is at beat 33 (pass 2, beat 1) and the beat map time is continuous.
 

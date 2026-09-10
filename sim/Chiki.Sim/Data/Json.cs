@@ -134,6 +134,44 @@ namespace Chiki.Sim.Data
             return (int)value;
         }
 
+        /// <summary>
+        /// A decimal number with up to three places as an exact integer in thousandths (2.25 is
+        /// 2250); rule data never holds a float, so the text is converted digit by digit.
+        /// </summary>
+        public int AsThousandths()
+        {
+            if (Kind != JsonKind.Number)
+            {
+                throw Wrong(JsonKind.Number);
+            }
+
+            string text = _text!;
+            if (text.IndexOfAny(new[] { 'e', 'E' }) >= 0)
+            {
+                throw new JsonException($"Expected a plain decimal but found '{text}'.");
+            }
+
+            bool negative = text.StartsWith("-", StringComparison.Ordinal);
+            string digits = negative ? text.Substring(1) : text;
+            int point = digits.IndexOf('.');
+            string wholeText = point < 0 ? digits : digits.Substring(0, point);
+            string fractionText = point < 0 ? string.Empty : digits.Substring(point + 1);
+            if (fractionText.Length > 3)
+            {
+                throw new JsonException($"'{text}' has more than three decimal places.");
+            }
+
+            long whole = long.Parse(wholeText, NumberStyles.None, CultureInfo.InvariantCulture);
+            long fraction = fractionText.Length == 0 ? 0 : long.Parse(fractionText.PadRight(3, '0'), NumberStyles.None, CultureInfo.InvariantCulture);
+            long value = whole * 1000 + fraction;
+            if (value > int.MaxValue)
+            {
+                throw new JsonException($"'{text}' is out of range.");
+            }
+
+            return (int)(negative ? -value : value);
+        }
+
         private JsonException Wrong(JsonKind expected)
         {
             return new JsonException($"Expected {expected} but found {Kind}.");

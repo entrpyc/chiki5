@@ -65,9 +65,37 @@ internal static class TestContent
         return new SimChart("chart-test", "enemy-test", track, actions);
     }
 
+    /// <summary>A valid Normal Fast Aggressor with one ability, 45 s intended, on the chart's own track.</summary>
     public static EnemyDefinition Enemy(SimChart chart, int damagePerHit = DefaultEnemyDmg)
     {
-        return new EnemyDefinition("enemy-test", "Test Enemy", chart, damagePerHit);
+        return Enemy(chart, EncounterTier.Normal, EnemyRole.Aggressor, RhythmProfile.Fast, 45, damagePerHit: damagePerHit);
+    }
+
+    public static EnemyDefinition Enemy(
+        SimChart chart,
+        EncounterTier tier,
+        EnemyRole role,
+        RhythmProfile? profile,
+        int intendedSeconds,
+        IReadOnlyList<EnemyAbility>? abilities = null,
+        IReadOnlyList<EnemyTrait>? traits = null,
+        IReadOnlyList<StatusKind>? statusesUsed = null,
+        string? trackId = null,
+        int damagePerHit = DefaultEnemyDmg)
+    {
+        return new EnemyDefinition(
+            chart.EnemyId,
+            "Test Enemy",
+            tier,
+            role,
+            profile,
+            intendedSeconds,
+            chart,
+            damagePerHit,
+            abilities ?? new[] { EnemyAbility.RisingTempo },
+            traits,
+            statusesUsed,
+            trackId: trackId);
     }
 
     public static EnemyDefinition Enemy(SimTrack track, params int[] positionsQb)

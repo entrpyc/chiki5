@@ -79,5 +79,36 @@ namespace Chiki.Sim
 
         /// <summary>Damage per Bleed stack per beat (PRD 3.3.7.6).</summary>
         public const int BleedDamagePerStack = 1;
+
+        /// <summary>Common attack damage band (PRD 3.4.4).</summary>
+        public const int CommonDamageMin = 8;
+        public const int CommonDamageMax = 12;
+
+        /// <summary>Uncommon attack damage band (PRD 3.4.4).</summary>
+        public const int UncommonDamageMin = 12;
+        public const int UncommonDamageMax = 16;
+
+        /// <summary>Rare attack damage band (PRD 3.4.4).</summary>
+        public const int RareDamageMin = 16;
+        public const int RareDamageMax = 22;
+
+        /// <summary>Legendary attack damage band (PRD 3.4.4).</summary>
+        public const int LegendaryDamageMin = 22;
+        public const int LegendaryDamageMax = 26;
+
+        /// <summary>Common Defense Block band (PRD 3.4.4).</summary>
+        public const int CommonBlockMin = 5;
+        public const int CommonBlockMax = 10;
+
+        /// <summary>Uncommon Defense Block band (PRD 3.4.4).</summary>
+        public const int UncommonBlockMin = 10;
+        public const int UncommonBlockMax = 16;
+
+        /// <summary>Rare Defense Block band (PRD 3.4.4).</summary>
+        public const int RareBlockMin = 16;
+        public const int RareBlockMax = 21;
+
+        /// <summary>Legendary Defense Block band, open at the top (PRD 3.4.4).</summary>
+        public const int LegendaryBlockMin = 22;
     }
 }

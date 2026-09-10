@@ -3,7 +3,10 @@ using System.Collections.Generic;
 
 namespace Chiki.Sim
 {
-    /// <summary>The statuses in scope (PRD 3.3.7.3–3.3.7.7).</summary>
+    /// <summary>
+    /// The statuses (PRD 3.3.7.3–3.3.7.8). Disarmed is named so content can declare it
+    /// (PRD 3.4.8); it acts on Traits, which a later plan builds, so it has no runtime yet.
+    /// </summary>
     public enum StatusKind
     {
         Scar,
@@ -11,6 +14,7 @@ namespace Chiki.Sim
         Stun,
         Bleed,
         Thorns,
+        Disarmed,
     }
 
     /// <summary>Which side a status sits on (PRD 3.3.7.1).</summary>
@@ -83,6 +87,7 @@ namespace Chiki.Sim
                     return Tuning.BleedBeats;
                 case StatusKind.Stun:
                 case StatusKind.Thorns:
+                case StatusKind.Disarmed:
                     return null;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(kind), kind, "Unknown status.");
@@ -192,6 +197,7 @@ namespace Chiki.Sim
             {
                 case StatusKind.Scar:
                 case StatusKind.Thorns:
+                case StatusKind.Disarmed:
                 {
                     var fresh = new StatusInstance(kind, stacks, value, duration);
                     _instances.Add(fresh);

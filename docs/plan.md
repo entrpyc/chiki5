@@ -524,64 +524,64 @@ Ties broken: 3.2.3 is delivered twice, the stat holder in Phase 1 and the Base D
 - Test (unit): `Sim.EdgeCases › stun_when_enemy_action_arrives` — given the player Stunned, when the enemy action resolves, then it is treated as no input.
 - Test (unit): `Sim.EdgeCases › debuff_on_perfect_beat` — given the enemy applies a non-damage debuff, when the player is Perfect, then the debuff lands.
 
-### Phase 7 — Cards are data
+### ✅ Phase 7 — Cards are data
 
 *Delivers the card definition schema, its loader, and the validator that turns every card rule into a build-time failure. Done when every P7 test is green and the suite passes.*
 
-#### P7.1 Card definition schema and loader
+#### ✅ P7.1 Card definition schema and loader
 
 - PRD: 4.4
-- Does: A `CardDefinition` record with id, name, Category, Rarity, class, damage-or-value, cooldown beats, effects (a list of typed effect entries), special rules, reaction conditions, upgrade step, Unstable lifespan (nullable), flavor text (optional), unlock source. Loaded from a JSON data file per set; `data/cards.csv` is migrated to this format by P8.8.
+- Does: A `CardDefinition` record with id, name, Category, Rarity, class, damage-or-value, cooldown beats, effects (a list of typed effect entries), special rules, reaction conditions, upgrade step, Unstable lifespan (nullable), flavor text (optional), unlock source. Loaded from a JSON data file per set; `data/cards.csv` is migrated to this format by P8.8. Assumption: a typed effect entry is P8.1's shape (trigger, condition, modifier, target, amount, status, stat, value, lifetime), so reaction conditions live on the entries; special rules are designer text with no runtime meaning; unlock source is one of starter, pool, boss, relationship; the constructor checks shape only and every rule of 3.4 is the validator's (P7.8), so a broken card loads and then fails the gate.
 - Needs: P1.1
 - Test (unit): `Sim.Cards › loads_definition_from_json` — given a JSON card entry with every field, when loaded, then every field round-trips.
 
-#### P7.2 Category fixes legal slots
+#### ✅ P7.2 Category fixes legal slots
 
 - PRD: 3.4.1
 - Does: Category is one of Ability, LeftAttack, RightAttack, Defense and maps to its two keys per line (A/S, D/F, J/K, L/;); a card can be slotted only where its category allows.
 - Needs: P7.1
 - Test (unit): `Sim.Cards › category_to_slots` — given a Defense card, when its legal slots are listed, then they are L and ; on both lines and nothing else.
 
-#### P7.3 Rarity bands
+#### ✅ P7.3 Rarity bands
 
 - PRD: 3.4.4
 - Does: Rarity is one of Common, Uncommon, Rare, Legendary; the validator rejects an attack card whose damage or a defense card whose Block falls outside its band (Common 8–12 / 5–10, Uncommon 12–16 / 10–16, Rare 16–22 / 16–21, Legendary 22–26 / 22+).
 - Needs: P7.1
 - Test (unit): `Sim.Cards › rarity_band_enforced` — given a Common attack with damage 14, when validated, then it fails naming the band; with 12, it passes.
 
-#### P7.4 Card anatomy
+#### ✅ P7.4 Card anatomy
 
 - PRD: 3.4.7
 - Does: The validator requires name, Category, Rarity, value and a cooldown of 2–6 beats; status effects, special rules and flavor text are optional; flavor text has no rule beyond being a string.
 - Needs: P7.1
 - Test (unit): `Sim.Cards › cooldown_must_be_2_to_6` — given cooldown 7, when validated, then it fails; given 2 and 6, it passes.
 
-#### P7.5 Effect compatibility
+#### ✅ P7.5 Effect compatibility
 
 - PRD: 3.4.8
-- Does: A table of effect × category → minimum rarity from 3.4.8 (Bleed, Weak, Scar, Thorns, Stun, Block-on-attack, Disarmed, Repair, True DMG); the validator rejects an effect on a category where it is not allowed or below its minimum rarity.
+- Does: A table of effect × category → minimum rarity from 3.4.8 (Bleed, Weak, Scar, Thorns, Stun, Block-on-attack, Disarmed, Repair, True DMG); the validator rejects an effect on a category where it is not allowed or below its minimum rarity. Assumption: an entry falls under a row by its modifier: apply-status by the status (Disarmed is named in `StatusKind` so content can declare it, with no runtime until Traits exist), gain-block on the player is the Block row, change-stat raising ARD is Repair, deal-true-damage is True DMG; other modifiers are not restricted by the table.
 - Needs: P7.3
 - Test (unit): `Sim.Cards › stun_needs_rare_attack` — given an Uncommon attack with Stun, when validated, then it fails; given Rare, it passes.
 - Test (unit): `Sim.Cards › thorns_never_on_attack` — given an attack with Thorns of any rarity, when validated, then it fails.
 
-#### P7.6 Exactly one class
+#### ✅ P7.6 Exactly one class
 
 - PRD: 3.4.13
 - Does: Class is one of Normal, Event, Unstable and is required; Unstable requires a lifespan of at least 1 battle; the other classes must have none.
 - Needs: P7.1
 - Test (unit): `Sim.Cards › unstable_requires_lifespan` — given class Unstable with no lifespan, when validated, then it fails; given Normal with a lifespan, it fails too.
 
-#### P7.7 Cards carry no formula
+#### ✅ P7.7 Cards carry no formula
 
 - PRD: 3.4.10
 - Does: The definition has no field for multipliers, judgment factors or Base DMG handling; resolution reads only CardValue and effect modifiers and applies P3.2 itself.
 - Needs: P7.1, P3.2
 - Test (unit): `Sim.Cards › resolution_uses_cardvalue_only` — given a loaded 10-damage card, when played Good with Base DMG 2, then damage is 6, computed by the battle and not by the card.
 
-#### P7.8 Validation gate
+#### ✅ P7.8 Validation gate
 
 - PRD: 3.4.21
-- Does: A `CardValidator` runs every rule in P7.2 to P7.6 over a whole card set and returns all violations; a test loads every shipped data set so an invalid card fails the suite, which is what "removed before it ships" means operationally.
+- Does: A `CardValidator` runs every rule in P7.2 to P7.6 over a whole card set and returns all violations; a test loads every shipped data set so an invalid card fails the suite, which is what "removed before it ships" means operationally. Assumption: the shipped sets are every `data/sets/*.json`; the set-level pass also rejects duplicate ids (4.4); each violation names the card and the PRD number of the rule.
 - Needs: P7.2, P7.3, P7.4, P7.5, P7.6
 - Test (unit): `Sim.Cards › shipped_sets_validate` — given every JSON card set under the data folder, when validated, then there are zero violations.
 - Test (unit): `Sim.Cards › validator_reports_all_violations` — given a set with three broken cards, when validated, then three violations are returned, each naming the card and the rule.

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace Chiki.Sim
 {
@@ -40,6 +41,21 @@ namespace Chiki.Sim
         public static bool Allows(this CardCategory category, SlotKey key)
         {
             return ForKey(key) == category;
+        }
+
+        /// <summary>The slots a Category's cards may sit in: its two keys on both lines (PRD 3.4.1).</summary>
+        public static IReadOnlyList<Slot> SlotsFor(CardCategory category)
+        {
+            var slots = new List<Slot>();
+            foreach (var slot in Slot.All)
+            {
+                if (category.Allows(slot.Key))
+                {
+                    slots.Add(slot);
+                }
+            }
+
+            return slots;
         }
 
         /// <summary>Left Attack and Right Attack are the attack Categories (PRD 3.4.3).</summary>

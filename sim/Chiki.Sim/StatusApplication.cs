@@ -43,6 +43,7 @@ namespace Chiki.Sim
                 case StatusKind.Scar:
                 case StatusKind.Stun:
                 case StatusKind.Bleed:
+                case StatusKind.Disarmed:
                     if (value != 0)
                     {
                         throw new ArgumentOutOfRangeException(nameof(value), $"{kind} has no per-source value.");

@@ -21,6 +21,7 @@ namespace Chiki.Sim.Data
                 case "stun": return StatusKind.Stun;
                 case "bleed": return StatusKind.Bleed;
                 case "thorns": return StatusKind.Thorns;
+                case "disarmed": return StatusKind.Disarmed;
                 default: throw new JsonException($"Unknown status '{id}'.");
             }
         }
@@ -34,6 +35,7 @@ namespace Chiki.Sim.Data
                 case StatusKind.Stun: return "stun";
                 case StatusKind.Bleed: return "bleed";
                 case StatusKind.Thorns: return "thorns";
+                case StatusKind.Disarmed: return "disarmed";
                 default: throw new ArgumentOutOfRangeException(nameof(kind));
             }
         }

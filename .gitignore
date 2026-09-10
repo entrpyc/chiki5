@@ -8,6 +8,7 @@ client/[Ll]ogs/
 client/[Uu]serSettings/
 client/*.csproj
 client/*.sln
+client/*.slnx
 client/.vs/
 client/.idea/
 # .NET simulation

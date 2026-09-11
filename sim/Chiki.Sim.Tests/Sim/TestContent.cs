@@ -228,10 +228,19 @@ internal static class TestContent
     /// </summary>
     public static Chiki.Sim.Run RunAtNormalNode(RunContent content, string? enemyId = null, int world = 1, string seedPrefix = "normal-")
     {
+        return RunAtNode(content, NodeType.NormalBattle, enemyId, world, seedPrefix);
+    }
+
+    /// <summary>
+    /// A run standing on a node of the type one step from the entry, rolled to the given enemy
+    /// when one is named: seeds are tried in order until the entry branches to one.
+    /// </summary>
+    public static Chiki.Sim.Run RunAtNode(RunContent content, NodeType type, string? enemyId = null, int world = 1, string seedPrefix = "node-")
+    {
         for (int i = 0; i < 1000; i++)
         {
             var run = RunInWorld(content, seedPrefix + i, world);
-            var node = run.ForwardNodes.FirstOrDefault(n => n.Type == NodeType.NormalBattle && (enemyId is null || n.EnemyId == enemyId));
+            var node = run.ForwardNodes.FirstOrDefault(n => n.Type == type && (enemyId is null || n.EnemyId == enemyId));
             if (node != null)
             {
                 Assume.That(run.MoveTo(node.Id), Is.EqualTo(MoveResult.Moved));
@@ -239,7 +248,24 @@ internal static class TestContent
             }
         }
 
-        throw new InvalidOperationException("No seed branches from the entry to a Normal node" + (enemyId is null ? "" : " with " + enemyId) + ".");
+        throw new InvalidOperationException("No seed branches from the entry to a " + type + " node" + (enemyId is null ? "" : " with " + enemyId) + ".");
+    }
+
+    /// <summary>A run walked along the first forward node at every step to the current World's Boss node without fighting: every stop on the way is completed as arrived at.</summary>
+    public static Chiki.Sim.Run RunAtBoss(RunContent content, string seed = "chiki-1", int world = 1)
+    {
+        var run = RunInWorld(content, seed, world);
+        while (run.CurrentNode.Type != NodeType.Boss)
+        {
+            if (!run.CurrentNodeCompleted)
+            {
+                run.CompleteNode();
+            }
+
+            Assume.That(run.MoveTo(run.ForwardNodes[0].Id), Is.EqualTo(MoveResult.Moved));
+        }
+
+        return run;
     }
 
     /// <summary>

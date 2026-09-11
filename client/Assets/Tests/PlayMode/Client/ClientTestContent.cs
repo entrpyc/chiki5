@@ -4,6 +4,7 @@ using System.Linq;
 using Chiki.Client.Audio;
 using Chiki.Client.Content;
 using Chiki.Client.Driver;
+using Chiki.Client.Scene;
 using Chiki.Sim;
 using Chiki.Sim.Data;
 using UnityEngine;
@@ -56,6 +57,72 @@ namespace Client
         public static readonly CardDefinition LeftAttack10 = new CardDefinition("card-left-10", "Left 10", CardCategory.LeftAttack, 10, Tuning.CooldownMinBeats);
 
         /// <summary>data/tracks/fixture-120.json: 64 beats at BPM 120, offset 0.</summary>
+        /// <summary>The run content the flow starts a run on (P17.5): the fixture cards, Charms, Imprints and enemies from data/.</summary>
+        public static RunContent LoadRunContent()
+        {
+            var content = BattleContent.LoadFixtures();
+            return new RunContent(
+                content.Cards,
+                CharmLoader.SetFromJson(ContentFiles.ReadText("charms/fixtures.json")),
+                ImprintLoader.SetFromJson(ContentFiles.ReadText("imprints/fixtures.json")),
+                enemies: new EnemySet("fixtures", content.Enemies.Values.ToList()));
+        }
+
+        /// <summary>Walks the run along the first forward node at every step to the current World's Boss node without fighting: every stop on the way is completed as arrived at.</summary>
+        public static void WalkToBoss(Run run)
+        {
+            while (run.CurrentNode.Type != NodeType.Boss)
+            {
+                if (!run.CurrentNodeCompleted)
+                {
+                    run.CompleteNode();
+                }
+
+                if (run.MoveTo(run.ForwardNodes[0].Id) != MoveResult.Moved)
+                {
+                    throw new System.InvalidOperationException("The run could not move forward.");
+                }
+            }
+        }
+
+        /// <summary>
+        /// Fights the current node's battle to a win: the enemy has 1 HP and every charted action
+        /// is answered with a Perfect press, an attack slot of the action's side first so the hit
+        /// lands through any Block the enemy holds (Guard, PRD 3.6.25), any other line-0 slot
+        /// otherwise. The battle is returned ended, not settled.
+        /// </summary>
+        public static SimBattle FightNodeBattle(Run run)
+        {
+            var battle = run.StartNodeBattle(enemyHp: 1);
+            var others = new[] { new Slot(0, SlotKey.Q), new Slot(0, SlotKey.W), new Slot(0, SlotKey.O), new Slot(0, SlotKey.P) };
+            var left = new[] { SlotE, SlotR, new Slot(0, SlotKey.U), new Slot(0, SlotKey.I) };
+            var right = new[] { new Slot(0, SlotKey.U), new Slot(0, SlotKey.I), SlotE, SlotR };
+            foreach (var action in battle.Chart.Actions.OrderBy(a => a.LandingQb))
+            {
+                if (battle.Outcome != null)
+                {
+                    break;
+                }
+
+                var attacks = action.Kind == EnemyActionKind.AttackRight ? right : left;
+                battle.AdvanceToPosition(action.LandingQb);
+                foreach (var slot in attacks.Concat(others))
+                {
+                    if (battle.Press(slot, battle.BeatMap.TimeAtQb(action.LandingQb)).Accepted)
+                    {
+                        break;
+                    }
+                }
+            }
+
+            if (battle.Outcome == null)
+            {
+                battle.AdvanceToBeat(battle.Track.LengthBeats + 1);
+            }
+
+            return battle;
+        }
+
         public static Track FixtureTrack()
         {
             return TrackLoader.FromJson(ContentFiles.ReadText("tracks/fixture-120.json"));

@@ -57,4 +57,46 @@ public class Nodes
             Assert.That(skipping.Events.OfType<RewardOffered>().Count(), Is.EqualTo(1));
         });
     }
+
+    [Test]
+    public void elite_node_fights_elite()
+    {
+        var content = TestContent.LoadRunContent();
+        var run = TestContent.RunAtNode(content, NodeType.Elite);
+        Assume.That(run.CurrentNode.Type, Is.EqualTo(NodeType.Elite));
+
+        var battle = TestContent.WinNodeBattle(run);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(battle.Tier, Is.EqualTo(EncounterTier.Elite));
+            Assert.That(battle.Enemy.Tier, Is.EqualTo(EncounterTier.Elite));
+            Assert.That(battle.Outcome, Is.EqualTo(BattleOutcome.Won));
+            Assert.That(run.PendingReward, Is.Not.Null);
+            Assert.That(run.PendingReward!.Tier, Is.EqualTo(EncounterTier.Elite));
+        });
+    }
+
+    [Test]
+    public void boss_node_advances_world()
+    {
+        var content = TestContent.LoadRunContent();
+        var run = TestContent.RunAtBoss(content);
+        Assume.That(run.CurrentNode.Type, Is.EqualTo(NodeType.Boss));
+        Assume.That(run.World, Is.EqualTo(1));
+
+        var battle = TestContent.WinNodeBattle(run);
+        var worldWhileOpen = run.World;
+        run.SkipReward();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(battle.Tier, Is.EqualTo(EncounterTier.Boss));
+            Assert.That(battle.Outcome, Is.EqualTo(BattleOutcome.Won));
+            Assert.That(worldWhileOpen, Is.EqualTo(1), "the World advances once the reward is resolved");
+            Assert.That(run.World, Is.EqualTo(2));
+            Assert.That(run.CurrentNodeId, Is.EqualTo(run.MapOf(2).EntryId));
+            Assert.That(run.Events.OfType<BossDefeated>().Single().World, Is.EqualTo(1));
+        });
+    }
 }

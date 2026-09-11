@@ -1235,42 +1235,42 @@ Ties broken: 3.2.3 is delivered twice, the stat holder in Phase 1 and the Base D
 - Needs: P20.3, P19.4
 - Test (unit): `Sim.Nodes › move_blocked_until_reward_resolved` — given a won battle with an open offer, when MoveTo is called, then it is rejected; after picking or skipping, accepted.
 
-### Phase 21 — Elites and bosses
+### ✅ Phase 21 — Elites and bosses
 
 *Delivers the two harder battle nodes, their rewards, Imprint drops and the boss's mark on the profile. Done when every P21 test is green and the suite passes.*
 
-#### P21.1 Elite node
+#### ✅ P21.1 Elite node
 
 - PRD: 3.2.9
-- Does: Entering an Elite node starts an Elite-tier battle against the fixture Elite; on Won, the Elite reward (P21.2) runs.
+- Does: Entering an Elite node starts an Elite-tier battle against the fixture Elite; on Won, the Elite reward (P21.2) runs. Assumption: every battle node type now runs through one reward flow on `Run.SettleBattle`, keyed off the tier of the node, and the node completes when the offer is resolved.
 - Needs: P20.1, P10.4
 - Test (unit): `Sim.Nodes › elite_node_fights_elite` — given an Elite node, when entered and won, then the battle tier was Elite and the Elite reward is pending.
 
-#### P21.2 Elite reward
+#### ✅ P21.2 Elite reward
 
 - PRD: 3.7.3
-- Does: One card of Rare or Legendary rarity from the Normal-class pool is offered (take or skip), one Imprint is acquired at a tier rolled Common 50%, Uncommon 35%, Rare 15%, and Elite-band Essence is added.
+- Does: One card of Rare or Legendary rarity from the Normal-class pool is offered (take or skip), one Imprint is acquired at a tier rolled Common 50%, Uncommon 35%, Rare 15%, and Elite-band Essence is added. Assumption: the odds live in `Tuning.ImprintTierOddsPercent`; the Imprint and Essence are granted the moment the offer opens and the offer records the Imprint id; the shipped starter set holds no Rare or Legendary card, so until a set with them ships an Elite or Boss offer is empty and can only be skipped.
 - Needs: P21.1, P18.3, P20.2
 - Test (unit): `Sim.Rewards › elite_reward_card_imprint_essence` — given an Elite win in World 1, when resolved, then the offered card is Rare or Legendary, Imprints held rose by 1, and Essence rose by 25–35.
 
-#### P21.3 Boss node
+#### ✅ P21.3 Boss node
 
 - PRD: 3.2.10
-- Does: Entering the Boss node starts a Boss-tier battle against the fixture Boss; on Won, the Boss reward (P21.4) runs, then the next World is entered or the run is Won after World 3 (P19.7).
+- Does: Entering the Boss node starts a Boss-tier battle against the fixture Boss; on Won, the Boss reward (P21.4) runs, then the next World is entered or the run is Won after World 3 (P19.7). Assumption: the World advances from the pick or skip that resolves the Boss offer, and the settle appends a BossDefeated run event carrying the World, node and enemy.
 - Needs: P20.1, P10.4, P19.7
 - Test (unit): `Sim.Nodes › boss_node_advances_world` — given the World 1 Boss node, when entered and won and the reward resolved, then the World index is 2 and the run is on World 2's entry node.
 
-#### P21.4 Boss reward
+#### ✅ P21.4 Boss reward
 
 - PRD: 3.7.4
-- Does: One Rare or Legendary card is offered, one Imprint is acquired (tier rolled as in P21.2), Charm unlock progress is recorded (P21.5), and Boss-band Essence is added.
+- Does: One Rare or Legendary card is offered, one Imprint is acquired (tier rolled as in P21.2), Charm unlock progress is recorded (P21.5), and Boss-band Essence is added. Assumption: the run records the defeat as a BossDefeated event; the profile-side count is the client's (P21.5).
 - Needs: P21.3, P18.3, P20.2
 - Test (unit): `Sim.Rewards › boss_reward_card_imprint_essence` — given a Boss win in World 1, when resolved, then the offer is Rare or Legendary, Imprints held rose by 1, and Essence rose by 40–50.
 
-#### P21.5 Boss defeat counts toward Charm unlocks
+#### ✅ P21.5 Boss defeat counts toward Charm unlocks
 
 - PRD: 3.9.10
-- Does: Each Boss defeat increments the profile's bosses-defeated count and evaluates every Charm's unlock condition (P16.7); newly satisfied Charms are added to the meta unlocks (P17.3) immediately.
+- Does: Each Boss defeat increments the profile's bosses-defeated count and evaluates every Charm's unlock condition (P16.7); newly satisfied Charms are added to the meta unlocks (P17.3) immediately. Assumption: the count is a new integer on the profile file with no schema bump (a missing field reads 0); `RunProgress` applies each BossDefeated run event once and `GameFlow.SettleBattle` is the client entry point that settles a run battle and saves the profile when it changed; milestones and challenges are not tracked yet, so only bosses-defeated and relationship-level conditions can be met.
 - Needs: P21.4, P17.3, P16.7
 - Test (integration): `Client.Meta › first_boss_unlocks_fixture_charms` — given a profile with no unlocks, when the World 1 Boss is defeated, then bosses-defeated is 1 and both fixture Charms are unlocked.
 

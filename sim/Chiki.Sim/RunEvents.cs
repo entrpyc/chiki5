@@ -31,7 +31,10 @@ namespace Chiki.Sim
     public sealed record EssenceChanged(int Amount, string Source, int Total) : RunEvent;
 
     /// <summary>A won battle node opened its reward offer (PRD 3.3.9.2, 3.7.2): the cards the player may choose one of.</summary>
-    public sealed record RewardOffered(int World, string NodeId, EncounterTier Tier, IReadOnlyList<string> CardIds) : RunEvent;
+    public sealed record RewardOffered(int World, string NodeId, EncounterTier Tier, IReadOnlyList<string> CardIds, string? ImprintId = null) : RunEvent;
+
+    /// <summary>A World's Boss fell (PRD 3.2.10); each counts toward Charm unlock milestones on the profile (PRD 3.9.10).</summary>
+    public sealed record BossDefeated(int World, string NodeId, string EnemyId) : RunEvent;
 
     /// <summary>The player picked a card from the offer, or skipped it (PRD 3.7.2); <see cref="CardId"/> is null on a skip.</summary>
     public sealed record RewardResolved(int World, string NodeId, string? CardId) : RunEvent;

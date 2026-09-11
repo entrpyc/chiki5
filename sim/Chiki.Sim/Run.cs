@@ -557,14 +557,7 @@ namespace Chiki.Sim
             }
             else if (nodeBattle && !CurrentNodeCompleted && WonBy(battle))
             {
-                if (CurrentNode.Type == NodeType.NormalBattle)
-                {
-                    OpenNormalReward();
-                }
-                else
-                {
-                    CompleteNode();
-                }
+                OpenReward();
             }
 
             return destroyed;
@@ -597,15 +590,28 @@ namespace Chiki.Sim
         }
 
         /// <summary>
-        /// The Normal reward flow (PRD 3.2.8, 3.7.2): the Essence income of the tier and World
-        /// is paid now (PRD 3.7.5) and three cards are offered; the node completes when the
-        /// player picks or skips (PRD 3.3.9.2). Runs once per won battle, from the settle.
+        /// The reward flow of a won battle node (PRD 3.2.8–3.2.10, 3.7.2–3.7.4): the Essence
+        /// income of the tier and World is paid now (PRD 3.7.5), an Elite or Boss grants its
+        /// Imprint now (PRD 3.9.3) and a Boss counts toward Charm unlocks (PRD 3.9.10), and the
+        /// tier's cards are offered; the node completes when the player picks or skips
+        /// (PRD 3.3.9.2). Runs once per won battle, from the settle.
         /// </summary>
-        private void OpenNormalReward()
+        private void OpenReward()
         {
             var node = CurrentNode;
-            var offer = Rewards.RollNormal(_rewardRng, Content.Cards.Values, World, node.Id);
+            var tier = NodeTypes.TierOf(node.Type);
+            var offer = Rewards.Roll(_rewardRng, tier, Content.Cards.Values, World, node.Id);
             ChangeEssence(offer.Essence, EssenceSources.BattleReward);
+            if (offer.ImprintTier is ImprintTier imprintTier)
+            {
+                offer.ImprintId = AcquireImprint(imprintTier).Id;
+            }
+
+            if (node.Type == NodeType.Boss)
+            {
+                _events.Add(new BossDefeated(World, node.Id, node.EnemyId ?? ""));
+            }
+
             PendingReward = offer;
             var ids = new List<string>(offer.Cards.Count);
             foreach (var card in offer.Cards)
@@ -613,7 +619,7 @@ namespace Chiki.Sim
                 ids.Add(card.Id);
             }
 
-            _events.Add(new RewardOffered(World, node.Id, offer.Tier, ids));
+            _events.Add(new RewardOffered(World, node.Id, offer.Tier, ids, offer.ImprintId));
         }
 
         /// <summary>Takes one card of the open offer into the Binder (PRD 3.7.2, 3.4.12) and resolves the offer, completing the node.</summary>

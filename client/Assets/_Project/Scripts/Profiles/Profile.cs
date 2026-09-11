@@ -28,6 +28,7 @@ namespace Chiki.Client.Profiles
         [SerializeField] private int calibrationOffsetMs;
         [SerializeField] private bool calibrated;
         [SerializeField] private bool tutorialCompleted;
+        [SerializeField] private int bossesDefeated;
         [SerializeField] private string runInProgress = "";
         [SerializeField] private List<RunHistoryEntry> runHistory = new List<RunHistoryEntry>();
         [SerializeField] private string runLogFolder = "";
@@ -118,6 +119,56 @@ namespace Chiki.Client.Profiles
         {
             get => tutorialCompleted;
             set => tutorialCompleted = value;
+        }
+
+        /// <summary>Bosses defeated across all runs on this profile (PRD 3.9.10).</summary>
+        public int BossesDefeated => bossesDefeated;
+
+        /// <summary>The facts Charm unlock conditions read (PRD 4.9): bosses defeated and every NPC's relationship level.</summary>
+        public ProfileFacts Facts
+        {
+            get
+            {
+                var levels = new Dictionary<string, int>();
+                foreach (var relationship in relationships)
+                {
+                    levels[relationship.NpcId] = relationship.Level;
+                }
+
+                return new ProfileFacts { BossesDefeated = bossesDefeated, RelationshipLevels = levels };
+            }
+        }
+
+        /// <summary>
+        /// A Boss fell (PRD 3.2.10): the count rises by one and every Charm whose unlock
+        /// condition is now met is unlocked at once (PRD 3.9.10, 3.9.5). Returns the ids newly
+        /// unlocked, in table order. The caller saves the profile.
+        /// </summary>
+        public IReadOnlyList<string> RecordBossDefeat(IEnumerable<CharmDefinition> charms)
+        {
+            bossesDefeated++;
+            return EvaluateCharmUnlocks(charms);
+        }
+
+        /// <summary>Unlocks every Charm whose condition the profile's facts satisfy (PRD 3.9.5); already unlocked ones are left alone. Returns the ids newly unlocked.</summary>
+        public IReadOnlyList<string> EvaluateCharmUnlocks(IEnumerable<CharmDefinition> charms)
+        {
+            if (charms is null)
+            {
+                throw new ArgumentNullException(nameof(charms));
+            }
+
+            var facts = Facts;
+            var unlocked = new List<string>();
+            foreach (var charm in charms)
+            {
+                if (!meta.HasCharm(charm.Id) && charm.Unlock.IsMet(facts) && meta.UnlockCharm(charm.Id))
+                {
+                    unlocked.Add(charm.Id);
+                }
+            }
+
+            return unlocked;
         }
 
         /// <summary>The serialised run in progress, or null when none (PRD 3.1.5); written by P22.1.</summary>

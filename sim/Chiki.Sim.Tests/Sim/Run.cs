@@ -184,6 +184,7 @@ public class Run
             }
 
             TestContent.WinNodeBattle(run);
+            run.SkipReward();
             statuses.Add(run.Status);
             if (!run.IsOver)
             {

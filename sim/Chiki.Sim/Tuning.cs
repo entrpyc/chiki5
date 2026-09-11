@@ -73,6 +73,15 @@ namespace Chiki.Sim
         /// <summary>Cards a Normal battle reward offers, of which the player takes one (PRD 3.7.2).</summary>
         public const int NormalRewardCardChoices = 3;
 
+        /// <summary>Cards an Elite reward offers, take or skip (PRD 3.7.3).</summary>
+        public const int EliteRewardCardChoices = 1;
+
+        /// <summary>Cards a Boss reward offers, take or skip (PRD 3.7.4).</summary>
+        public const int BossRewardCardChoices = 1;
+
+        /// <summary>Odds of a dropped Imprint's tier in percent, Common, Uncommon, Rare (PRD 3.9.3; P21.2: 50/35/15).</summary>
+        public static readonly int[] ImprintTierOddsPercent = { 50, 35, 15 };
+
         /// <summary>Essence income band per battle, inclusive, indexed by tier (Normal, Elite, Boss) then World 1–3 (PRD 3.7.5).</summary>
         public static readonly int[][] EssenceIncomeMin =
         {

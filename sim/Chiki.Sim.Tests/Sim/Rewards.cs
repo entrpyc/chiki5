@@ -92,6 +92,66 @@ public class Rewards
         Assert.That(offeredEvents, Is.Empty);
     }
 
+    [Test]
+    public void elite_reward_card_imprint_essence()
+    {
+        var content = TestContent.LoadRunContent(HighRaritySet());
+        var run = TestContent.RunAtNode(content, NodeType.Elite);
+        int imprintsBefore = run.Imprints.Count;
+        int essenceBefore = run.Stats.Essence;
+
+        TestContent.WinNodeBattle(run);
+        var offer = run.PendingReward;
+        Assume.That(offer, Is.Not.Null);
+        var picked = run.PickReward(offer!.Cards[0]);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(offer.Tier, Is.EqualTo(EncounterTier.Elite));
+            Assert.That(offer.Cards, Has.Count.EqualTo(1));
+            Assert.That(offer.Cards[0].Rarity, Is.EqualTo(CardRarity.Rare).Or.EqualTo(CardRarity.Legendary));
+            Assert.That(run.Binder.Contains(picked), Is.True);
+            Assert.That(run.Imprints, Has.Count.EqualTo(imprintsBefore + 1));
+            Assert.That(run.Imprints[^1], Is.EqualTo(offer.ImprintId));
+            Assert.That(run.Stats.Essence - essenceBefore, Is.InRange(25, 35));
+            Assert.That(run.PendingReward, Is.Null);
+        });
+    }
+
+    [Test]
+    public void boss_reward_card_imprint_essence()
+    {
+        var content = TestContent.LoadRunContent(HighRaritySet());
+        var run = TestContent.RunAtBoss(content);
+        int imprintsBefore = run.Imprints.Count;
+        int essenceBefore = run.Stats.Essence;
+
+        TestContent.WinNodeBattle(run);
+        var offer = run.PendingReward;
+        Assume.That(offer, Is.Not.Null);
+        var picked = run.PickReward(offer!.Cards[0]);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(offer.Tier, Is.EqualTo(EncounterTier.Boss));
+            Assert.That(offer.Cards, Has.Count.EqualTo(1));
+            Assert.That(offer.Cards[0].Rarity, Is.EqualTo(CardRarity.Rare).Or.EqualTo(CardRarity.Legendary));
+            Assert.That(run.Binder.Contains(picked), Is.True);
+            Assert.That(run.Imprints, Has.Count.EqualTo(imprintsBefore + 1));
+            Assert.That(run.Imprints[^1], Is.EqualTo(offer.ImprintId));
+            Assert.That(run.Stats.Essence - essenceBefore, Is.InRange(40, 50));
+            Assert.That(run.Events.OfType<BossDefeated>().Count(), Is.EqualTo(1));
+        });
+    }
+
+    /// <summary>A set of Rare and Legendary Normal-class cards, the pool an Elite or Boss reward draws from (PRD 3.7.3, 3.7.4).</summary>
+    private static CardSet HighRaritySet() => new("high", new[]
+    {
+        new CardDefinition("card-rare-left", "Rare Left", CardCategory.LeftAttack, 18, rarity: CardRarity.Rare),
+        new CardDefinition("card-rare-guard", "Rare Guard", CardCategory.Defense, 18, rarity: CardRarity.Rare),
+        new CardDefinition("card-legendary-right", "Legendary Right", CardCategory.RightAttack, 24, rarity: CardRarity.Legendary),
+    });
+
     /// <summary>The Essence a fresh run holds after winning its first Normal node in the World: the one income it received.</summary>
     private static int IncomeOfWin(RunContent content, int world, string seedPrefix)
     {

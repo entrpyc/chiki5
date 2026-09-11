@@ -1,5 +1,6 @@
 #nullable enable
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Chiki.Client.Content;
 using Chiki.Client.Profiles;
@@ -38,6 +39,9 @@ namespace Chiki.Client.Flow
 
         /// <summary>The run in progress (PRD 4.2); null before Start Run.</summary>
         public Run? Run { get; private set; }
+
+        /// <summary>Applies the run's permanent consequences to the profile (P21.5); null before Start Run.</summary>
+        public RunProgress? Progress { get; private set; }
 
         public bool CalibrationOpen => Calibration != null;
 
@@ -89,7 +93,31 @@ namespace Chiki.Client.Flow
                 enemies: new EnemySet("fixtures", content.Enemies.Values.ToList()));
             var setup = new RunSetup(Profile!.Meta.CharmUnlocks);
             Run = setup.Start(runContent, seed: null, entropy: (ulong)DateTime.UtcNow.Ticks);
+            Progress = new RunProgress(Profile!, runContent.Charms);
             EnterMap();
+        }
+
+        /// <summary>
+        /// Settles a battle the run started: a Boss defeat reaches the profile at once
+        /// (PRD 3.9.10) and the profile is saved when it changed. Returns the cards the
+        /// Binder destroyed.
+        /// </summary>
+        public IReadOnlyList<CardInstance> SettleBattle(Battle battle)
+        {
+            RequireProfile();
+            if (Run == null || Progress == null)
+            {
+                throw new InvalidOperationException("No run is in progress.");
+            }
+
+            var destroyed = Run.SettleBattle(battle);
+            Progress.Apply(Run, out bool changed);
+            if (changed)
+            {
+                Store!.Save(Profile!);
+            }
+
+            return destroyed;
         }
 
         public void OpenSettings()

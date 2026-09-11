@@ -10,6 +10,7 @@ namespace Chiki.Sim
     {
         private int _ard;
         private int _essence;
+        private int _crp;
 
         /// <summary>Maximum ARD; raised through <see cref="RaiseMaxArd"/>.</summary>
         public int MaxArd { get; private set; } = Tuning.ArdBaseline;
@@ -31,12 +32,26 @@ namespace Chiki.Sim
             set => _essence = value < 0 ? 0 : value;
         }
 
-        /// <summary>CRP (PRD 3.8.1); clamping is delegated to P17.6.</summary>
-        public int Crp { get; set; }
+        /// <summary>CRP (PRD 3.8.1): starts at 0 and is clamped to 0..100 on every change.</summary>
+        public int Crp
+        {
+            get => _crp;
+            set => _crp = Clamp(value, Tuning.CrpMin, Tuning.CrpMax);
+        }
 
         public RunStats()
         {
             _ard = MaxArd;
+        }
+
+        /// <summary>Stats as a saved run recorded them (PRD 4.2): the maximum is at least 1 and every value is clamped as on a change.</summary>
+        public RunStats(int maxArd, int ard, int baseDmg, int essence, int crp)
+        {
+            MaxArd = Math.Max(1, maxArd);
+            _ard = Clamp(ard, 0, MaxArd);
+            BaseDmg = Math.Max(0, baseDmg);
+            Essence = essence;
+            Crp = crp;
         }
 
         /// <summary>Raises maximum ARD and current ARD by the same amount.</summary>

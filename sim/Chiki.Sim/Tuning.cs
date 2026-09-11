@@ -8,6 +8,21 @@ namespace Chiki.Sim
         /// <summary>Baseline maximum ARD at the start of a run (PRD 3.2.3).</summary>
         public const int ArdBaseline = 300;
 
+        /// <summary>CRP is a run-scoped stat clamped to 0..100 (PRD 3.8.1).</summary>
+        public const int CrpMin = 0;
+
+        /// <summary>CRP is a run-scoped stat clamped to 0..100 (PRD 3.8.1).</summary>
+        public const int CrpMax = 100;
+
+        /// <summary>A run is three Worlds played in order (PRD 3.2.1).</summary>
+        public const int WorldCount = 3;
+
+        /// <summary>The player equips 0–2 Charms into 2 slots before a run (PRD 3.9.6).</summary>
+        public const int CharmSlots = 2;
+
+        /// <summary>Armor upgrade slots on a run (PRD 3.7.13).</summary>
+        public const int ArmorUpgradeSlots = 4;
+
         /// <summary>
         /// Half-width of the Perfect window in thousandths of a beat (PRD 3.3.3.1, 3.3.1.5).
         /// 80 thousandths of a beat is +/-40 ms at BPM 120.

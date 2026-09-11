@@ -21,6 +21,9 @@ namespace Chiki.Sim
         /// <summary>The sixteen-slot loadout built from this Binder (PRD 3.5.1).</summary>
         public Loadout Loadout { get; } = new Loadout();
 
+        /// <summary>The id the next acquired instance gets; ids never repeat within a run.</summary>
+        public int NextId => _nextId;
+
         /// <summary>The instances not sitting in any slot, in acquisition order (PRD 3.5.5).</summary>
         public IReadOnlyList<CardInstance> Unslotted
         {
@@ -53,6 +56,40 @@ namespace Chiki.Sim
                 binder.Add(card);
             }
 
+            return binder;
+        }
+
+        /// <summary>A Binder as a saved run recorded it: its instances in order and the next free id.</summary>
+        public static Binder Restore(IReadOnlyList<CardInstance> cards, int nextId)
+        {
+            if (cards is null)
+            {
+                throw new ArgumentNullException(nameof(cards));
+            }
+
+            var binder = new Binder();
+            var ids = new HashSet<int>();
+            foreach (var card in cards)
+            {
+                if (card is null)
+                {
+                    throw new ArgumentException("A Binder card must not be null.", nameof(cards));
+                }
+
+                if (!ids.Add(card.Id))
+                {
+                    throw new ArgumentException($"Instance id {card.Id} appears twice.", nameof(cards));
+                }
+
+                if (card.Id >= nextId)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(nextId), "The next id must be above every instance id.");
+                }
+
+                binder._cards.Add(card);
+            }
+
+            binder._nextId = Math.Max(1, nextId);
             return binder;
         }
 

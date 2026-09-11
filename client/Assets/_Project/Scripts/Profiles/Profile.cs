@@ -118,6 +118,37 @@ namespace Chiki.Client.Profiles
         public List<string> ImprintPoolUnlocks => imprintPoolUnlocks;
         public List<string> DifficultyModifiers => difficultyModifiers;
         public List<string> Cosmetics => cosmetics;
+
+        /// <summary>Grants a Charm permanently (PRD 3.9.5); false when it was already unlocked.</summary>
+        public bool UnlockCharm(string charmId) => Unlock(charmUnlocks, charmId);
+
+        public bool HasCharm(string charmId) => charmUnlocks.Contains(charmId);
+
+        /// <summary>Adds a card to the Global Binder (PRD 3.5.9); false when it was already there.</summary>
+        public bool UnlockCard(string cardId) => Unlock(cardUnlocks, cardId);
+
+        public bool HasCard(string cardId) => cardUnlocks.Contains(cardId);
+
+        /// <summary>Adds an Imprint to the pool (PRD 3.9.2); false when it was already there.</summary>
+        public bool UnlockImprint(string imprintId) => Unlock(imprintPoolUnlocks, imprintId);
+
+        public bool HasImprint(string imprintId) => imprintPoolUnlocks.Contains(imprintId);
+
+        private static bool Unlock(List<string> ids, string id)
+        {
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                throw new ArgumentException("An id is required.", nameof(id));
+            }
+
+            if (ids.Contains(id))
+            {
+                return false;
+            }
+
+            ids.Add(id);
+            return true;
+        }
     }
 
     /// <summary>The relationship with one NPC (PRD 4.12): its level and the points towards the next.</summary>

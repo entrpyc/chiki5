@@ -39,6 +39,27 @@ namespace Chiki.Sim
             BattlesRemaining = definition.Class == CardClass.Unstable ? definition.Lifespan : null;
         }
 
+        /// <summary>An instance as a saved run recorded it (PRD 4.5), with every tracked field restored.</summary>
+        public static CardInstance Restore(int id, CardDefinition definition, bool upgraded, string? traitId, int? battlesRemaining, int? shopPrice)
+        {
+            var instance = new CardInstance(id, definition);
+            if ((definition.Class == CardClass.Unstable) != (battlesRemaining != null))
+            {
+                throw new ArgumentException("Exactly an Unstable card has battles remaining.", nameof(battlesRemaining));
+            }
+
+            if (battlesRemaining < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(battlesRemaining), "Battles remaining must not be negative.");
+            }
+
+            instance.Upgraded = upgraded;
+            instance.TraitId = traitId;
+            instance.BattlesRemaining = battlesRemaining;
+            instance.SetShopPrice(shopPrice);
+            return instance;
+        }
+
         /// <summary>Counts one battle the card was in the Binder for (PRD 3.4.16); returns true when that used up its lifespan.</summary>
         public bool CountBattle()
         {

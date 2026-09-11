@@ -1,7 +1,10 @@
 #nullable enable
 using System;
+using Chiki.Client.Content;
 using Chiki.Client.Profiles;
 using Chiki.Client.Screens;
+using Chiki.Sim;
+using Chiki.Sim.Data;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem.UI;
@@ -13,7 +16,8 @@ namespace Chiki.Client.Flow
     /// the map, the settings menu and the calibration screen. On a profile's first launch the
     /// calibration screen opens over the pre-run screen and Start Run stays disabled until it
     /// closes (PRD 3.12.1); afterwards Calibrate sits in the settings menu on the pre-run
-    /// screen and on the map. Until the run entity exists (P17), Start Run opens the map.
+    /// screen and on the map. Start Run creates the run (P17.5) from the profile's unlocked
+    /// Charms with none equipped, since the equip screen joins with P23, and opens the map.
     /// </summary>
     [DisallowMultipleComponent]
     public sealed class GameFlow : MonoBehaviour
@@ -29,6 +33,9 @@ namespace Chiki.Client.Flow
         public SettingsMenu? Settings { get; private set; }
 
         public CalibrationScreen? Calibration { get; private set; }
+
+        /// <summary>The run in progress (PRD 4.2); null before Start Run.</summary>
+        public Run? Run { get; private set; }
 
         public bool CalibrationOpen => Calibration != null;
 
@@ -71,6 +78,10 @@ namespace Chiki.Client.Flow
                 return;
             }
 
+            RequireProfile();
+            var starter = CardLoader.SetFromJson(ContentFiles.ReadText("sets/starter.json"));
+            var setup = new RunSetup(Profile!.Meta.CharmUnlocks);
+            Run = setup.Start(starter, seed: null, entropy: (ulong)DateTime.UtcNow.Ticks);
             EnterMap();
         }
 

@@ -1027,46 +1027,46 @@ Ties broken: 3.2.3 is delivered twice, the stat holder in Phase 1 and the Base D
 - Needs: P8.1
 - Test (unit): `Sim.Charms › fixtures_load` — given the two fixtures, when loaded, then both triggers reference PerfectDefense and both unlock conditions read bosses defeated.
 
-### Phase 17 — A run begins
+### ✅ Phase 17 — A run begins
 
 *Delivers the run entity, its seed, the meta progression it draws on, Charm equipping and the start state. Done when every P17 test is green and the suite passes.*
 
-#### P17.1 Run entity
+#### ✅ P17.1 Run entity
 
 - PRD: 4.2
-- Does: A `Run` aggregate with seed, World index, current node, `RunStats` (P1.4), equipped Charms, Imprints held, four armor upgrade slots (empty in this plan), Binder, Loadout, difficulty modifiers and Assist flag (both always empty or false in this plan), map graphs (filled by P19.1) and status (InProgress, Won, Died, Abandoned). Serialisable to JSON with a schema version field (P22.3).
+- Does: A `Run` aggregate with seed, World index, current node, `RunStats` (P1.4), equipped Charms, Imprints held, four armor upgrade slots (empty in this plan), Binder, Loadout, difficulty modifiers and Assist flag (both always empty or false in this plan), map graphs (filled by P19.1) and status (InProgress, Won, Died, Abandoned). Serialisable to JSON with a schema version field (P22.3). Assumption: Charms and Imprints are held as ids and resolved against their sets when registered (P18.3, P18.4); the map graph field is absent until P19.1 defines the graph type, and joins with the schema step P22.3 prescribes; `RunSerializer` writes the JSON through the simulation's own writer and reads it back against the card definitions the run draws on, refusing a newer schema; `Run.Fork(label)` is the subsystem stream.
 - Needs: P16.3, P1.4
 - Test (unit): `Sim.Run › run_round_trips_to_json` — given a run with a Binder and loadout, when serialised and deserialised, then every field is equal and the schema version is present.
 
-#### P17.2 Seed accepted and stored
+#### ✅ P17.2 Seed accepted and stored
 
 - PRD: 3.2.4
-- Does: A run is created with a caller-supplied seed string or, absent one, a generated one; the seed is stored on the run, printed on the run-end summary (P23.5), and every subsystem `Rng` is forked from it (P1.2). Same-seed map equality is P19.3.
+- Does: A run is created with a caller-supplied seed string or, absent one, a generated one; the seed is stored on the run, printed on the run-end summary (P23.5), and every subsystem `Rng` is forked from it (P1.2). Same-seed map equality is P19.3. Assumption: the simulation has no clock, so the generated seed is two four-character groups drawn from an entropy value the caller supplies (the client passes the UTC ticks).
 - Needs: P17.1, P1.2
 - Test (unit): `Sim.Run › custom_seed_stored_and_forks_rng` — given seed "chiki-1", when two runs are created with it, then both store the seed and their map `Rng` streams are identical.
 
-#### P17.3 Meta progression on the profile
+#### ✅ P17.3 Meta progression on the profile
 
 - PRD: 3.9.2
-- Does: The profile's meta container (P15.1) holds Charm unlocks, card unlocks (Global Binder ids), Imprint-pool unlocks, difficulty modifiers and cosmetics as sets of ids; it survives run end and reload.
+- Does: The profile's meta container (P15.1) holds Charm unlocks, card unlocks (Global Binder ids), Imprint-pool unlocks, difficulty modifiers and cosmetics as sets of ids; it survives run end and reload. Assumption: `MetaProgression` gains idempotent unlock and query methods per set; nothing else changes in the profile file, so the schema stays at 1.
 - Needs: P15.1, P16.7
 - Test (integration): `Client.Meta › unlocks_survive_reload` — given a Charm unlocked on profile "A", when the profile is saved and reloaded, then the unlock is present.
 
-#### P17.4 Equip Charms pre-run
+#### ✅ P17.4 Equip Charms pre-run
 
 - PRD: 3.9.6
-- Does: Before a run starts the player chooses 0, 1 or 2 Charms from the profile's unlocked set into two slots; a third is rejected; an unowned Charm is rejected; the choice is fixed once the run starts.
+- Does: Before a run starts the player chooses 0, 1 or 2 Charms from the profile's unlocked set into two slots; a third is rejected; an unowned Charm is rejected; the choice is fixed once the run starts. Assumption: the choices live on a `RunSetup` whose `Start` builds the `Run` and refuses every later change; the equip screen joins with P23, so the client's Start Run currently starts with no Charm equipped.
 - Needs: P17.3, P17.1
 - Test (unit): `Sim.Run › equip_up_to_two_owned_charms` — given two unlocked Charms, when both are equipped, then the run holds 2; a third is rejected; an unowned id is rejected; changing after start is rejected.
 
-#### P17.5 Run start state
+#### ✅ P17.5 Run start state
 
 - PRD: 3.2.2
 - Does: A new run has the starter Binder auto-filled into both lines (P16.3), the equipped Charms (P17.4), zero Imprints, ARD at maximum, Base DMG 0, Essence 0, CRP 0.
 - Needs: P17.4, P16.3
 - Test (unit): `Sim.Run › start_state` — given a new run with one Charm, when inspected, then loadout is full, Charms 1, Imprints 0, ARD 300 of 300, Base DMG 0, Essence 0, CRP 0.
 
-#### P17.6 CRP range
+#### ✅ P17.6 CRP range
 
 - PRD: 3.8.1
 - Does: CRP on `RunStats` starts at 0 and is clamped to 0..100 on every change; the visibility half is P23.4.

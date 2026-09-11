@@ -26,6 +26,9 @@ namespace Chiki.Sim
         /// <summary>A battle is in progress.</summary>
         BattleInProgress,
 
+        /// <summary>The current node's reward offer is still open (PRD 3.3.9.2); pick or skip first.</summary>
+        RewardPending,
+
         RunOver,
     }
 
@@ -47,6 +50,7 @@ namespace Chiki.Sim
         private readonly List<string> _imprints;
         private readonly string?[] _armorUpgrades;
         private readonly Rng _imprintRng;
+        private readonly Rng _rewardRng;
         private readonly Dictionary<int, MapGraph> _maps = new Dictionary<int, MapGraph>();
         private readonly HashSet<string> _visited = new HashSet<string>(StringComparer.Ordinal);
         private readonly List<RunEvent> _events = new List<RunEvent>();
@@ -96,6 +100,9 @@ namespace Chiki.Sim
 
         /// <summary>The battle in progress, from <see cref="StartBattle(EnemyDefinition, EncounterBalance)"/> until <see cref="SettleBattle"/>; null between battles.</summary>
         public Battle? CurrentBattle { get; private set; }
+
+        /// <summary>The reward offer of the battle node just won, open until the player picks or skips (PRD 3.7.2, 3.3.9.2); null otherwise.</summary>
+        public RewardOffer? PendingReward { get; private set; }
 
         /// <summary>Battles started this run, the label of each battle's random stream.</summary>
         public int BattlesStarted => _battlesStarted;
@@ -191,6 +198,7 @@ namespace Chiki.Sim
             _battlesStarted = battlesStarted;
             Rng = new Rng(seed);
             _imprintRng = Fork("imprints");
+            _rewardRng = Fork("rewards");
             Effects = new RunEffects(Stats, Content);
 
             foreach (var charmId in Charms)
@@ -313,6 +321,11 @@ namespace Chiki.Sim
                 return MoveResult.BattleInProgress;
             }
 
+            if (PendingReward != null)
+            {
+                return MoveResult.RewardPending;
+            }
+
             if (!CurrentNodeCompleted)
             {
                 return MoveResult.NodeNotCompleted;
@@ -340,6 +353,11 @@ namespace Chiki.Sim
             if (CurrentBattle != null)
             {
                 throw new InvalidOperationException("The battle has not been settled.");
+            }
+
+            if (PendingReward != null)
+            {
+                throw new InvalidOperationException("The reward offer has not been resolved.");
             }
 
             var node = CurrentNode;
@@ -537,12 +555,107 @@ namespace Chiki.Sim
             {
                 End(RunStatus.Died);
             }
-            else if (nodeBattle && !CurrentNodeCompleted)
+            else if (nodeBattle && !CurrentNodeCompleted && WonBy(battle))
             {
-                CompleteNode();
+                if (CurrentNode.Type == NodeType.NormalBattle)
+                {
+                    OpenNormalReward();
+                }
+                else
+                {
+                    CompleteNode();
+                }
             }
 
             return destroyed;
+        }
+
+        /// <summary>Changes Essence by an amount from a named source (PRD 3.7.1); the value never goes below zero.</summary>
+        public void ChangeEssence(int amount, string source)
+        {
+            if (string.IsNullOrWhiteSpace(source))
+            {
+                throw new ArgumentException("An Essence change names its source.", nameof(source));
+            }
+
+            Stats.Essence += amount;
+            _events.Add(new EssenceChanged(amount, source, Stats.Essence));
+        }
+
+        /// <summary>Whether the battle's stream ended it with a win (PRD 3.3.9.2): the reward flow keys off that event.</summary>
+        private static bool WonBy(Battle battle)
+        {
+            foreach (var battleEvent in battle.Events)
+            {
+                if (battleEvent is BattleEnded ended)
+                {
+                    return ended.Outcome == BattleOutcome.Won;
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// The Normal reward flow (PRD 3.2.8, 3.7.2): the Essence income of the tier and World
+        /// is paid now (PRD 3.7.5) and three cards are offered; the node completes when the
+        /// player picks or skips (PRD 3.3.9.2). Runs once per won battle, from the settle.
+        /// </summary>
+        private void OpenNormalReward()
+        {
+            var node = CurrentNode;
+            var offer = Rewards.RollNormal(_rewardRng, Content.Cards.Values, World, node.Id);
+            ChangeEssence(offer.Essence, EssenceSources.BattleReward);
+            PendingReward = offer;
+            var ids = new List<string>(offer.Cards.Count);
+            foreach (var card in offer.Cards)
+            {
+                ids.Add(card.Id);
+            }
+
+            _events.Add(new RewardOffered(World, node.Id, offer.Tier, ids));
+        }
+
+        /// <summary>Takes one card of the open offer into the Binder (PRD 3.7.2, 3.4.12) and resolves the offer, completing the node.</summary>
+        public CardInstance PickReward(CardDefinition card)
+        {
+            if (card is null)
+            {
+                throw new ArgumentNullException(nameof(card));
+            }
+
+            var offer = RequireOpenOffer();
+            if (!offer.Offers(card))
+            {
+                throw new ArgumentException($"Card '{card.Id}' is not in the offer.", nameof(card));
+            }
+
+            var instance = Binder.Add(card);
+            ResolveReward(offer, card);
+            return instance;
+        }
+
+        /// <summary>Declines the open offer (PRD 3.7.2): no card is taken, the Essence stays, and the node completes.</summary>
+        public void SkipReward()
+        {
+            ResolveReward(RequireOpenOffer(), null);
+        }
+
+        private RewardOffer RequireOpenOffer()
+        {
+            RequireInProgress();
+            return PendingReward ?? throw new InvalidOperationException("No reward offer is open.");
+        }
+
+        private void ResolveReward(RewardOffer offer, CardDefinition? picked)
+        {
+            offer.Resolve(picked);
+            PendingReward = null;
+            _events.Add(new RewardResolved(World, offer.NodeId, picked?.Id));
+            if (!CurrentNodeCompleted)
+            {
+                CompleteNode();
+            }
         }
 
         /// <summary>
@@ -561,6 +674,7 @@ namespace Chiki.Sim
             Status = outcome;
             CurrentBattle = null;
             _nodeBattle = false;
+            PendingReward = null;
             Binder.Discard();
             _imprints.Clear();
             Effects.Clear();

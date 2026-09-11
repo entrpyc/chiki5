@@ -1189,49 +1189,49 @@ Ties broken: 3.2.3 is delivered twice, the stat holder in Phase 1 and the Base D
 - Needs: P19.2, P17.1
 - Test (unit): `Sim.Run › three_worlds_then_won` — given a run, when each World's Boss node is completed in turn, then the World index goes 1, 2, 3 and the status after the third is Won.
 
-### Phase 20 — Normal battles pay out
+### ✅ Phase 20 — Normal battles pay out
 
 *Delivers the Normal battle node from entry to reward, with the card classes that govern what a reward may offer. Done when every P20 test is green and the suite passes.*
 
-#### P20.1 Normal battle node
+#### ✅ P20.1 Normal battle node
 
 - PRD: 3.2.8
-- Does: Entering a Normal node starts a Normal-tier battle against the enemy rolled for that node from the World's pool of fixture Normal enemies (P10.4); on Won, the reward flow (P20.3) runs before the run continues.
+- Does: Entering a Normal node starts a Normal-tier battle against the enemy rolled for that node from the World's pool of fixture Normal enemies (P10.4); on Won, the reward flow (P20.3) runs before the run continues. Assumption: the node stays incomplete until the offer is resolved, so `Run.CompleteNode` fires from the pick or skip; an Elite or Boss node still completes on settle until P21 gives it a reward flow.
 - Needs: P19.4, P10.4, P3.7
 - Test (unit): `Sim.Nodes › normal_node_fights_pool_enemy_then_rewards` — given a Normal node rolled to the Normal Tank, when entered and won, then the battle was Normal tier against that enemy and a reward offer is pending.
 
-#### P20.2 Essence income
+#### ✅ P20.2 Essence income
 
 - PRD: 3.7.5
-- Does: On Won, Essence rolled from the run `Rng` inside the tier × World band from 3.7.5 is added to `RunStats`.
+- Does: On Won, Essence rolled from the run `Rng` inside the tier × World band from 3.7.5 is added to `RunStats`. Assumption: the bands live in `Tuning` as inclusive min/max tables indexed by tier and World; rewards draw from the run's `rewards` fork and the change is an EssenceChanged run event with source "battle reward".
 - Needs: P20.1, P9.2
 - Test (unit): `Sim.Rewards › essence_inside_band` — given 200 Normal wins in World 1, when incomes are collected, then every value is 8–17; in World 3, 18–37.
 
-#### P20.3 Choose one of three cards
+#### ✅ P20.3 Choose one of three cards
 
 - PRD: 3.7.2
-- Does: The Normal reward offers 3 distinct cards rolled from the eligible pool (Common or Uncommon, P20.4 and P20.5), the player picks 1 or skips, and the pick enters the Binder (P18.2).
+- Does: The Normal reward offers 3 distinct cards rolled from the eligible pool (Common or Uncommon, P20.4 and P20.5), the player picks 1 or skips, and the pick enters the Binder (P18.2). Assumption: the open offer is held on `Run.PendingReward` and is not written to the run file (a restore mid-offer forfeits it) until P22 saves it; a pool with fewer than 3 eligible cards offers what it has.
 - Needs: P20.2, P18.2, P8.8
 - Test (unit): `Sim.Rewards › pick_one_of_three_into_binder` — given a Normal win, when the offer is read, then it has 3 distinct Common or Uncommon cards; when one is picked, then it is in the Binder and the others are not.
 
-#### P20.4 Normal class is the standard pool
+#### ✅ P20.4 Normal class is the standard pool
 
 - PRD: 3.4.14
 - Does: The reward pool is every loaded card of class Normal in the allowed rarities; Normal cards follow ordinary economy rules (nothing extra in this plan).
 - Needs: P20.3
 - Test (unit): `Sim.Rewards › pool_is_normal_class` — given a card set with Normal, Event and Unstable cards, when the reward pool is built, then it contains every Normal card and no other.
 
-#### P20.5 Event cards never offered
+#### ✅ P20.5 Event cards never offered
 
 - PRD: 3.4.15
 - Does: Cards of class Event are excluded from battle-reward offers (and, when shops exist, from shop stock); over many rolls none appears.
 - Needs: P20.4
 - Test (unit): `Sim.Rewards › event_class_never_in_offers` — given a set with 3 Event cards, when 500 Normal offers are rolled, then no Event card appears.
 
-#### P20.6 Reward flow runs on win
+#### ✅ P20.6 Reward flow runs on win
 
 - PRD: 3.3.9.2
-- Does: The BattleEnded(Won) event triggers the node's reward flow exactly once; the run cannot move until the flow is resolved.
+- Does: The BattleEnded(Won) event triggers the node's reward flow exactly once; the run cannot move until the flow is resolved. Assumption: `MoveTo` answers RewardPending while the offer is open.
 - Needs: P20.3, P19.4
 - Test (unit): `Sim.Nodes › move_blocked_until_reward_resolved` — given a won battle with an open offer, when MoveTo is called, then it is rejected; after picking or skipping, accepted.
 

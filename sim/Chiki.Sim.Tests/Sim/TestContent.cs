@@ -214,6 +214,74 @@ internal static class TestContent
         return run.StartBattle(Enemy(Chart(Track(), 4)), enemyHp);
     }
 
+    /// <summary>A run in the given World at its entry node, built as <see cref="RunSetup.Start"/> builds one (P19.7).</summary>
+    public static Chiki.Sim.Run RunInWorld(RunContent content, string seed, int world)
+    {
+        var binder = Chiki.Sim.Binder.Starter(content.Starter);
+        binder.AutoFill();
+        return new Chiki.Sim.Run(seed, new Stats(), Array.Empty<string>(), Array.Empty<string>(), new string?[Tuning.ArmorUpgradeSlots], binder, Array.Empty<string>(), false, content, world);
+    }
+
+    /// <summary>
+    /// A run standing on a Normal battle node one step from the entry, rolled to the given
+    /// enemy when one is named: seeds are tried in order until the entry branches to one.
+    /// </summary>
+    public static Chiki.Sim.Run RunAtNormalNode(RunContent content, string? enemyId = null, int world = 1, string seedPrefix = "normal-")
+    {
+        for (int i = 0; i < 1000; i++)
+        {
+            var run = RunInWorld(content, seedPrefix + i, world);
+            var node = run.ForwardNodes.FirstOrDefault(n => n.Type == NodeType.NormalBattle && (enemyId is null || n.EnemyId == enemyId));
+            if (node != null)
+            {
+                Assume.That(run.MoveTo(node.Id), Is.EqualTo(MoveResult.Moved));
+                return run;
+            }
+        }
+
+        throw new InvalidOperationException("No seed branches from the entry to a Normal node" + (enemyId is null ? "" : " with " + enemyId) + ".");
+    }
+
+    /// <summary>
+    /// Wins the current node's battle: the enemy has 1 HP and every charted action is answered
+    /// with a Perfect press, an attack slot of the action's side first so the hit lands through
+    /// any Block the enemy holds (Guard, PRD 3.6.25), any other line-0 slot otherwise so no
+    /// damage comes in; the battle is settled.
+    /// </summary>
+    public static SimBattle WinNodeBattle(Chiki.Sim.Run run)
+    {
+        var battle = run.StartNodeBattle(enemyHp: 1);
+        var others = new[] { SlotQ, new Slot(0, SlotKey.W), SlotO, new Slot(0, SlotKey.P) };
+        foreach (var action in battle.Chart.Actions.OrderBy(a => a.LandingQb))
+        {
+            if (battle.Outcome != null)
+            {
+                break;
+            }
+
+            var attacks = action.Kind == EnemyActionKind.AttackRight
+                ? new[] { SlotU, new Slot(0, SlotKey.I), SlotE, SlotR }
+                : new[] { SlotE, SlotR, SlotU, new Slot(0, SlotKey.I) };
+            battle.AdvanceToPosition(action.LandingQb);
+            foreach (var slot in attacks.Concat(others))
+            {
+                if (battle.Press(slot, battle.BeatMap.TimeAtQb(action.LandingQb)).Accepted)
+                {
+                    break;
+                }
+            }
+        }
+
+        if (battle.Outcome is null)
+        {
+            battle.AdvanceToBeat(battle.Track.LengthBeats + 1);
+        }
+
+        Assume.That(battle.Outcome, Is.EqualTo(BattleOutcome.Won), "the node battle must be won");
+        run.SettleBattle(battle);
+        return battle;
+    }
+
     /// <summary>The same definition with another damage per hit.</summary>
     public static EnemyDefinition WithDamage(EnemyDefinition enemy, int damagePerHit)
     {

@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace Chiki.Sim
 {
     /// <summary>The sources a CRP change names (PRD 3.8.6) besides a card, Imprint or Charm id.</summary>
@@ -24,6 +26,15 @@ namespace Chiki.Sim
 
     /// <summary>CRP changed by an amount from a source (PRD 3.8.6); <see cref="Total"/> is the clamped value after.</summary>
     public sealed record CrpChanged(int Amount, string Source, int Total) : RunEvent;
+
+    /// <summary>Essence changed by an amount from a source (PRD 3.7.1); <see cref="Total"/> is the value after, never below zero.</summary>
+    public sealed record EssenceChanged(int Amount, string Source, int Total) : RunEvent;
+
+    /// <summary>A won battle node opened its reward offer (PRD 3.3.9.2, 3.7.2): the cards the player may choose one of.</summary>
+    public sealed record RewardOffered(int World, string NodeId, EncounterTier Tier, IReadOnlyList<string> CardIds) : RunEvent;
+
+    /// <summary>The player picked a card from the offer, or skipped it (PRD 3.7.2); <see cref="CardId"/> is null on a skip.</summary>
+    public sealed record RewardResolved(int World, string NodeId, string? CardId) : RunEvent;
 
     /// <summary>The run ended (PRD 3.9.11).</summary>
     public sealed record RunEnded(RunStatus Outcome) : RunEvent;

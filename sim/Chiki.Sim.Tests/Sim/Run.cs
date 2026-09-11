@@ -183,11 +183,7 @@ public class Run
                 Assume.That(run.MoveTo(run.ForwardNodes[0].Id), Is.EqualTo(MoveResult.Moved));
             }
 
-            var boss = run.StartNodeBattle(enemyHp: 1);
-            boss.Press(new Slot(0, SlotKey.E), boss.BeatMap.TimeAtQb(boss.Chart.Actions[0].PositionQb));
-            boss.AdvanceToBeat(boss.Chart.Actions[0].PositionQb / 4 + 2);
-            Assume.That(boss.Outcome, Is.EqualTo(BattleOutcome.Won), "the Boss battle must be won to complete the node");
-            run.SettleBattle(boss);
+            TestContent.WinNodeBattle(run);
             statuses.Add(run.Status);
             if (!run.IsOver)
             {

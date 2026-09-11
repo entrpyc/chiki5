@@ -70,6 +70,24 @@ namespace Chiki.Sim
             new[] { 50, 15, 15, 15, 15, 20 },
         };
 
+        /// <summary>Cards a Normal battle reward offers, of which the player takes one (PRD 3.7.2).</summary>
+        public const int NormalRewardCardChoices = 3;
+
+        /// <summary>Essence income band per battle, inclusive, indexed by tier (Normal, Elite, Boss) then World 1–3 (PRD 3.7.5).</summary>
+        public static readonly int[][] EssenceIncomeMin =
+        {
+            new[] { 8, 12, 18 },
+            new[] { 25, 37, 55 },
+            new[] { 40, 60, 90 },
+        };
+
+        public static readonly int[][] EssenceIncomeMax =
+        {
+            new[] { 17, 25, 37 },
+            new[] { 35, 52, 78 },
+            new[] { 50, 75, 112 },
+        };
+
         /// <summary>Every relationship starts at level 1 (PRD 3.10.3).</summary>
         public const int NpcStartLevel = 1;
 

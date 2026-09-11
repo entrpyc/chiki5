@@ -593,7 +593,7 @@ Ties broken: 3.2.3 is delivered twice, the stat holder in Phase 1 and the Base D
 #### ✅ P8.1 Trigger, condition and modifier core
 
 - PRD: — (groundwork for P8.3 to P8.7, P11.1 to P11.7, P18.4)
-- Does: An `Effect` is a trigger (an event type from the battle stream, or "on play"), an optional condition evaluated against battle state, and a modifier (deal damage, gain Block, apply status, change a stat, multiply a value) with a lifetime in beats, battles or "run". A registry attaches effects to an owner (card instance, enemy, Charm); the battle evaluates registered effects when their trigger event is appended. Assumption: a "passive" trigger is a standing multiplier alive for its lifetime; only damage multipliers outlive their trigger, every other modifier is instant; battle and run lifetimes both last the current battle until the run-level registry (P18.4); nothing fires once the battle has ended; an on-play effect is evaluated from the card as it resolves and is refused by the registry; Thorns landed in reaction to a hit answers the next attack, not that hit.
+- Does: An `Effect` is a trigger (an event type from the battle stream, or "on play"), an optional condition evaluated against battle state, and a modifier (deal damage, gain Block, apply status, change a stat, multiply a value) with a lifetime in beats, battles or "run". A registry attaches effects to an owner (card instance, enemy, Charm); the battle evaluates registered effects when their trigger event is appended. Assumption: a "passive" trigger is a standing multiplier alive for its lifetime; only damage multipliers outlive their trigger, every other modifier is instant; battle and run lifetimes both last the current battle until the run-level registry (P18.4); nothing fires once the battle has ended, except effects on the closing BattleEnded event itself (P18.4); an on-play effect is evaluated from the card as it resolves and is refused by the registry; Thorns landed in reaction to a hit answers the next attack, not that hit.
 - Needs: P2.8, P5.1
 - Test (unit): `Sim.Effects › trigger_fires_on_event` — given an effect on DamageTaken that applies Thorns 2, when the player takes damage, then the player has Thorns 2.
 - Test (unit): `Sim.Effects › condition_gates_trigger` — given the same effect with condition "grade is Perfect", when damage is taken on a Good, then nothing is applied.
@@ -1073,55 +1073,55 @@ Ties broken: 3.2.3 is delivered twice, the stat holder in Phase 1 and the Base D
 - Needs: P1.4
 - Test (unit): `Sim.Crp › clamped_0_to_100` — given CRP 98, when +5 is applied, then it is 100; given 2, when −5 is applied, then 0.
 
-### Phase 18 — A run ends
+### ✅ Phase 18 — A run ends
 
 *Delivers everything that happens when a run finishes: resets, Binder discard, Imprints lost, Charm triggers, death as a run outcome, and relationship data. Done when every P18 test is green and the suite passes.*
 
-#### P18.1 Run progression resets
+#### ✅ P18.1 Run progression resets
 
 - PRD: 3.9.1
-- Does: Ending a run (Won or Died) discards its Binder, Imprints, Essence, route, armor upgrades and CRP; a new run starts from P17.5 state regardless of the previous run.
+- Does: Ending a run (Won or Died) discards its Binder, Imprints, Essence, route, armor upgrades and CRP; a new run starts from P17.5 state regardless of the previous run. Assumption: `Run.End(outcome)` makes the status final and discards the Binder, the Imprints and the run-level effects; the stats stay readable on the ended run for the run-end summary (P23.5), and the fresh state comes from the next `RunSetup.Start`.
 - Needs: P17.5
 - Test (unit): `Sim.Run › new_run_after_end_is_fresh` — given a run ended with Essence 300 and CRP 60, when a new run starts on the same profile, then Essence is 0 and CRP is 0.
 
-#### P18.2 Binder persists for the run and dies with it
+#### ✅ P18.2 Binder persists for the run and dies with it
 
 - PRD: 3.5.4
-- Does: Every acquired card enters the run's Binder and stays across battles; at run end the Binder is discarded; card instances never carry into the next run.
+- Does: Every acquired card enters the run's Binder and stays across battles; at run end the Binder is discarded; card instances never carry into the next run. Assumption: the run starts and settles its battles (`Run.StartBattle`, `Run.SettleBattle`), and settling counts the battle on the Binder (P16.5).
 - Needs: P18.1, P16.3
 - Test (unit): `Sim.Binder › acquired_card_persists_until_run_end` — given a card acquired after battle 1, when battle 2 begins, then it is in the Binder; when the run ends and a new one starts, then it is not.
 
-#### P18.3 Imprints in a run
+#### ✅ P18.3 Imprints in a run
 
 - PRD: 3.9.3
-- Does: An `AcquireImprint(tier)` rolls one from the fixture pool of that tier using the run's `Rng`; there is no slot limit; a stackable Imprint acquired twice registers two effects; all are lost at run end. Sources are P21.2 and P21.4.
+- Does: An `AcquireImprint(tier)` rolls one from the fixture pool of that tier using the run's `Rng`; there is no slot limit; a stackable Imprint acquired twice registers two effects; all are lost at run end. Sources are P21.2 and P21.4. Assumption: the run takes its content (starter set, Charm table, Imprint pool) as a `RunContent` at start; the roll draws from the run's "imprints" fork, whose position a restored run does not keep (P22.1 may add it); a non-stackable Imprint rolled again is held but its effects act once; acquisition effects change the run's stats at once, the rest attach to every later battle.
 - Needs: P16.6, P17.2, P18.1
 - Test (unit): `Sim.Imprints › no_limit_and_lost_at_end` — given 7 Imprints acquired, when the run holds them, then all 7 effects are registered; when the run ends, then the next run has 0.
 - Test (unit): `Sim.Imprints › stackable_stacks` — given a stackable +2 Base DMG Imprint acquired twice, when read, then Base DMG is 4.
 
-#### P18.4 Charm triggers
+#### ✅ P18.4 Charm triggers
 
 - PRD: 3.9.8
-- Does: Equipped Charms register their effects with the framework at battle start; a Charm fires the moment its trigger event (chiefly PerfectDefense at BattleEnded) is appended; an effect marked "until reset" persists across battles and is cleared when the run ends.
+- Does: Equipped Charms register their effects with the framework at battle start; a Charm fires the moment its trigger event (chiefly PerfectDefense at BattleEnded) is appended; an effect marked "until reset" persists across battles and is cleared when the run ends. Assumption: the battle now dispatches effects on its closing BattleEnded event (amending P8.1); "until reset" is a standing modifier with the run lifetime, which the run reads from the ended battle's live modifiers and re-registers as a passive at the next battle start; a Charm's per-run cap (P16.7) trims its stat changes to the remainder and stops attaching them once reached; stat changes carry their owner in the StatChanged event so the run can total them.
 - Needs: P16.7, P17.4, P4.7, P18.1
 - Test (unit): `Sim.Charms › clean_victory_pays_on_perfect_defense` — given Clean Victory equipped, when a battle ends with Perfect Defense, then Essence rose by 10; when it ends with damage taken, unchanged.
 - Test (unit): `Sim.Charms › until_reset_lasts_the_run` — given an until-reset effect fired in battle 1, when battle 2 starts, then it still applies; when a new run starts, it does not.
 
-#### P18.5 Death ends the run
+#### ✅ P18.5 Death ends the run
 
 - PRD: 3.3.9.3
-- Does: A battle outcome of Died (P3.8) sets the run status to Died and ends it through P18.1.
+- Does: A battle outcome of Died (P3.8) sets the run status to Died and ends it through P18.1. Assumption: the run learns the outcome when the battle is settled; an ended run refuses to start a battle or acquire an Imprint.
 - Needs: P3.8, P18.1
 - Test (unit): `Sim.Run › battle_death_ends_run` — given a run in progress, when a battle ends Died, then the run status is Died and no further node can be entered.
 
-#### P18.6 NPC relationship entity
+#### ✅ P18.6 NPC relationship entity
 
 - PRD: 4.12
-- Does: A `Relationship` record per NPC (Fisherman, Flower Girl, Gambler, Björn, Gero) on the profile: level, RP toward next level, unlocks granted.
+- Does: A `Relationship` record per NPC (Fisherman, Flower Girl, Gambler, Björn, Gero) on the profile: level, RP toward next level, unlocks granted. Assumption: the rules live in the simulation (`Npc`, `Relationship`, `Relationships`); the profile keeps a serialisable record per NPC that converts to and from the simulation type, and the store adds any missing record at level 1 on create and on load, so the schema stays at 1.
 - Needs: P15.1
 - Test (integration): `Client.Relationships › five_records_on_new_profile` — given a fresh profile, when relationships are read, then five records exist at level 1 with 0 RP.
 
-#### P18.7 RP levels
+#### ✅ P18.7 RP levels
 
 - PRD: 3.10.3
 - Does: Main NPCs level 1–10, secondary 1–5; level N to N+1 costs N+1 RP; levels are capped; RP persists across runs on the profile.
@@ -1129,10 +1129,10 @@ Ties broken: 3.2.3 is delivered twice, the stat holder in Phase 1 and the Base D
 - Test (unit): `Sim.Relationships › level_up_costs_n_plus_1` — given Flower Girl at level 1, when 2 RP are added, then level 2 with 0 toward next; when 2 more, still level 2 with 2 toward level 3.
 - Test (unit): `Sim.Relationships › secondary_caps_at_5` — given Björn at level 5, when RP is added, then level stays 5.
 
-#### P18.8 RP gain recorded
+#### ✅ P18.8 RP gain recorded
 
 - PRD: 3.10.4
-- Does: A `GrantRp(npc, amount, source)` API records the gain with its source (dialogue, minigame, sacrifice, interaction) and applies P18.7; no in-scope feature calls it in play yet.
+- Does: A `GrantRp(npc, amount, source)` API records the gain with its source (dialogue, minigame, sacrifice, interaction) and applies P18.7; no in-scope feature calls it in play yet. Assumption: the test starts the Gambler at level 3, where the next level costs 4, so a grant of 3 stays toward the next level as the sentence reads.
 - Needs: P18.7
 - Test (unit): `Sim.Relationships › grant_records_source` — given a grant of 3 RP from "sacrifice", when read, then RP toward next is 3 and the last source is "sacrifice".
 

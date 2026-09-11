@@ -102,6 +102,7 @@ namespace Chiki.Client.Profiles
                 Created = Now(),
                 RunLogFolder = Path.Combine(FolderOf(name), RunLogFolderName),
             };
+            profile.EnsureRelationships();
             Save(profile);
             return profile;
         }
@@ -125,6 +126,7 @@ namespace Chiki.Client.Profiles
             var profile = JsonUtility.FromJson<Profile>(text);
             profile.Name = name;
             profile.RunLogFolder = Path.Combine(FolderOf(name), RunLogFolderName);
+            profile.EnsureRelationships();
             return profile;
         }
 

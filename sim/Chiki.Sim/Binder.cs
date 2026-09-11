@@ -177,6 +177,17 @@ namespace Chiki.Sim
             return Loadout.EmptySlots;
         }
 
+        /// <summary>Discards every card and empties the loadout: the Binder dies with its run (PRD 3.5.4, 3.9.1).</summary>
+        public void Discard()
+        {
+            foreach (var slot in Loadout.Slots)
+            {
+                Loadout.Clear(slot);
+            }
+
+            _cards.Clear();
+        }
+
         /// <summary>
         /// A battle ended with these cards in the Binder: every Unstable card counts one battle
         /// (PRD 3.4.16), slotted or not, and those at 0 are destroyed and removed from the

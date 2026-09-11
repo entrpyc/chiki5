@@ -23,6 +23,15 @@ namespace Chiki.Sim
         /// <summary>Armor upgrade slots on a run (PRD 3.7.13).</summary>
         public const int ArmorUpgradeSlots = 4;
 
+        /// <summary>Every relationship starts at level 1 (PRD 3.10.3).</summary>
+        public const int NpcStartLevel = 1;
+
+        /// <summary>Main NPCs have levels 1–10 (PRD 3.10.3).</summary>
+        public const int MainNpcMaxLevel = 10;
+
+        /// <summary>Secondary NPCs have levels 1–5 (PRD 3.10.3).</summary>
+        public const int SecondaryNpcMaxLevel = 5;
+
         /// <summary>
         /// Half-width of the Perfect window in thousandths of a beat (PRD 3.3.3.1, 3.3.1.5).
         /// 80 thousandths of a beat is +/-40 ms at BPM 120.

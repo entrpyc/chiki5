@@ -103,7 +103,7 @@ namespace Chiki.Sim
     public sealed record BlockCleared(int PositionQb, StatusTarget Target, int Amount) : BattleEvent(PositionQb);
 
     /// <summary>A run stat changed by an effect (PRD 3.2.3): <see cref="Delta"/> was applied and <see cref="Total"/> is the stat afterwards.</summary>
-    public sealed record StatChanged(int PositionQb, Effects.RunStat Stat, int Delta, int Total) : BattleEvent(PositionQb);
+    public sealed record StatChanged(int PositionQb, Effects.RunStat Stat, int Delta, int Total, string? OwnerId = null) : BattleEvent(PositionQb);
 
     /// <summary>
     /// A standing modifier came alive (P8.1): <see cref="Amount"/> is the multiplier in

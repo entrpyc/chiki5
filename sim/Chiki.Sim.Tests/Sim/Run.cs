@@ -14,22 +14,23 @@ public class Run
     [Test]
     public void run_round_trips_to_json()
     {
-        var starter = Starter();
+        var fleetingDefinition = new CardDefinition("card-fleeting", "Fleeting", CardCategory.Defense, 8, cardClass: CardClass.Unstable, lifespan: 2);
+        var content = TestContent.LoadRunContent(new CardSet("test", new[] { fleetingDefinition }));
         var setup = new RunSetup(new[] { CleanVictory, MomentumPlate });
         setup.Equip(MomentumPlate);
-        var run = setup.Start(starter, "chiki-1");
+        var run = setup.Start(content, "chiki-1");
         run.Stats.Ard = 250;
         run.Stats.BaseDmg = 2;
         run.Stats.Essence = 40;
         run.Stats.Crp = 12;
-        var fleeting = run.Binder.Add(new CardDefinition("card-fleeting", "Fleeting", CardCategory.Defense, 8, cardClass: CardClass.Unstable, lifespan: 2));
+        run.AcquireImprint("imprint-thick-hide");
+        var fleeting = run.Binder.Add(fleetingDefinition);
         run.Binder.BattleEnded();
         run.Binder.Clear(new Slot(1, SlotKey.I));
         run.Binder.Assign(new Slot(1, SlotKey.P), fleeting);
-        var definitions = starter.Cards.Append(fleeting.Definition).ToDictionary(c => c.Id);
 
         var json = RunSerializer.ToJson(run);
-        var restored = RunSerializer.FromJson(json, definitions);
+        var restored = RunSerializer.FromJson(json, content);
 
         Assert.Multiple(() =>
         {
@@ -38,10 +39,12 @@ public class Run
             Assert.That(restored.World, Is.EqualTo(run.World));
             Assert.That(restored.CurrentNodeId, Is.EqualTo(run.CurrentNodeId));
             Assert.That(restored.Status, Is.EqualTo(run.Status));
+            Assert.That(restored.BattlesStarted, Is.EqualTo(run.BattlesStarted));
             Assert.That((restored.Stats.MaxArd, restored.Stats.Ard, restored.Stats.BaseDmg, restored.Stats.Essence, restored.Stats.Crp),
                 Is.EqualTo((run.Stats.MaxArd, run.Stats.Ard, run.Stats.BaseDmg, run.Stats.Essence, run.Stats.Crp)));
             Assert.That(restored.Charms, Is.EqualTo(run.Charms));
             Assert.That(restored.Imprints, Is.EqualTo(run.Imprints));
+            Assert.That(restored.Effects.Registered.Select(r => (r.OwnerId, r.Definition)), Is.EqualTo(run.Effects.Registered.Select(r => (r.OwnerId, r.Definition))));
             Assert.That(restored.ArmorUpgrades, Is.EqualTo(run.ArmorUpgrades));
             Assert.That(restored.DifficultyModifiers, Is.EqualTo(run.DifficultyModifiers));
             Assert.That(restored.Assist, Is.EqualTo(run.Assist));
@@ -115,6 +118,49 @@ public class Run
             Assert.That(run.Stats.BaseDmg, Is.EqualTo(0));
             Assert.That(run.Stats.Essence, Is.EqualTo(0));
             Assert.That(run.Stats.Crp, Is.EqualTo(0));
+        });
+    }
+
+    [Test]
+    public void new_run_after_end_is_fresh()
+    {
+        var unlocked = new[] { CleanVictory };
+        var ended = new RunSetup(unlocked).Start(TestContent.LoadRunContent(), "chiki-1");
+        ended.Stats.Essence = 300;
+        ended.Stats.Crp = 60;
+        ended.AcquireImprint(ImprintTier.Common);
+        ended.End(RunStatus.Won);
+
+        var next = new RunSetup(unlocked).Start(TestContent.LoadRunContent(), "chiki-2");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(ended.Status, Is.EqualTo(RunStatus.Won));
+            Assert.That(next.Stats.Essence, Is.EqualTo(0));
+            Assert.That(next.Stats.Crp, Is.EqualTo(0));
+            Assert.That(next.Imprints, Is.Empty);
+            Assert.That(next.Binder.Cards, Has.Count.EqualTo(Starter().Cards.Count));
+            Assert.That(next.Stats.Ard, Is.EqualTo(next.Stats.MaxArd));
+        });
+    }
+
+    [Test]
+    public void battle_death_ends_run()
+    {
+        var run = new RunSetup(Array.Empty<string>()).Start(TestContent.LoadRunContent(), "chiki-1");
+        run.Stats.Ard = 15;
+        var battle = run.StartBattle(TestContent.Enemy(TestContent.Chart(TestContent.Track(), 4), damagePerHit: 20), TestContent.DefaultEnemyHp);
+
+        battle.AdvanceToBeat(2);
+        run.SettleBattle(battle);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(battle.Outcome, Is.EqualTo(BattleOutcome.Died));
+            Assert.That(run.Status, Is.EqualTo(RunStatus.Died));
+            Assert.That(run.IsOver, Is.True);
+            Assert.That(() => TestContent.RunBattle(run), Throws.InvalidOperationException);
+            Assert.That(() => run.AcquireImprint(ImprintTier.Common), Throws.InvalidOperationException);
         });
     }
 

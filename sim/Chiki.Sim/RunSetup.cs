@@ -97,16 +97,23 @@ namespace Chiki.Sim
         /// </summary>
         public Run Start(CardSet starterSet, string? seed = null, ulong entropy = 0)
         {
+            return Start(new RunContent(starterSet ?? throw new ArgumentNullException(nameof(starterSet))), seed, entropy);
+        }
+
+        /// <summary>Starts the run on the full content it draws on: starter set, Charm table and Imprint pool (see the starter-set overload).</summary>
+        public Run Start(RunContent content, string? seed = null, ulong entropy = 0)
+        {
             if (Started)
             {
                 throw new InvalidOperationException("The run has already started.");
             }
 
-            if (starterSet is null)
+            if (content is null)
             {
-                throw new ArgumentNullException(nameof(starterSet));
+                throw new ArgumentNullException(nameof(content));
             }
 
+            var starterSet = content.Starter;
             var binder = Binder.Starter(starterSet);
             var stillEmpty = binder.AutoFill();
             if (stillEmpty.Count > 0)
@@ -124,7 +131,8 @@ namespace Chiki.Sim
                 new string?[Tuning.ArmorUpgradeSlots],
                 binder,
                 Array.Empty<string>(),
-                assist: false);
+                assist: false,
+                content: content);
         }
 
         /// <summary>A shareable seed of two four-character groups drawn from the entropy (PRD 3.2.4); the same entropy gives the same seed.</summary>

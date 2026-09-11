@@ -94,10 +94,15 @@ namespace Chiki.Sim
             }
         }
 
-        /// <summary>Fires every registered effect whose trigger is the event just appended; nothing fires once the battle has ended.</summary>
+        /// <summary>
+        /// Fires every registered effect whose trigger is the event just appended. Nothing fires
+        /// once the battle has ended, except on the closing BattleEnded event itself, which is
+        /// where Charms read Perfect Defense (PRD 3.9.8, P18.4).
+        /// </summary>
         private void Dispatch(BattleEvent battleEvent)
         {
-            if (Outcome != null)
+            bool closing = battleEvent is BattleEnded;
+            if (Outcome != null && !closing)
             {
                 return;
             }
@@ -111,7 +116,7 @@ namespace Chiki.Sim
             int actionIndex = _resolving?.Opportunity?.Index ?? _pending.Index;
             foreach (var registered in _effects.TriggeredBy(trigger.Value))
             {
-                if (Outcome != null)
+                if (Outcome != null && !closing)
                 {
                     break;
                 }
@@ -218,7 +223,7 @@ namespace Chiki.Sim
                 }
 
                 case EffectModifier.ChangeStat:
-                    ChangeStat(effect.Stat!.Value, Scale(effect.Amount, scaleThousandths), positionQb);
+                    ChangeStat(effect.Stat!.Value, Scale(effect.Amount, scaleThousandths), positionQb, ownerId);
                     break;
 
                 case EffectModifier.MultiplyValue:
@@ -265,7 +270,7 @@ namespace Chiki.Sim
             }
         }
 
-        private void ChangeStat(RunStat stat, int delta, int positionQb)
+        private void ChangeStat(RunStat stat, int delta, int positionQb, string ownerId)
         {
             int total;
             switch (stat)
@@ -294,7 +299,7 @@ namespace Chiki.Sim
                     throw new ArgumentOutOfRangeException(nameof(stat), stat, "Unknown stat.");
             }
 
-            Emit(new StatChanged(positionQb, stat, delta, total));
+            Emit(new StatChanged(positionQb, stat, delta, total, ownerId));
         }
 
         /// <summary>

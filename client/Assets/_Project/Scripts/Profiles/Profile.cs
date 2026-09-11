@@ -1,6 +1,7 @@
 #nullable enable
 using System;
 using System.Collections.Generic;
+using Chiki.Sim;
 using UnityEngine;
 
 namespace Chiki.Client.Profiles
@@ -58,8 +59,42 @@ namespace Chiki.Client.Profiles
         /// <summary>Charm, card, Imprint-pool, difficulty-modifier and cosmetic unlocks (PRD 3.9.2); filled by P17.3.</summary>
         public MetaProgression Meta => meta;
 
-        /// <summary>One entry per NPC (PRD 4.12); filled by P18.6.</summary>
+        /// <summary>One entry per NPC (PRD 4.12), all five present from creation (P18.6); the rules live in <see cref="Chiki.Sim.Relationship"/>.</summary>
         public List<Relationship> Relationships => relationships;
+
+        /// <summary>The record for one NPC; the store guarantees all five exist.</summary>
+        public Relationship RelationshipWith(Npc npc)
+        {
+            if (npc is null)
+            {
+                throw new ArgumentNullException(nameof(npc));
+            }
+
+            EnsureRelationships();
+            return relationships.Find(r => r.NpcId == npc.Id)!;
+        }
+
+        /// <summary>Adds a fresh level-1 record for every NPC the profile lacks (PRD 3.10.3); a file from before P18.6 gains them on load.</summary>
+        public void EnsureRelationships()
+        {
+            foreach (var npc in Npc.All)
+            {
+                if (!relationships.Exists(r => r.NpcId == npc.Id))
+                {
+                    relationships.Add(Relationship.FromSim(new Chiki.Sim.Relationship(npc)));
+                }
+            }
+        }
+
+        /// <summary>Grants RP to an NPC through the simulation's rules (PRD 3.10.4, 3.10.5) and records the result; returns the levels gained. The caller saves the profile.</summary>
+        public int GrantRp(Npc npc, int amount, RpSource source)
+        {
+            var record = RelationshipWith(npc);
+            var relationship = record.ToSim();
+            int gained = relationship.GrantRp(amount, source);
+            record.CopyFrom(relationship);
+            return gained;
+        }
 
         /// <summary>Settings (PRD 3.12.2 to 3.12.6).</summary>
         public ProfileSettings Settings => settings;
@@ -151,13 +186,15 @@ namespace Chiki.Client.Profiles
         }
     }
 
-    /// <summary>The relationship with one NPC (PRD 4.12): its level and the points towards the next.</summary>
+    /// <summary>The relationship with one NPC as the file records it (PRD 4.12): level, RP toward the next level, the unlocks granted and the last source. Rules live in <see cref="Chiki.Sim.Relationship"/>.</summary>
     [Serializable]
     public sealed class Relationship
     {
         [SerializeField] private string npcId = "";
-        [SerializeField] private int level;
+        [SerializeField] private int level = Tuning.NpcStartLevel;
         [SerializeField] private int points;
+        [SerializeField] private List<string> unlocksGranted = new List<string>();
+        [SerializeField] private string lastSource = "";
 
         public Relationship()
         {
@@ -170,7 +207,35 @@ namespace Chiki.Client.Profiles
             this.points = points;
         }
 
+        public static Relationship FromSim(Chiki.Sim.Relationship relationship)
+        {
+            var record = new Relationship(relationship.Npc.Id, relationship.Level, relationship.RpTowardNext);
+            record.CopyFrom(relationship);
+            return record;
+        }
+
+        /// <summary>The record as a simulation relationship with the rules attached; an unknown NPC id is refused.</summary>
+        public Chiki.Sim.Relationship ToSim()
+        {
+            var npc = Npc.Find(npcId) ?? throw new InvalidOperationException("Unknown NPC '" + npcId + "'.");
+            return new Chiki.Sim.Relationship(npc, level, points, unlocksGranted, string.IsNullOrEmpty(lastSource) ? (RpSource?)null : RpSources.FromId(lastSource));
+        }
+
+        public void CopyFrom(Chiki.Sim.Relationship relationship)
+        {
+            npcId = relationship.Npc.Id;
+            level = relationship.Level;
+            points = relationship.RpTowardNext;
+            unlocksGranted = new List<string>(relationship.UnlocksGranted);
+            lastSource = relationship.LastSource is RpSource source ? RpSources.ToId(source) : "";
+        }
+
         public string NpcId => npcId;
+
+        public List<string> UnlocksGranted => unlocksGranted;
+
+        /// <summary>The id of the last RP source (PRD 3.10.4); empty before any gain.</summary>
+        public string LastSource => lastSource;
 
         public int Level
         {

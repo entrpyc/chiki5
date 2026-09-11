@@ -197,6 +197,22 @@ internal static class TestContent
         return Chiki.Sim.Data.EnemyLoader.SetFromJson(ReadData("enemies/fixtures.json"), charts);
     }
 
+    /// <summary>The starter set, the fixture Charms and the fixture Imprints as one run content (P17.1).</summary>
+    public static RunContent LoadRunContent(params CardSet[] otherSets)
+    {
+        return new RunContent(
+            Chiki.Sim.Data.CardLoader.SetFromJson(ReadData("sets/starter.json")),
+            Chiki.Sim.Data.CharmLoader.SetFromJson(ReadData("charms/fixtures.json")),
+            Chiki.Sim.Data.ImprintLoader.SetFromJson(ReadData("imprints/fixtures.json")),
+            otherSets);
+    }
+
+    /// <summary>A one-attack enemy with the given HP started by the run: a Perfect press on key E at 500 ms kills it before its attack lands.</summary>
+    public static SimBattle RunBattle(Chiki.Sim.Run run, int enemyHp = 1)
+    {
+        return run.StartBattle(Enemy(Chart(Track(), 4)), enemyHp);
+    }
+
     /// <summary>The same definition with another damage per hit.</summary>
     public static EnemyDefinition WithDamage(EnemyDefinition enemy, int damagePerHit)
     {

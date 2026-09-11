@@ -35,6 +35,7 @@ namespace Chiki.Sim.Data
             w.Member("world", run.World);
             w.Member("currentNode", run.CurrentNodeId);
             w.Member("status", StatusToId(run.Status));
+            w.Member("battlesStarted", run.BattlesStarted);
             w.Name("stats").BeginObject();
             w.Member("maxArd", run.Stats.MaxArd);
             w.Member("ard", run.Stats.Ard);
@@ -83,29 +84,21 @@ namespace Chiki.Sim.Data
             return w.ToString();
         }
 
-        /// <summary>Reads a run whose card instances draw on the given set's definitions.</summary>
-        public static Run FromJson(string json, CardSet definitions)
+        /// <summary>Reads a run whose card instances draw on the starter set alone and that holds no Charm or Imprint content.</summary>
+        public static Run FromJson(string json, CardSet starter)
         {
-            if (definitions is null)
-            {
-                throw new ArgumentNullException(nameof(definitions));
-            }
-
-            var byId = new Dictionary<string, CardDefinition>(StringComparer.Ordinal);
-            foreach (var card in definitions.Cards)
-            {
-                byId[card.Id] = card;
-            }
-
-            return FromJson(json, byId);
+            return FromJson(json, new RunContent(starter ?? throw new ArgumentNullException(nameof(starter))));
         }
 
-        public static Run FromJson(string json, IReadOnlyDictionary<string, CardDefinition> definitions)
+        /// <summary>Reads a run against the content it draws on; an unknown card definition id is refused.</summary>
+        public static Run FromJson(string json, RunContent content)
         {
-            if (definitions is null)
+            if (content is null)
             {
-                throw new ArgumentNullException(nameof(definitions));
+                throw new ArgumentNullException(nameof(content));
             }
+
+            var definitions = content.Cards;
 
             var root = JsonValue.Parse(json);
             int version = root["schemaVersion"].AsInt();
@@ -163,9 +156,11 @@ namespace Chiki.Sim.Data
                 binder,
                 Strings(root["difficultyModifiers"]),
                 root["assist"].AsBool(),
+                content,
                 root["world"].AsInt(),
                 root.Optional("currentNode")?.AsString(),
-                StatusFromId(root["status"].AsString()));
+                StatusFromId(root["status"].AsString()),
+                root.Optional("battlesStarted")?.AsInt() ?? 0);
         }
 
         public static string StatusToId(RunStatus status)

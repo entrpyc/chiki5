@@ -41,6 +41,34 @@ public class Binder
     }
 
     [Test]
+    public void acquired_card_persists_until_run_end()
+    {
+        var run = new RunSetup(Array.Empty<string>()).Start(TestContent.LoadRunContent(), "chiki-1");
+        var battle1 = TestContent.RunBattle(run);
+        battle1.Press(new Slot(0, SlotKey.E), 500);
+        battle1.AdvanceToBeat(2);
+        run.SettleBattle(battle1);
+        var acquired = run.Binder.Add(TestContent.RightAttack(10));
+
+        var battle2 = TestContent.RunBattle(run);
+        bool inBinderAtBattle2 = run.Binder.Contains(acquired);
+        battle2.Press(new Slot(0, SlotKey.E), 500);
+        battle2.AdvanceToBeat(2);
+        run.SettleBattle(battle2);
+        run.End(RunStatus.Won);
+        var next = new RunSetup(Array.Empty<string>()).Start(TestContent.LoadRunContent(), "chiki-2");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(battle1.Outcome, Is.EqualTo(BattleOutcome.Won), "battle 1 must end before battle 2 begins");
+            Assert.That(inBinderAtBattle2, Is.True);
+            Assert.That(run.Binder.Cards, Is.Empty, "the ended run discarded its Binder");
+            Assert.That(next.Binder.Cards.Select(c => c.Definition.Id), Does.Not.Contain(acquired.Definition.Id));
+            Assert.That(next.Binder.Cards.Any(c => ReferenceEquals(c, acquired)), Is.False);
+        });
+    }
+
+    [Test]
     public void unstable_destroyed_after_lifespan()
     {
         var binder = new SimBinder();

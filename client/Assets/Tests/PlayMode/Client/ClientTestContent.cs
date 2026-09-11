@@ -1,9 +1,12 @@
 #nullable enable
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using Chiki.Client.Audio;
 using Chiki.Client.Content;
 using Chiki.Client.Driver;
+using Chiki.Client.Flow;
+using Chiki.Client.Profiles;
 using Chiki.Client.Scene;
 using Chiki.Sim;
 using Chiki.Sim.Data;
@@ -125,6 +128,62 @@ namespace Client
             if (battle.Outcome == null)
             {
                 battle.AdvanceToBeat(battle.Track.LengthBeats + 1);
+            }
+        }
+
+        /// <summary>A flow on a fresh calibrated profile under the root with a run started on the seed; the host is added to the list for teardown.</summary>
+        public static GameFlow FlowWithRun(string root, string profileName, string seed, List<GameObject> hosts, out ProfileStore store)
+        {
+            store = new ProfileStore(root);
+            var profile = store.Create(profileName);
+            profile.Calibrated = true;
+            store.Save(profile);
+            var host = new GameObject("flow-" + profileName);
+            hosts.Add(host);
+            var flow = host.AddComponent<GameFlow>();
+            flow.Begin(profile, store);
+            if (flow.TryStartRun(seed) != StartRunResult.Started)
+            {
+                throw new System.InvalidOperationException("The run did not start.");
+            }
+
+            return flow;
+        }
+
+        /// <summary>
+        /// Drives the flow from the map until a battle node's pre-battle panel is open: an open
+        /// offer is skipped, a stop is continued, and the first battle neighbour is chosen, or
+        /// the first neighbour when none is a battle. Gives up after 40 steps or at run end.
+        /// </summary>
+        public static IEnumerator OpenBattleNode(GameFlow flow)
+        {
+            for (int step = 0; step < 40 && flow.PreBattle == null && flow.RunEnd == null; step++)
+            {
+                if (flow.Reward != null)
+                {
+                    flow.Reward.ChooseSkip();
+                }
+                else if (flow.Stop != null)
+                {
+                    flow.Stop.ChooseContinue();
+                }
+                else if (flow.Map != null)
+                {
+                    var neighbours = flow.Map.Neighbours;
+                    int index = 0;
+                    for (int i = 0; i < neighbours.Count; i++)
+                    {
+                        if (neighbours[i].IsBattle)
+                        {
+                            index = i;
+                            break;
+                        }
+                    }
+
+                    flow.Map.ChooseNeighbour(index);
+                }
+
+                yield return null;
             }
         }
 

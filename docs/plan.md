@@ -1322,42 +1322,42 @@ Ties broken: 3.2.3 is delivered twice, the stat holder in Phase 1 and the Base D
 - Needs: P22.5
 - Test (unit): `Sim.RunLog › same_enemy_flagged` — given battles against Tank, Tank, Aggressor, when logged, then the flags are false, true, false.
 
-### Phase 23 — The loop on screen
+### ✅ Phase 23 — The loop on screen
 
 *Delivers the playable stage-four build: a map to move on, one input into battle, a Binder to edit, CRP on screen, and a run-end screen. Done when every P23 test is green and the suite passes.*
 
-#### P23.1 Minimal map view
+#### ✅ P23.1 Minimal map view
 
 - PRD: — (groundwork for P23.2 to P23.5)
-- Does: A map scene drawing the current World's nodes and connections with type icons, the player marker, forward neighbours selectable with the keyboard, and a settings entry (P15.3); selecting a neighbour calls `Run.MoveTo` and opens the node.
+- Does: A map scene drawing the current World's nodes and connections with type icons, the player marker, forward neighbours selectable with the keyboard, and a settings entry (P15.3); selecting a neighbour calls `Run.MoveTo` and opens the node. Assumption: the map draws the nodes layer by layer from flat-coloured elements; Left/Right cycle the forward neighbours and Enter commits; a battle node opens the pre-battle panel (P23.2) over the map, any other node an empty stop with Continue; an open reward offer (P20.3) shows as a panel over the map with keys 1–3 to pick and Skip, since the run cannot move until it is resolved.
 - Needs: P19.4, P12.1
 - Test (integration): `Client.Map › select_neighbour_moves` — given the map at the entry node, when the first neighbour is selected, then the run's current node is that neighbour and the node's scene opens.
 
-#### P23.2 Keep previous loadout, one input
+#### ✅ P23.2 Keep previous loadout, one input
 
 - PRD: 3.5.6
-- Does: Opening a battle node shows a pre-battle panel with the previous loadout kept; pressing Enter starts the battle immediately; an Edit action opens the Binder (P23.3).
+- Does: Opening a battle node shows a pre-battle panel with the previous loadout kept; pressing Enter starts the battle immediately; an Edit action opens the Binder (P23.3). Assumption: the battle runs in a `BattleScene` composed around the battle the run started, reading cards from the run's loadout; `GameFlow` settles it the frame it ends, then shows the reward panel or the run-end screen.
 - Needs: P23.1, P16.4
 - Test (integration): `Client.Loadout › enter_starts_battle_with_kept_loadout` — given a battle node opened after a previous battle, when Enter is pressed once, then the battle starts and its loadout equals the previous battle's.
 
-#### P23.3 Binder editing screen
+#### ✅ P23.3 Binder editing screen
 
 - PRD: 3.5.5
-- Does: A Binder screen listing every card with its preview; the 16 slots can be cleared and filled by keyboard; Confirm is disabled while any slot is empty and lists the empty slots.
+- Does: A Binder screen listing every card with its preview; the 16 slots can be cleared and filled by keyboard; Confirm is disabled while any slot is empty and lists the empty slots. Assumption: Left/Right move between slots, Up/Down browse the Binder cards of the slot's Category, Enter places, Delete clears; the preview is the card's name, Category, rarity and value.
 - Needs: P23.2, P16.4
 - Test (integration): `Client.Loadout › cannot_confirm_with_empty_slot` — given a slot cleared, when Confirm is attempted, then it is disabled and the panel names the slot; after refilling, Confirm proceeds to battle.
 
-#### P23.4 CRP on screen
+#### ✅ P23.4 CRP on screen
 
 - PRD: 3.8.1
-- Does: CRP is shown on the map header and in the battle HUD; a CrpChanged event (P19.6) shows a floating "+1 node transition" style label.
+- Does: CRP is shown on the map header and in the battle HUD; a CrpChanged event (P19.6) shows a floating "+1 node transition" style label. Assumption: the map header carries the CRP readout and the label floats over it for a moment; the battle HUD gains a `CrpView` fed by the driver's stream; a source without a string-table entry is shown by its id.
 - Needs: P23.1, P14.1, P19.6
 - Test (integration): `Client.Crp › visible_on_map_and_battle_with_change_label` — given CRP 7, when the map and then a battle render, then both show 7; when a transition happens, then a label reading "+1" with "node transition" appears.
 
-#### P23.5 Run-end screen
+#### ✅ P23.5 Run-end screen
 
 - PRD: 3.9.11
-- Does: When the run status becomes Won or Died, a run-end screen shows the outcome, the seed, run stats (battles, Perfect Defenses, Essence earned, CRP peak) and every unlock granted this run; Continue returns to the pre-run screen with the profile already saved.
+- Does: When the run status becomes Won or Died, a run-end screen shows the outcome, the seed, run stats (battles, Perfect Defenses, Essence earned, CRP peak) and every unlock granted this run; Continue returns to the pre-run screen with the profile already saved. Assumption: the battle count comes from the run's saved records; Perfect Defenses, Essence earned and the CRP peak are counted over this session's events, so a resumed run counts from the resume; unlocks are the Charm names granted since the run started.
 - Needs: P23.1, P18.1, P22.4
 - Test (integration): `Client.RunEnd › death_shows_summary_and_returns` — given a run that ends by death after unlocking a Charm, when the screen renders, then it shows "Died", the seed, the stats and the Charm; when Continue is pressed, then the pre-run screen is open and the profile file contains the unlock.
 - Test (integration): `Client.RunEnd › victory_shows_won` — given the World 3 Boss defeated, when the screen renders, then it shows "Won".

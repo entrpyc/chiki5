@@ -132,6 +132,32 @@ namespace Chiki.Client.Presenter
     /// <summary>The player-facing names the battle presenters show, all read from the string table (PRD 3.12.7).</summary>
     public static class Labels
     {
+        /// <summary>A node type's label on the map and its panels (PRD 3.2.16).</summary>
+        public static string NodeLabel(Chiki.Sim.NodeType type)
+        {
+            return Strings.Get("node." + NodeTypes.ToId(type));
+        }
+
+        /// <summary>An encounter tier's label (PRD 3.3.9.1).</summary>
+        public static string Tier(EncounterTier tier)
+        {
+            return Strings.Get("tier." + tier.ToString().ToLowerInvariant());
+        }
+
+        /// <summary>A run outcome's label (PRD 3.9.11).</summary>
+        public static string RunOutcome(RunStatus status)
+        {
+            return Strings.Get("runend." + status.ToString().ToLowerInvariant());
+        }
+
+        /// <summary>The label of a CRP change's source (PRD 3.8.6): a named source from the table, a card, Imprint or Charm by its id.</summary>
+        public static string CrpSource(string source)
+        {
+            string key = "crp.source." + source.Replace(' ', '-');
+            string text = Strings.Get(key);
+            return text == "[" + key + "]" ? source : text;
+        }
+
         public static string ActionKind(EnemyActionKind kind)
         {
             switch (kind)

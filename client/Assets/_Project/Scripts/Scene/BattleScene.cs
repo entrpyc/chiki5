@@ -29,6 +29,7 @@ namespace Chiki.Client.Scene
         [SerializeField] private int seed = 1;
 
         private IReadOnlyDictionary<Slot, CardDefinition> _slots = new Dictionary<Slot, CardDefinition>();
+        private Func<Slot, CardDefinition?>? _cardInSlot;
 
         public string EnemyId
         {
@@ -56,7 +57,7 @@ namespace Chiki.Client.Scene
         /// <summary>The card each slot holds; null for an empty slot.</summary>
         public CardDefinition? CardInSlot(Slot slot)
         {
-            return _slots.TryGetValue(slot, out var card) ? card : null;
+            return _cardInSlot?.Invoke(slot);
         }
 
         /// <summary>Builds the battle with fresh run stats.</summary>
@@ -73,16 +74,43 @@ namespace Chiki.Client.Scene
                 throw new ArgumentNullException(nameof(stats));
             }
 
-            if (Composed)
-            {
-                throw new InvalidOperationException("The Battle scene is already composed.");
-            }
-
+            RequireNotComposed();
             Content = BattleContent.LoadFixtures();
             var enemy = Content.Enemy(enemyId);
             _slots = BattleContent.FillSlots(Content.Cards);
             var battle = new Sim.Battle(stats, enemy, EncounterBalance.ForWorld(enemy.Track.World), new Rng((ulong)seed));
+            BuildRig(battle, slot => _slots.TryGetValue(slot, out var card) ? card : null);
+        }
 
+        /// <summary>Builds the rig, the keys and the HUD around a battle the run started (P23.2), reading cards from the run's loadout.</summary>
+        public void Compose(Sim.Battle battle, Func<Slot, CardDefinition?> cardInSlot)
+        {
+            if (battle is null)
+            {
+                throw new ArgumentNullException(nameof(battle));
+            }
+
+            if (cardInSlot is null)
+            {
+                throw new ArgumentNullException(nameof(cardInSlot));
+            }
+
+            RequireNotComposed();
+            BuildRig(battle, cardInSlot);
+        }
+
+        private void RequireNotComposed()
+        {
+            if (Composed)
+            {
+                throw new InvalidOperationException("The Battle scene is already composed.");
+            }
+        }
+
+        private void BuildRig(Sim.Battle battle, Func<Slot, CardDefinition?> cardInSlot)
+        {
+            _cardInSlot = cardInSlot;
+            var enemy = battle.Enemy;
             Camera = FindCamera();
             EnsureListener();
             EnsureEventSystem();

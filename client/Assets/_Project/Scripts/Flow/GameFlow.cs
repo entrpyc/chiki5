@@ -27,21 +27,28 @@ namespace Chiki.Client.Flow
     }
 
     /// <summary>
-    /// The screens outside battle and how they follow each other (P15.3): the pre-run screen,
-    /// the map, the settings menu and the calibration screen. On a profile's first launch the
-    /// calibration screen opens over the pre-run screen and Start Run stays disabled until it
-    /// closes (PRD 3.12.1); afterwards Calibrate sits in the settings menu on the pre-run
-    /// screen and on the map. Start Run creates the run (P17.5) from the profile's unlocked
-    /// Charms with none equipped, since the equip screen joins with P23, and opens the map.
-    /// The profile holds at most one run in progress: it is saved on every node transition
-    /// and whenever the map is entered, never during a battle (PRD 3.1.5, 3.1.6), and a
-    /// profile with a run in progress resumes it on the map. Everything permanent a run earns
-    /// is written the moment it happens (PRD 3.1.8), and a run that ends leaves its log
-    /// (PRD 3.15.1).
+    /// The screens outside battle and how they follow each other (P15.3, P23): the pre-run
+    /// screen, the map with its node panels, the Binder, the battle, the reward panel, the
+    /// run-end screen, the settings menu and the calibration screen. On a profile's first
+    /// launch the calibration screen opens over the pre-run screen and Start Run stays disabled
+    /// until it closes (PRD 3.12.1). Start Run creates the run (P17.5) from the profile's
+    /// unlocked Charms with none equipped, since the equip screen is out of this plan, and opens
+    /// the map. Choosing a neighbour on the map moves the run and opens the node (PRD 3.2.7): a
+    /// battle node shows the pre-battle panel, where Enter fights with the loadout kept
+    /// (PRD 3.5.6) and Edit opens the Binder (PRD 3.5.5); the other nodes are empty stops. A
+    /// battle runs in a <see cref="BattleScene"/> and is settled when it ends, which opens the
+    /// reward panel or the run-end screen (PRD 3.9.11). The profile holds at most one run in
+    /// progress: it is saved on every node transition and whenever the map is entered, never
+    /// during a battle (PRD 3.1.5, 3.1.6), and a profile with a run in progress resumes it on
+    /// the map. Everything permanent a run earns is written the moment it happens (PRD 3.1.8),
+    /// and a run that ends leaves its log (PRD 3.15.1).
     /// </summary>
     [DisallowMultipleComponent]
     public sealed class GameFlow : MonoBehaviour
     {
+        private readonly List<string> _unlocksThisRun = new List<string>();
+        private int _perfectDefensesThisRun;
+
         public Profile? Profile { get; private set; }
 
         public ProfileStore? Store { get; private set; }
@@ -54,6 +61,24 @@ namespace Chiki.Client.Flow
 
         public CalibrationScreen? Calibration { get; private set; }
 
+        /// <summary>The pre-battle panel open on a battle node (PRD 3.5.6); null otherwise.</summary>
+        public PreBattlePanel? PreBattle { get; private set; }
+
+        /// <summary>The stop open on a node without content; null otherwise.</summary>
+        public StopPanel? Stop { get; private set; }
+
+        /// <summary>The Binder screen while the loadout is being edited (PRD 3.5.5); null otherwise.</summary>
+        public BinderScreen? Binder { get; private set; }
+
+        /// <summary>The reward panel while an offer is open (PRD 3.7.2); null otherwise.</summary>
+        public RewardPanel? Reward { get; private set; }
+
+        /// <summary>The run-end screen after the run ended (PRD 3.9.11); null otherwise.</summary>
+        public RunEndScreen? RunEnd { get; private set; }
+
+        /// <summary>The battle in progress on screen; null between battles.</summary>
+        public BattleScene? Battle { get; private set; }
+
         /// <summary>The run in progress (PRD 4.2); null before Start Run.</summary>
         public Run? Run { get; private set; }
 
@@ -62,6 +87,15 @@ namespace Chiki.Client.Flow
 
         /// <summary>Applies the run's permanent consequences to the profile (P21.5); null before Start Run.</summary>
         public RunProgress? Progress { get; private set; }
+
+        /// <summary>The node last opened from the map; null before the first move.</summary>
+        public string? OpenedNodeId { get; private set; }
+
+        /// <summary>The Charm ids unlocked since the run started, in order (PRD 3.9.11).</summary>
+        public IReadOnlyList<string> UnlocksThisRun => _unlocksThisRun;
+
+        /// <summary>The summary of the last run that ended; null before.</summary>
+        public RunEndSummary? LastSummary { get; private set; }
 
         /// <summary>The path of the log the last ended run wrote (PRD 3.15.1); null before a run ends.</summary>
         public string? LastRunLogPath { get; private set; }
@@ -98,14 +132,19 @@ namespace Chiki.Client.Flow
             }
         }
 
-        /// <summary>Opens the map; the run in progress is saved on every return to it (PRD 3.1.5).</summary>
+        /// <summary>Opens the map; the run in progress is saved on every return to it (PRD 3.1.5), and an open reward offer is shown over it.</summary>
         public void EnterMap()
         {
             RequireProfile();
             CloseAll();
-            Map = MapScreen.Build(transform);
+            Map = MapScreen.Build(transform, Run);
             Map.SettingsChosen += OpenSettings;
+            Map.NeighbourChosen += nodeId => ChooseNeighbour(nodeId);
             SaveRun();
+            if (Run != null && Run.PendingReward != null)
+            {
+                ShowReward(Run.PendingReward);
+            }
         }
 
         /// <summary>Start Run from the pre-run screen; refused while the calibration screen is open or a run is in progress.</summary>
@@ -131,8 +170,7 @@ namespace Chiki.Client.Flow
             var content = LoadContent();
             var setup = new RunSetup(Profile.Meta.CharmUnlocks);
             Run = setup.Start(content, seed, entropy: (ulong)DateTime.UtcNow.Ticks);
-            Content = content;
-            Progress = new RunProgress(Profile, content.Charms);
+            AttachRun(content);
             EnterMap();
             return StartRunResult.Started;
         }
@@ -144,9 +182,18 @@ namespace Chiki.Client.Flow
             var saved = Profile!.RunInProgress ?? throw new InvalidOperationException("The profile holds no run in progress.");
             var content = LoadContent();
             Run = RunSerializer.FromJson(saved, content);
-            Content = content;
-            Progress = new RunProgress(Profile, content.Charms);
+            AttachRun(content);
             EnterMap();
+        }
+
+        private void AttachRun(RunContent content)
+        {
+            Content = content;
+            Progress = new RunProgress(Profile!, content.Charms);
+            _unlocksThisRun.Clear();
+            _perfectDefensesThisRun = 0;
+            OpenedNodeId = null;
+            LastSummary = null;
         }
 
         /// <summary>The fixture content a run draws on (P17.5): the fixture cards, Charms, Imprints and enemies from data/.</summary>
@@ -173,6 +220,124 @@ namespace Chiki.Client.Flow
             return result;
         }
 
+        /// <summary>The map's choice of a neighbour: the run moves there, the CRP change shows, and the node opens (P23.1).</summary>
+        public MoveResult ChooseNeighbour(string nodeId)
+        {
+            var run = RequireRun();
+            var result = MoveTo(nodeId);
+            if (result != MoveResult.Moved)
+            {
+                return result;
+            }
+
+            if (Map != null)
+            {
+                Map.Refresh();
+                var change = run.Events.OfType<CrpChanged>().LastOrDefault();
+                if (change != null)
+                {
+                    Map.ShowCrpChange(change.Amount, change.Source);
+                }
+            }
+
+            OpenNode();
+            return result;
+        }
+
+        /// <summary>Opens the node the run stands on: a battle node shows the pre-battle panel, another node its stop.</summary>
+        public void OpenNode()
+        {
+            var run = RequireRun();
+            ClosePanels();
+            var node = run.CurrentNode;
+            OpenedNodeId = node.Id;
+            if (node.IsBattle && !run.CurrentNodeCompleted)
+            {
+                PreBattle = PreBattlePanel.Build(transform, run);
+                PreBattle.EnterChosen += () => EnterBattle();
+                PreBattle.EditChosen += OpenBinder;
+            }
+            else
+            {
+                Stop = StopPanel.Build(transform, node);
+                Stop.Continued += CloseNode;
+            }
+        }
+
+        /// <summary>Closes the node's panel and returns to the map.</summary>
+        public void CloseNode()
+        {
+            ClosePanels();
+            if (Map != null)
+            {
+                Map.Refresh();
+            }
+        }
+
+        /// <summary>Opens the Binder over the pre-battle panel (PRD 3.5.5); Confirm proceeds to the battle, Back returns to the panel.</summary>
+        public void OpenBinder()
+        {
+            var run = RequireRun();
+            if (Binder != null)
+            {
+                return;
+            }
+
+            Binder = BinderScreen.Build(transform, run.Binder);
+            Binder.Confirmed += () => EnterBattle();
+            Binder.BackChosen += CloseBinder;
+        }
+
+        public void CloseBinder()
+        {
+            if (Binder != null)
+            {
+                Destroy(Binder.gameObject);
+                Binder = null;
+            }
+
+            if (PreBattle != null)
+            {
+                Destroy(PreBattle.gameObject);
+                PreBattle = null;
+                OpenNode();
+            }
+        }
+
+        /// <summary>
+        /// Starts the current battle node's battle on screen (PRD 3.5.6): the run starts it with
+        /// the loadout as it stands, and a <see cref="BattleScene"/> is composed around it. A
+        /// fixed enemy HP is for tests that pin the number. The battle is settled when it ends.
+        /// </summary>
+        public BattleScene EnterBattle(int? enemyHp = null)
+        {
+            var run = RequireRun();
+            if (Battle != null)
+            {
+                throw new InvalidOperationException("A battle is already on screen.");
+            }
+
+            run.Loadout.RequireComplete();
+            var battle = enemyHp is int hp ? run.StartNodeBattle(hp) : run.StartNodeBattle();
+            CloseAll();
+            var host = new GameObject("Battle");
+            host.transform.SetParent(transform, false);
+            Battle = host.AddComponent<BattleScene>();
+            Battle.Compose(battle, slot => run.Loadout[slot]?.Definition);
+            return Battle;
+        }
+
+        private void Update()
+        {
+            if (Battle != null && Battle.Driver != null && Battle.Driver.Battle != null && Battle.Driver.Battle.Outcome != null)
+            {
+                var battle = Battle.Driver.Battle;
+                Destroy(Battle.gameObject);
+                Battle = null;
+                SettleBattle(battle);
+            }
+        }
+
         /// <summary>
         /// Writes the run in progress into the profile and the profile to disk. Nothing is
         /// written while a battle is in progress (PRD 3.1.6): the save made at the node
@@ -193,14 +358,25 @@ namespace Chiki.Client.Flow
 
         /// <summary>
         /// Settles a battle the run started: a Boss defeat reaches the profile at once
-        /// (PRD 3.9.10, 3.1.8), the run is saved, and a run that ended writes its log and
-        /// clears the slot (PRD 3.15.1). Returns the cards the Binder destroyed.
+        /// (PRD 3.9.10, 3.1.8), the run is saved, and the map with its reward offer or the
+        /// run-end screen follows (PRD 3.9.11, 3.15.1). Returns the cards the Binder destroyed.
         /// </summary>
         public IReadOnlyList<CardInstance> SettleBattle(Battle battle)
         {
             var run = RequireRun();
+            if (Battle != null)
+            {
+                Destroy(Battle.gameObject);
+                Battle = null;
+            }
+
             var destroyed = run.SettleBattle(battle);
-            Progress!.Apply(run);
+            if (battle.Events.OfType<BattleEnded>().Any(e => e.PerfectDefense))
+            {
+                _perfectDefensesThisRun++;
+            }
+
+            _unlocksThisRun.AddRange(Progress!.Apply(run));
             AfterRunChanged();
             return destroyed;
         }
@@ -237,17 +413,39 @@ namespace Chiki.Client.Flow
             }
             else
             {
-                SaveRun();
+                EnterMap();
             }
         }
 
-        /// <summary>The run ended (PRD 3.9.11): its log is written (PRD 3.15.1), the history takes its outcome, and the slot is cleared.</summary>
+        private void ShowReward(RewardOffer offer)
+        {
+            Reward = RewardPanel.Build(transform, offer);
+            Reward.CardPicked += card => PickReward(card);
+            Reward.Skipped += SkipReward;
+        }
+
+        /// <summary>The run ended (PRD 3.9.11): its log is written (PRD 3.15.1), the history takes its outcome, the slot is cleared and the run-end screen opens.</summary>
         private void EndRun()
         {
-            LastRunLogPath = RunLogFile.Write(Profile!, Run!);
-            Profile!.RunHistory.Add(new RunHistoryEntry(Run!.Seed, RunSerializer.StatusToId(Run.Status), ProfileStore.Now()));
+            var run = Run!;
+            LastRunLogPath = RunLogFile.Write(Profile!, run);
+            Profile!.RunHistory.Add(new RunHistoryEntry(run.Seed, RunSerializer.StatusToId(run.Status), ProfileStore.Now()));
             Profile.RunInProgress = null;
             Store!.Save(Profile);
+            LastSummary = Summarise(run);
+            CloseAll();
+            RunEnd = RunEndScreen.Build(transform, LastSummary);
+            RunEnd.Continued += EnterPreRun;
+        }
+
+        /// <summary>The run-end figures (PRD 3.9.11): battles from the run's records, Perfect Defenses, Essence earned and the CRP peak from this session's events, and the unlocks by name.</summary>
+        private RunEndSummary Summarise(Run run)
+        {
+            int essenceEarned = run.Events.OfType<EssenceChanged>().Where(e => e.Amount > 0).Sum(e => e.Amount);
+            int crpPeak = run.Events.OfType<CrpChanged>().Select(e => e.Total).DefaultIfEmpty(0).Max();
+            crpPeak = Math.Max(crpPeak, run.Stats.Crp);
+            var unlocks = _unlocksThisRun.Select(id => Content?.FindCharm(id)?.Name ?? id).ToList();
+            return new RunEndSummary(run.Status, run.Seed, run.Battles.Count, _perfectDefensesThisRun, essenceEarned, crpPeak, unlocks);
         }
 
         public void OpenSettings()
@@ -288,8 +486,36 @@ namespace Chiki.Client.Flow
             }
         }
 
+        private void ClosePanels()
+        {
+            if (Binder != null)
+            {
+                Destroy(Binder.gameObject);
+                Binder = null;
+            }
+
+            if (PreBattle != null)
+            {
+                Destroy(PreBattle.gameObject);
+                PreBattle = null;
+            }
+
+            if (Stop != null)
+            {
+                Destroy(Stop.gameObject);
+                Stop = null;
+            }
+
+            if (Reward != null)
+            {
+                Destroy(Reward.gameObject);
+                Reward = null;
+            }
+        }
+
         private void CloseAll()
         {
+            ClosePanels();
             if (Calibration != null)
             {
                 Calibration.Closed -= OnCalibrationClosed;
@@ -313,6 +539,18 @@ namespace Chiki.Client.Flow
             {
                 Destroy(Map.gameObject);
                 Map = null;
+            }
+
+            if (RunEnd != null)
+            {
+                Destroy(RunEnd.gameObject);
+                RunEnd = null;
+            }
+
+            if (Battle != null)
+            {
+                Destroy(Battle.gameObject);
+                Battle = null;
             }
         }
 

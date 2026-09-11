@@ -33,6 +33,9 @@ namespace Chiki.Client.Presenter
 
         public FeedbackPresenter Feedback { get; private set; } = null!;
 
+        /// <summary>The CRP readout (PRD 3.8.1).</summary>
+        public CrpView Crp { get; private set; } = null!;
+
         /// <summary>The shake on the battle camera; null when the HUD was built without a camera.</summary>
         public CameraShake? Shake { get; private set; }
 
@@ -58,6 +61,7 @@ namespace Chiki.Client.Presenter
             hud.RhythmLine = RhythmLineView.Build(driver, rect, new Vector2(0f, 330f), new Vector2(1600f, 180f));
             hud.Statuses = StatusIconsView.Build(driver, rect, new Vector2(520f, 150f), new Vector2(-520f, -150f));
             hud.Slots = SlotRowsView.Build(driver, rect, new Vector2(0f, -360f), cardInSlot, input);
+            hud.Crp = CrpView.Build(driver, rect, new Vector2(0f, 500f));
 
             if (camera != null)
             {

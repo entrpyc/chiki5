@@ -973,57 +973,57 @@ Ties broken: 3.2.3 is delivered twice, the stat holder in Phase 1 and the Base D
 - Test (integration): `Client.Calibration › offset_shifts_grading` — given offset 60 and an input +60 ms late, when graded, then it is Perfect; with offset 0, Good.
 - Test (integration): `Client.Calibration › metronome_toggle_clicks_on_beats` — given the toggle on, when 4 beats elapse, then 4 clicks were scheduled at the beat map's times.
 
-### Phase 16 — Binder and loadout
+### ✅ Phase 16 — Binder and loadout
 
 *Delivers the Binder, the sixteen-slot loadout with its composition rules, Unstable lifespans, and the Imprint and Charm entities the run will hold. Done when every P16 test is green and the suite passes.*
 
-#### P16.1 Loadout of sixteen
+#### ✅ P16.1 Loadout of sixteen
 
 - PRD: 3.5.1
-- Does: A `Loadout` with exactly 16 slots addressed by (line 1–2, key 0–7), each holding at most one `CardInstance`; there is no draw, discard or hand concept anywhere in the simulation; the battle reads cards from slots only.
+- Does: A `Loadout` with exactly 16 slots addressed by (line 1–2, key 0–7), each holding at most one `CardInstance`; there is no draw, discard or hand concept anywhere in the simulation; the battle reads cards from slots only. Assumption: a battle built with a `Loadout` plays the card the slot holds through `Press(slot, time)`; the card-per-press overload stays for fixture battles built without one, and the client driver moves to the loadout in P23.2.
 - Needs: P8.2
 - Test (unit): `Sim.Loadout › sixteen_slots_and_no_hidden_zone` — given a loadout, when its slots are enumerated, then there are 16, and the battle API exposes no draw or hand operation.
 
-#### P16.2 Composition and legality
+#### ✅ P16.2 Composition and legality
 
 - PRD: 3.5.2
 - Does: Each line must hold 2 Ability, 2 Left Attack, 2 Right Attack and 2 Defense cards in their category's keys (P7.2); placing a card in a slot of another category is rejected; one instance can occupy at most one slot.
 - Needs: P16.1, P7.2
-- Test (unit): `Sim.Loadout › category_slot_rejected` — given a Defense card, when placed in key D, then it is rejected; in key L, accepted.
-- Test (unit): `Sim.Loadout › instance_in_one_slot_only` — given an instance already in line 1 key A, when placed in line 2 key S, then it is rejected.
+- Test (unit): `Sim.Loadout › category_slot_rejected` — given a Defense card, when placed in key E, then it is rejected; in key O, accepted.
+- Test (unit): `Sim.Loadout › instance_in_one_slot_only` — given an instance already in line 1 key Q, when placed in line 2 key W, then it is rejected.
 
-#### P16.3 Starter Binder fills both lines
+#### ✅ P16.3 Starter Binder fills both lines
 
 - PRD: 3.5.3
 - Does: A `Binder` created from the starter set (P8.8) holds one instance per starter card; an auto-fill builds a legal 16-card loadout from it for both lines.
 - Needs: P16.2, P8.8
 - Test (unit): `Sim.Binder › starter_autofill_is_legal` — given the starter Binder, when auto-filled, then all 16 slots are filled and the composition check passes.
 
-#### P16.4 Rebuild before a battle
+#### ✅ P16.4 Rebuild before a battle
 
 - PRD: 3.5.5
 - Does: Between battles the loadout is editable: any slot can be cleared or assigned from the Binder; entering a battle with any empty slot is rejected with the empty slots listed. The UI is P23.3.
 - Needs: P16.2
-- Test (unit): `Sim.Loadout › empty_slot_blocks_battle` — given a loadout with line 2 key K empty, when a battle is requested, then it is rejected naming (2, K); after filling it, accepted.
+- Test (unit): `Sim.Loadout › empty_slot_blocks_battle` — given a loadout with line 2 key I empty, when a battle is requested, then it is rejected naming (2, I); after filling it, accepted.
 
-#### P16.5 Unstable lifespan
+#### ✅ P16.5 Unstable lifespan
 
 - PRD: 3.4.16
-- Does: An Unstable instance's battles-remaining decrements at the end of every battle it spent in the Binder (slotted or not); at 0 it is destroyed and removed from Binder and loadout.
+- Does: An Unstable instance's battles-remaining decrements at the end of every battle it spent in the Binder (slotted or not); at 0 it is destroyed and removed from Binder and loadout. Assumption: the run calls `Binder.BattleEnded()` when it reads the BattleEnded event (P17, P18.2); the battle never mutates the Binder.
 - Needs: P16.3, P8.2, P6.2
 - Test (unit): `Sim.Binder › unstable_destroyed_after_lifespan` — given an Unstable card with lifespan 2 in the Binder, when two battles end, then it is absent from the Binder and its slot is empty.
 
-#### P16.6 Imprint entity and fixtures
+#### ✅ P16.6 Imprint entity and fixtures
 
 - PRD: 4.10
-- Does: An `ImprintDefinition` with id, name, tier (Common, Uncommon, Rare), effect (P8.1 effect entries), stackable flag and source; a fixture set of 6 Imprints, two per tier, using only in-scope modifiers (for example +2 Base DMG, +10 max ARD, Thorns 2 at battle start).
+- Does: An `ImprintDefinition` with id, name, tier (Common, Uncommon, Rare), effect (P8.1 effect entries), stackable flag and source; a fixture set of 6 Imprints, two per tier, using only in-scope modifiers (for example +2 Base DMG, +10 max ARD, Thorns 2 at battle start). Assumption: a one-off change made when the Imprint is gained uses a new `Acquired` trigger that the run fires once on acquisition (P18.3) and no battle event ever fires; max ARD is a new `MaxArd` run stat for change-stat effects; the fixtures live in `data/imprints/fixtures.json`.
 - Needs: P8.1
 - Test (unit): `Sim.Imprints › fixtures_load_by_tier` — given the fixture set, when loaded, then there are 2 per tier and every effect registers with the framework.
 
-#### P16.7 Charm entity and fixtures
+#### ✅ P16.7 Charm entity and fixtures
 
 - PRD: 4.9
-- Does: A `CharmDefinition` with id, name, rarity, trigger (a framework trigger with condition), effect, unlock condition (a predicate over profile facts such as bosses defeated) and ending-altering flag; fixtures: Clean Victory (Perfect Defense → +10 Essence) and Momentum Plate (Perfect Defense → +5 max ARD, cap +50 per run), both unlocked by "defeat 1 boss".
+- Does: A `CharmDefinition` with id, name, rarity, trigger (a framework trigger with condition), effect, unlock condition (a predicate over profile facts such as bosses defeated) and ending-altering flag; fixtures: Clean Victory (Perfect Defense → +10 Essence) and Momentum Plate (Perfect Defense → +5 max ARD, cap +50 per run), both unlocked by "defeat 1 boss". Assumption: the Perfect Defense trigger is `BattleEnded` with a new `IfPerfectDefense` condition; every effect entry of a Charm carries the Charm's trigger and condition; the per-run cap is a `RunCap` field that the run-level registry enforces (P18.4); the unlock predicate reads a `ProfileFacts` record (bosses defeated, milestones, challenges, relationship levels); the fixtures live in `data/charms/fixtures.json`.
 - Needs: P8.1
 - Test (unit): `Sim.Charms › fixtures_load` — given the two fixtures, when loaded, then both triggers reference PerfectDefense and both unlock conditions read bosses defeated.
 

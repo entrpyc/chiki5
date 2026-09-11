@@ -157,6 +157,8 @@ namespace Chiki.Sim
                     return ActionInPlay().Kind == EnemyActionKind.Buff;
                 case EffectCondition.IfEnemyQuietBeats:
                     return EnemyQuietBeats > 0 && EnemyQuietBeats % effect.ConditionAmount == 0;
+                case EffectCondition.IfPerfectDefense:
+                    return trigger is BattleEnded ended ? ended.PerfectDefense : PerfectDefense;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(effect), effect.Condition, "Unknown condition.");
             }
@@ -283,6 +285,10 @@ namespace Chiki.Sim
                 case RunStat.Crp:
                     Stats.Crp += delta;
                     total = Stats.Crp;
+                    break;
+                case RunStat.MaxArd:
+                    Stats.ChangeMaxArd(delta);
+                    total = Stats.MaxArd;
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(stat), stat, "Unknown stat.");

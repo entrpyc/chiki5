@@ -32,6 +32,9 @@ namespace Chiki.Sim.Effects
         BlockGained,
         StatusApplied,
         BattleEnded,
+
+        /// <summary>The owner entered the run: an Imprint was gained or a Charm equipped (PRD 3.9.3, 3.9.6). Fired once by the run when it registers the owner (P18.3, P18.4), never by a battle event.</summary>
+        Acquired,
     }
 
     /// <summary>The reaction conditions of PRD 3.4.9 and the enemy powers' (PRD 3.6), evaluated against battle state when the trigger fires.</summary>
@@ -65,6 +68,9 @@ namespace Chiki.Sim.Effects
 
         /// <summary>The enemy has just completed a run of <see cref="EffectDefinition.ConditionAmount"/> consecutive beats without taking damage (PRD 3.6.20).</summary>
         IfEnemyQuietBeats,
+
+        /// <summary>The battle ended with Perfect Defense: zero damage taken for the whole battle (PRD 3.3.9.4, 3.9.8).</summary>
+        IfPerfectDefense,
     }
 
     /// <summary>What an effect does when it fires.</summary>
@@ -103,6 +109,9 @@ namespace Chiki.Sim.Effects
         BaseDmg,
         Essence,
         Crp,
+
+        /// <summary>Maximum ARD (PRD 3.2.3); raising it raises current ARD by the same amount.</summary>
+        MaxArd,
     }
 
     /// <summary>What a standing <see cref="EffectModifier.MultiplyValue"/> or <see cref="EffectModifier.AddValue"/> modifier acts on.</summary>

@@ -1,0 +1,65 @@
+{
+  "id": "fixtures",
+  "imprints": [
+    {
+      "id": "imprint-keen-edge",
+      "name": "Keen Edge",
+      "tier": "common",
+      "effects": [
+        { "trigger": "acquired", "modifier": "change-stat", "stat": "base-dmg", "amount": 2, "target": "player" }
+      ],
+      "stackable": true,
+      "source": "pool"
+    },
+    {
+      "id": "imprint-thick-hide",
+      "name": "Thick Hide",
+      "tier": "common",
+      "effects": [
+        { "trigger": "acquired", "modifier": "change-stat", "stat": "max-ard", "amount": 10, "target": "player" }
+      ],
+      "stackable": true,
+      "source": "pool"
+    },
+    {
+      "id": "imprint-bramble-skin",
+      "name": "Bramble Skin",
+      "tier": "uncommon",
+      "effects": [
+        { "trigger": "battle-started", "modifier": "apply-status", "status": "thorns", "statusValue": 2, "target": "player" }
+      ],
+      "stackable": false,
+      "source": "pool"
+    },
+    {
+      "id": "imprint-quick-guard",
+      "name": "Quick Guard",
+      "tier": "uncommon",
+      "effects": [
+        { "trigger": "battle-started", "modifier": "gain-block", "amount": 5, "target": "player" }
+      ],
+      "stackable": true,
+      "source": "pool"
+    },
+    {
+      "id": "imprint-war-drum",
+      "name": "War Drum",
+      "tier": "rare",
+      "effects": [
+        { "trigger": "passive", "modifier": "multiply-value", "value": "damage-dealt", "amount": 1100, "lifetime": "run" }
+      ],
+      "stackable": true,
+      "source": "pool"
+    },
+    {
+      "id": "imprint-stone-heart",
+      "name": "Stone Heart",
+      "tier": "rare",
+      "effects": [
+        { "trigger": "passive", "modifier": "multiply-value", "value": "damage-taken", "amount": 900, "lifetime": "run" }
+      ],
+      "stackable": false,
+      "source": "pool"
+    }
+  ]
+}

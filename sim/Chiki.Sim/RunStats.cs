@@ -51,6 +51,19 @@ namespace Chiki.Sim
             _ard = Clamp(_ard + amount, 0, MaxArd);
         }
 
+        /// <summary>Changes maximum ARD by a signed amount, never below 1; current ARD rises with it and is clamped when it falls (PRD 3.2.3).</summary>
+        public void ChangeMaxArd(int delta)
+        {
+            if (delta >= 0)
+            {
+                RaiseMaxArd(delta);
+                return;
+            }
+
+            MaxArd = Math.Max(1, MaxArd + delta);
+            _ard = Clamp(_ard, 0, MaxArd);
+        }
+
         private static int Clamp(int value, int min, int max)
         {
             return value < min ? min : value > max ? max : value;

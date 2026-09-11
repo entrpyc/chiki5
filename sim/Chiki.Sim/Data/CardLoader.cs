@@ -85,8 +85,14 @@ namespace Chiki.Sim.Data
             }
         }
 
-        public static EffectDefinition EffectFromJson(JsonValue json)
+        /// <summary>One effect entry; <paramref name="defaultTrigger"/> and <paramref name="defaultCondition"/> stand in when the entry states none, as a Charm's effects inherit the Charm's (PRD 4.9).</summary>
+        public static EffectDefinition EffectFromJson(JsonValue json, EffectTrigger? defaultTrigger = null, EffectCondition? defaultCondition = null)
         {
+            var triggerId = json.Optional("trigger")?.AsString();
+            var trigger = triggerId != null ? TriggerFromId(triggerId)
+                : defaultTrigger ?? throw new JsonException("Missing required field 'trigger'.");
+            var conditionId = json.Optional("condition")?.AsString();
+            var condition = conditionId != null ? ConditionFromId(conditionId) : defaultCondition ?? EffectCondition.None;
             var statusId = json.Optional("status")?.AsString();
             StatusApplication? status = statusId is null
                 ? null
@@ -99,10 +105,10 @@ namespace Chiki.Sim.Data
             var lifetimeId = json.Optional("lifetime")?.AsString();
 
             return new EffectDefinition(
-                TriggerFromId(json["trigger"].AsString()),
+                trigger,
                 ModifierFromId(json["modifier"].AsString()),
                 json.Optional("amount")?.AsInt() ?? 0,
-                ConditionFromId(json.Optional("condition")?.AsString() ?? "none"),
+                condition,
                 TargetFromId(json.Optional("target")?.AsString() ?? "enemy"),
                 status,
                 statId is null ? (RunStat?)null : StatFromId(statId),
@@ -187,6 +193,7 @@ namespace Chiki.Sim.Data
                 case "block-gained": return EffectTrigger.BlockGained;
                 case "status-applied": return EffectTrigger.StatusApplied;
                 case "battle-ended": return EffectTrigger.BattleEnded;
+                case "acquired": return EffectTrigger.Acquired;
                 default: throw new JsonException($"Unknown effect trigger '{id}'.");
             }
         }
@@ -205,6 +212,7 @@ namespace Chiki.Sim.Data
                 case "if-damage-landed": return EffectCondition.IfDamageLanded;
                 case "if-buff-action": return EffectCondition.IfBuffAction;
                 case "if-enemy-quiet-beats": return EffectCondition.IfEnemyQuietBeats;
+                case "if-perfect-defense": return EffectCondition.IfPerfectDefense;
                 default: throw new JsonException($"Unknown effect condition '{id}'.");
             }
         }
@@ -242,6 +250,7 @@ namespace Chiki.Sim.Data
                 case "base-dmg": return RunStat.BaseDmg;
                 case "essence": return RunStat.Essence;
                 case "crp": return RunStat.Crp;
+                case "max-ard": return RunStat.MaxArd;
                 default: throw new JsonException($"Unknown run stat '{id}'.");
             }
         }

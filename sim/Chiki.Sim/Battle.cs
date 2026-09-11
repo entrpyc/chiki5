@@ -40,6 +40,9 @@ namespace Chiki.Sim
         /// <summary>The run-wide stats this battle reads and writes; never a copy.</summary>
         public RunStats Stats { get; }
 
+        /// <summary>The sixteen-slot loadout the battle reads its cards from (PRD 3.5.1); null for a fixture battle whose caller supplies cards per press.</summary>
+        public Loadout? Loadout { get; }
+
         public EnemyDefinition Enemy { get; }
 
         public Chart Chart => Enemy.Chart;
@@ -144,19 +147,35 @@ namespace Chiki.Sim
         /// definition and the balance inputs of the World (PRD 3.6.29).
         /// </summary>
         public Battle(RunStats stats, EnemyDefinition enemy, EncounterBalance balance, Rng rng)
-            : this(stats, new[] { enemy }, balance, null, rng)
+            : this(stats, new[] { enemy }, balance, null, null, rng)
+        {
+        }
+
+        /// <summary>
+        /// The battle as the run starts it, reading its cards from a complete loadout (PRD 3.5.1);
+        /// a loadout with an empty slot is refused with <see cref="LoadoutIncompleteException"/>
+        /// naming the empty slots (PRD 3.5.5).
+        /// </summary>
+        public Battle(RunStats stats, EnemyDefinition enemy, EncounterBalance balance, Loadout loadout, Rng rng)
+            : this(stats, new[] { enemy }, balance, null, loadout ?? throw new ArgumentNullException(nameof(loadout)), rng)
+        {
+        }
+
+        /// <summary>A battle with a fixed starting HP in World 1 that reads its cards from a complete loadout (see the balance overload).</summary>
+        public Battle(RunStats stats, EnemyDefinition enemy, int enemyHp, Loadout loadout, Rng rng)
+            : this(stats, new[] { enemy }, EncounterBalance.ForWorld(1), enemyHp, loadout ?? throw new ArgumentNullException(nameof(loadout)), rng)
         {
         }
 
         /// <summary>A battle with a fixed starting HP in World 1, for fixtures and tests that pin the number; the run never uses it.</summary>
         public Battle(RunStats stats, EnemyDefinition enemy, int enemyHp, Rng rng)
-            : this(stats, new[] { enemy }, EncounterBalance.ForWorld(1), enemyHp, rng)
+            : this(stats, new[] { enemy }, EncounterBalance.ForWorld(1), enemyHp, null, rng)
         {
         }
 
         /// <summary>A battle with a fixed starting HP in World 1 (see the single-enemy overload); exactly one enemy is required (PRD 3.3.1.7).</summary>
         public Battle(RunStats stats, IReadOnlyList<EnemyDefinition> enemies, int enemyHp, Rng rng)
-            : this(stats, enemies, EncounterBalance.ForWorld(1), enemyHp, rng)
+            : this(stats, enemies, EncounterBalance.ForWorld(1), enemyHp, null, rng)
         {
         }
 
@@ -167,11 +186,13 @@ namespace Chiki.Sim
         /// World 1 base raised per World (PRD 3.7.16). <paramref name="rng"/> is the battle's
         /// seeded generator (PRD 6.8), drawn from only by rules that roll: Scar (PRD 3.3.7.3).
         /// </summary>
-        private Battle(RunStats stats, IReadOnlyList<EnemyDefinition> enemies, EncounterBalance balance, int? enemyHp, Rng rng)
+        private Battle(RunStats stats, IReadOnlyList<EnemyDefinition> enemies, EncounterBalance balance, int? enemyHp, Loadout? loadout, Rng rng)
         {
             Stats = stats ?? throw new ArgumentNullException(nameof(stats));
             Balance = balance ?? throw new ArgumentNullException(nameof(balance));
             _rng = rng ?? throw new ArgumentNullException(nameof(rng));
+            loadout?.RequireComplete();
+            Loadout = loadout;
             if (enemies is null)
             {
                 throw new ArgumentNullException(nameof(enemies));
@@ -336,8 +357,9 @@ namespace Chiki.Sim
         /// cooldown (PRD 3.3.5.3) or while the player is Stunned (PRD 3.3.3.3). A rejected press
         /// consumes nothing and records nothing. An accepted press starts the slot's cooldown at
         /// once, whatever its grade (PRD 3.3.5.1). The card's effect resolves when the window
-        /// closes, by the efficacy matrix (PRD 3.3.4.4). Until the Loadout exists (P16) the
-        /// caller supplies the card the slot holds; it must belong to the slot's Category (PRD 3.4.1).
+        /// closes, by the efficacy matrix (PRD 3.3.4.4). This overload is for fixture battles built
+        /// without a loadout: the caller supplies the card the slot holds, and it must belong to
+        /// the slot's Category (PRD 3.4.1). A run battle presses through <see cref="Press(Slot, int)"/>.
         /// </summary>
         public PressResult Press(Slot slot, CardDefinition card, int audioTimeMs)
         {
@@ -354,6 +376,34 @@ namespace Chiki.Sim
         public PressResult Send(Slot slot, CardDefinition card, int audioTimeMs)
         {
             return Accept(slot, card, true, audioTimeMs);
+        }
+
+        /// <summary>A slot key press (PRD 3.3.2.1) played with the card the loadout holds in that slot (PRD 3.5.1); the battle has no other source of cards.</summary>
+        public PressResult Press(Slot slot, int audioTimeMs)
+        {
+            return Accept(slot, CardIn(slot), false, audioTimeMs);
+        }
+
+        /// <summary>Space plus a slot key (PRD 3.3.2.3) sending the card the loadout holds in that slot into the Signature Chain.</summary>
+        public PressResult Send(Slot slot, int audioTimeMs)
+        {
+            return Accept(slot, CardIn(slot), true, audioTimeMs);
+        }
+
+        private CardDefinition CardIn(Slot slot)
+        {
+            if (slot is null)
+            {
+                throw new ArgumentNullException(nameof(slot));
+            }
+
+            if (Loadout is null)
+            {
+                throw new InvalidOperationException("This battle was built without a loadout; pass the card the slot holds.");
+            }
+
+            var card = Loadout[slot] ?? throw new InvalidOperationException($"Slot {Loadout.Describe(new[] { slot })} is empty.");
+            return card.Definition;
         }
 
         /// <summary>

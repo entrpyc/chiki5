@@ -1,0 +1,30 @@
+{
+  "id": "fixtures",
+  "charms": [
+    {
+      "id": "charm-clean-victory",
+      "name": "Clean Victory",
+      "rarity": "common",
+      "trigger": "battle-ended",
+      "condition": "if-perfect-defense",
+      "effects": [
+        { "modifier": "change-stat", "stat": "essence", "amount": 10, "target": "player" }
+      ],
+      "unlock": { "fact": "bosses-defeated", "amount": 1 },
+      "endingAltering": false
+    },
+    {
+      "id": "charm-momentum-plate",
+      "name": "Momentum Plate",
+      "rarity": "uncommon",
+      "trigger": "battle-ended",
+      "condition": "if-perfect-defense",
+      "effects": [
+        { "modifier": "change-stat", "stat": "max-ard", "amount": 5, "target": "player" }
+      ],
+      "runCap": 50,
+      "unlock": { "fact": "bosses-defeated", "amount": 1 },
+      "endingAltering": false
+    }
+  ]
+}

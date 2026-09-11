@@ -35,9 +35,16 @@ namespace Chiki.Client.Driver
         public IReadOnlyList<SlotPress> Inputs => _inputs;
 
         /// <summary>
+        /// The profile's calibration offset in milliseconds (PRD 3.12.1), subtracted from the
+        /// stamp of every live input before it is graded (PRD 3.3.8.2). Scripted inputs carry
+        /// stamps that are already calibrated and are forwarded as they are.
+        /// </summary>
+        public int CalibrationOffsetMs { get; set; }
+
+        /// <summary>
         /// A slot press from the keys (PRD 3.3.2.1): recorded, then forwarded to the battle with
-        /// the card the slot holds; an empty slot forwards nothing. Returns the battle's answer,
-        /// or null when nothing was forwarded.
+        /// the card the slot holds and the calibration offset taken off its stamp; an empty slot
+        /// forwards nothing. Returns the battle's answer, or null when nothing was forwarded.
         /// </summary>
         public PressResult? Receive(SlotPress press, CardDefinition? card)
         {
@@ -52,7 +59,13 @@ namespace Chiki.Client.Driver
                 return null;
             }
 
-            return PressAt(press.Slot, card, press.AudioTimeMs, press.SignatureSend);
+            return PressAt(press.Slot, card, Calibrated(press.AudioTimeMs), press.SignatureSend);
+        }
+
+        /// <summary>A live input's stamp with the calibration offset taken off (PRD 3.3.8.2).</summary>
+        public int Calibrated(int audioTimeMs)
+        {
+            return audioTimeMs - CalibrationOffsetMs;
         }
 
         /// <summary>
@@ -101,15 +114,16 @@ namespace Chiki.Client.Driver
 
         /// <summary>
         /// Forwards a live press stamped with the audio time of its input event, from the
-        /// event's realtime timestamp (P12.3). Space plus the key is a Signature send (PRD 3.3.2.3).
+        /// event's realtime timestamp (P12.3), less the calibration offset (PRD 3.3.8.2). Space
+        /// plus the key is a Signature send (PRD 3.3.2.3).
         /// </summary>
         public PressResult Press(Slot slot, CardDefinition card, double inputTime, bool signatureSend = false)
         {
             var clock = RequireClock();
-            return PressAt(slot, card, clock.AudioTimeMsAt(inputTime), signatureSend);
+            return PressAt(slot, card, Calibrated(clock.AudioTimeMsAt(inputTime)), signatureSend);
         }
 
-        /// <summary>Forwards a press already stamped with its audio time.</summary>
+        /// <summary>Forwards a press already stamped with its calibrated audio time.</summary>
         public PressResult PressAt(Slot slot, CardDefinition card, int audioTimeMs, bool signatureSend = false)
         {
             var battle = RequireBattle();

@@ -23,5 +23,20 @@
   "bar.ard": "ARD {0} / {1}",
   "bar.block": "Block {0}",
   "slot.empty": "-",
-  "line.label": "Line {0}"
+  "line.label": "Line {0}",
+  "calibration.title": "Calibration",
+  "calibration.instructions": "Tap Space on every click: {0} beats at {1} BPM.",
+  "calibration.bluetooth_note": "Bluetooth audio adds 100–300 ms of delay. Use wired headphones or speakers for an accurate result.",
+  "calibration.taps": "Taps {0} / {1}",
+  "calibration.result": "Your offset is {0} ms",
+  "calibration.no_taps": "No taps were recorded. Your offset is unchanged.",
+  "calibration.done": "Done",
+  "prerun.title": "Chiki",
+  "prerun.start_run": "Start Run",
+  "map.title": "Map",
+  "menu.settings": "Settings",
+  "settings.title": "Settings",
+  "settings.metronome": "Metronome",
+  "settings.calibrate": "Calibrate",
+  "settings.close": "Close"
 }

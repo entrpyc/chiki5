@@ -939,36 +939,36 @@ Ties broken: 3.2.3 is delivered twice, the stat holder in Phase 1 and the Base D
 - Needs: P14.1, P9.5
 - Test (integration): `Client.Presenter › telegraph_drawn_with_countdown` — given AttackLeft at beat 4 and the battle at beat 1, when rendered, then a Left marker sits at beat 4 showing "3".
 
-### Phase 15 — Profile and calibration
+### ✅ Phase 15 — Profile and calibration
 
 *Delivers a profile that owns settings and calibration, and the calibration screen that every feel test must run first. Done when every P15 test is green and the suite passes.*
 
-#### P15.1 Profile record
+#### ✅ P15.1 Profile record
 
 - PRD: 3.1.2
-- Does: A `Profile` file per named profile under the persistent data path holding: meta progression container (filled by P17.3), relationships container (P18.6), settings, calibration offset, tutorial-completed flag, run-in-progress slot (P22.1), run history and run-log folder path. A `ProfileStore` loads, saves and lists profiles; the picker UI is out of scope, so tests create profiles by name.
+- Does: A `Profile` file per named profile under the persistent data path holding: meta progression container (filled by P17.3), relationships container (P18.6), settings, calibration offset, tutorial-completed flag, run-in-progress slot (P22.1), run history and run-log folder path. A `ProfileStore` loads, saves and lists profiles; the picker UI is out of scope, so tests create profiles by name. Assumption: each profile is a folder named after it under `<persistent data path>/profiles`, holding `profile.json` and its `run-logs` folder; the file is written through Unity's JSON utility from camel-case fields and carries `schemaVersion` 1, and a file with a newer version than the build knows is refused; the profile also records whether the calibration screen has ever run to its end (`calibrated`), since an offset of 0 is a valid result and the first-launch rule of P15.3 needs the distinction; `ActiveProfile` holds the profile the game is running under so scenes composed later read its settings and offset.
 - Needs: P12.1
 - Test (integration): `Client.Profile › profiles_share_nothing` — given profiles "A" and "B", when A's calibration offset is set to 80, then B's is still 0 after reload.
 
-#### P15.2 Offset test and storage
+#### ✅ P15.2 Offset test and storage
 
 - PRD: 3.12.1
-- Does: A calibration screen plays a metronome at BPM 120 for 16 beats and shows a pulsing marker; the player taps Space on each beat; the median of tap-minus-beat offsets (audio time, P12.3) becomes the profile's offset. The screen states that Bluetooth audio adds 100–300 ms.
+- Does: A calibration screen plays a metronome at BPM 120 for 16 beats and shows a pulsing marker; the player taps Space on each beat; the median of tap-minus-beat offsets (audio time, P12.3) becomes the profile's offset. The screen states that Bluetooth audio adds 100–300 ms. Assumption: the metronome is a 16-beat track on a `BeatClock` of its own, scheduled with a one-second lead-in and played through the generated click track; a tap is assigned to the nearest beat; the test ends after the sixteenth tap or one second after the last beat with the taps it has, an even count averages the two middle offsets with halves rounding away from zero, and with no tap the offset is left unchanged; finishing marks the profile calibrated, saves it and enables Done, which closes the screen.
 - Needs: P15.1, P12.3
 - Test (integration): `Client.Calibration › median_offset_stored` — given 16 simulated taps each +60 ms late, when the test finishes, then the profile's offset is 60 and the screen showed the Bluetooth note.
 
-#### P15.3 Offered first, reachable always
+#### ✅ P15.3 Offered first, reachable always
 
 - PRD: 3.12.1
-- Does: On a profile's first launch the calibration screen opens before any battle can start; afterwards it is reachable from the settings entry available on the map and in the pre-run screen.
+- Does: On a profile's first launch the calibration screen opens before any battle can start; afterwards it is reachable from the settings entry available on the map and in the pre-run screen. Assumption: a `GameFlow` in the persistent Boot scene owns the screens outside battle (pre-run, map frame, settings menu, calibration) as screen-space canvases built in code; the Boot scene's bootstrap loads or creates one profile named `default` under the persistent data path, since the picker of PRD 3.1.1 is out of scope; the calibration screen opens over the pre-run screen until the profile is marked calibrated and Start Run stays disabled while it is open; until the run entity exists (P17) Start Run opens the map frame, which carries the settings entry P23.1 keeps.
 - Needs: P15.2
 - Test (integration): `Client.Calibration › first_launch_forces_calibration` — given a fresh profile, when the game enters the pre-run screen, then the calibration screen is open and the Start Run action is disabled until it closes.
 - Test (integration): `Client.Calibration › reachable_from_map` — given a calibrated profile on the map, when Settings then Calibrate is chosen, then the calibration screen opens.
 
-#### P15.4 Offset applied and metronome toggle
+#### ✅ P15.4 Offset applied and metronome toggle
 
 - PRD: 3.3.8.2
-- Does: The driver subtracts the profile's offset from every input stamp before grading; a metronome toggle in settings plays a click on every beat from the beat clock.
+- Does: The driver subtracts the profile's offset from every input stamp before grading; a metronome toggle in settings plays a click on every beat from the beat clock. Assumption: the offset comes off live stamps (key events and realtime presses), while scripted inputs carry stamps that are already calibrated and are forwarded as they are, so a replay never subtracts twice; the metronome schedules each click on the DSP clock at the beat map's time up to 250 ms ahead through two sources of its own, skips a beat already behind the clock, and the battle scene reads the toggle and volume from the active profile when it composes.
 - Needs: P15.2, P12.5
 - Test (integration): `Client.Calibration › offset_shifts_grading` — given offset 60 and an input +60 ms late, when graded, then it is Perfect; with offset 0, Good.
 - Test (integration): `Client.Calibration › metronome_toggle_clicks_on_beats` — given the toggle on, when 4 beats elapse, then 4 clicks were scheduled at the beat map's times.

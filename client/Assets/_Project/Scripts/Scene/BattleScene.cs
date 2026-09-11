@@ -5,6 +5,7 @@ using Chiki.Client.Audio;
 using Chiki.Client.Driver;
 using Chiki.Client.Keys;
 using Chiki.Client.Presenter;
+using Chiki.Client.Profiles;
 using Chiki.Sim;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -46,6 +47,9 @@ namespace Chiki.Client.Scene
         public BattleDriver? Driver { get; private set; }
 
         public BattleInput? Input { get; private set; }
+
+        /// <summary>The metronome on the battle's clock, on or off per the active profile (PRD 3.12.2).</summary>
+        public Metronome? Metronome { get; private set; }
 
         public BattleHud? Hud { get; private set; }
 
@@ -92,8 +96,14 @@ namespace Chiki.Client.Scene
 
             Clock.Schedule(enemy.Track, PlaceholderAudio.ClickTrack(enemy.Track));
             Driver.Bind(Clock, battle);
+            Driver.CalibrationOffsetMs = ActiveProfile.CalibrationOffsetMs;
             Input.Driver = Driver;
             Input.CardInSlot = CardInSlot;
+
+            Metronome = rig.AddComponent<Metronome>();
+            Metronome.Bind(Clock);
+            Metronome.Volume = ActiveProfile.MetronomeVolume;
+            Metronome.On = ActiveProfile.MetronomeOn;
 
             Hud = BattleHud.Build(Driver, Camera, Input, CardInSlot);
             Hud.transform.SetParent(transform, true);

@@ -23,6 +23,53 @@ namespace Chiki.Sim
         /// <summary>Armor upgrade slots on a run (PRD 3.7.13).</summary>
         public const int ArmorUpgradeSlots = 4;
 
+        /// <summary>Every node transition adds +1 CRP (PRD 3.8.2).</summary>
+        public const int CrpPerTransition = 1;
+
+        /// <summary>A World graph holds 55–70 nodes (PRD 3.2.6).</summary>
+        public const int MapMinNodes = 55;
+        public const int MapMaxNodes = 70;
+
+        /// <summary>Nodes on any entry-to-Boss path before the Boss, so a traversal visits about 15 (PRD 3.2.6).</summary>
+        public const int MapMinPathNodes = 13;
+        public const int MapMaxPathNodes = 17;
+
+        /// <summary>The first layer branches into 2–3 routes (PRD 3.2.5).</summary>
+        public const int MapMinRoutes = 2;
+        public const int MapMaxRoutes = 3;
+
+        /// <summary>Middle layers hold 3–5 nodes, adjusted to reach the node count.</summary>
+        public const int MapMinLayerWidth = 3;
+        public const int MapMaxLayerWidth = 5;
+
+        /// <summary>No path runs more than 4 nodes without offering a choice (PRD 3.2.5).</summary>
+        public const int MapMaxChoicelessRun = 4;
+
+        /// <summary>Generation retries with the next fork until the constraints hold; beyond this it is a content error.</summary>
+        public const int MapMaxAttempts = 1000;
+
+        /// <summary>Node type shares per World as percent of generated nodes, target and band (PRD 3.2.6), in the order Normal, Elite, Shop, Event, Blacksmith, Forge; the Boss is the one final node.</summary>
+        public static readonly int[][] MapTypeTargetPercent =
+        {
+            new[] { 52, 7, 9, 17, 7, 8 },
+            new[] { 44, 12, 9, 17, 7, 11 },
+            new[] { 44, 12, 9, 12, 8, 15 },
+        };
+
+        public static readonly int[][] MapTypeMinPercent =
+        {
+            new[] { 50, 5, 5, 15, 5, 5 },
+            new[] { 40, 8, 5, 15, 5, 8 },
+            new[] { 40, 10, 5, 10, 5, 10 },
+        };
+
+        public static readonly int[][] MapTypeMaxPercent =
+        {
+            new[] { 60, 10, 15, 20, 15, 15 },
+            new[] { 50, 18, 15, 20, 15, 18 },
+            new[] { 50, 15, 15, 15, 15, 20 },
+        };
+
         /// <summary>Every relationship starts at level 1 (PRD 3.10.3).</summary>
         public const int NpcStartLevel = 1;
 

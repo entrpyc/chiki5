@@ -21,12 +21,16 @@ namespace Chiki.Sim
 
         public ImprintSet Imprints { get; }
 
+        /// <summary>The enemy pool the maps roll battle nodes from (PRD 3.2.8–3.2.10, 3.6.1).</summary>
+        public EnemySet Enemies { get; }
+
         /// <summary>Every card definition by id, from the starter set and the other sets.</summary>
         public IReadOnlyDictionary<string, CardDefinition> Cards => _cards;
 
-        public RunContent(CardSet starter, CharmSet? charms = null, ImprintSet? imprints = null, IReadOnlyList<CardSet>? otherSets = null)
+        public RunContent(CardSet starter, CharmSet? charms = null, ImprintSet? imprints = null, IReadOnlyList<CardSet>? otherSets = null, EnemySet? enemies = null)
         {
             Starter = starter ?? throw new ArgumentNullException(nameof(starter));
+            Enemies = enemies ?? new EnemySet("none", Array.Empty<EnemyDefinition>());
             Charms = charms ?? new CharmSet("none", Array.Empty<CharmDefinition>());
             Imprints = imprints ?? new ImprintSet("none", Array.Empty<ImprintDefinition>());
 
@@ -63,6 +67,19 @@ namespace Chiki.Sim
         public ImprintDefinition? FindImprint(string id)
         {
             return _imprints.TryGetValue(id, out var imprint) ? imprint : null;
+        }
+
+        public EnemyDefinition? FindEnemy(string id)
+        {
+            foreach (var enemy in Enemies.Enemies)
+            {
+                if (enemy.Id == id)
+                {
+                    return enemy;
+                }
+            }
+
+            return null;
         }
 
         private void AddCards(CardSet set)

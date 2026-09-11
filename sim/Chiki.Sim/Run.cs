@@ -12,22 +12,46 @@ namespace Chiki.Sim
         Abandoned,
     }
 
+    /// <summary>The outcome of a move on the map (PRD 3.2.7).</summary>
+    public enum MoveResult
+    {
+        Moved,
+
+        /// <summary>The node is not connected forward from the current one; there is no move backward.</summary>
+        NotForward,
+
+        /// <summary>The current node's content is still open (a battle not yet won).</summary>
+        NodeNotCompleted,
+
+        /// <summary>A battle is in progress.</summary>
+        BattleInProgress,
+
+        RunOver,
+    }
+
     /// <summary>
     /// One run (PRD 4.2, 3.2.2): its seed, World and node, run-wide stats, the Charms equipped
     /// pre-run, the Imprints held, the armor upgrade slots, the Binder with its loadout, the
-    /// difficulty modifiers and Assist flag, and its status. Created through
+    /// difficulty modifiers and Assist flag, its status and its World graphs. Created through
     /// <see cref="RunSetup.Start"/>; restored from a save through
     /// <see cref="Data.RunSerializer"/>. Every subsystem's random stream is a fork of the seed
-    /// (PRD 3.2.4, 6.8). The run starts and settles its battles, attaching the effects of its
-    /// Imprints and Charms to each (P18.3, P18.4), and ends by victory, death or abandonment,
-    /// discarding everything run-scoped (PRD 3.9.1). The map graphs join in P19.1.
+    /// (PRD 3.2.4, 6.8), so the graphs are regenerated from it rather than saved. The run moves
+    /// forward only (PRD 3.2.7), adding CRP per transition (PRD 3.8.2), starts and settles its
+    /// battles with the effects of its Imprints and Charms attached (P18.3, P18.4), advances a
+    /// World when its Boss falls (PRD 3.2.10), and ends by victory, death or abandonment,
+    /// discarding everything run-scoped (PRD 3.9.1). Every change outside battle is appended
+    /// to <see cref="Events"/>.
     /// </summary>
     public sealed class Run
     {
         private readonly List<string> _imprints;
         private readonly string?[] _armorUpgrades;
         private readonly Rng _imprintRng;
+        private readonly Dictionary<int, MapGraph> _maps = new Dictionary<int, MapGraph>();
+        private readonly HashSet<string> _visited = new HashSet<string>(StringComparer.Ordinal);
+        private readonly List<RunEvent> _events = new List<RunEvent>();
         private int _battlesStarted;
+        private bool _nodeBattle;
 
         /// <summary>The run seed, custom or generated (PRD 3.2.4); shown on the map and the run-end screen.</summary>
         public string Seed { get; }
@@ -35,8 +59,8 @@ namespace Chiki.Sim
         /// <summary>The World being played, 1 to <see cref="Tuning.WorldCount"/> (PRD 3.2.1).</summary>
         public int World { get; private set; }
 
-        /// <summary>The node the player stands on; null until the map places them (P19.4).</summary>
-        public string? CurrentNodeId { get; private set; }
+        /// <summary>The node the player stands on in the current World's graph (PRD 3.2.7).</summary>
+        public string CurrentNodeId { get; private set; } = "";
 
         public RunStats Stats { get; }
 
@@ -79,6 +103,23 @@ namespace Chiki.Sim
         /// <summary>The root generator of the seed (PRD 3.2.4); subsystems draw from <see cref="Fork"/>, never from this directly.</summary>
         public Rng Rng { get; }
 
+        /// <summary>The current World's graph (PRD 4.3), generated from the seed on entering the World.</summary>
+        public MapGraph CurrentMap => _maps[World];
+
+        public MapNode CurrentNode => CurrentMap[CurrentNodeId];
+
+        /// <summary>The nodes the player may move to next (PRD 3.2.7).</summary>
+        public IReadOnlyList<MapNode> ForwardNodes => CurrentMap.NextOf(CurrentNodeId);
+
+        /// <summary>The nodes visited in the current World, the current one included (PRD 4.3).</summary>
+        public IReadOnlyCollection<string> Visited => _visited;
+
+        /// <summary>Whether the current node's content is done, so the player may move on (PRD 3.2.7).</summary>
+        public bool CurrentNodeCompleted { get; private set; }
+
+        /// <summary>Everything that happened outside battle, in order.</summary>
+        public IReadOnlyList<RunEvent> Events => _events;
+
         /// <summary>A run as a save recorded it, or as <see cref="RunSetup.Start"/> builds it. The Imprints held register their battle effects; their acquisition effects are already in the stats.</summary>
         public Run(
             string seed,
@@ -93,7 +134,9 @@ namespace Chiki.Sim
             int world = 1,
             string? currentNodeId = null,
             RunStatus status = RunStatus.InProgress,
-            int battlesStarted = 0)
+            int battlesStarted = 0,
+            IReadOnlyCollection<string>? visited = null,
+            bool currentNodeCompleted = true)
         {
             if (string.IsNullOrWhiteSpace(seed))
             {
@@ -144,8 +187,6 @@ namespace Chiki.Sim
             Binder = binder ?? throw new ArgumentNullException(nameof(binder));
             DifficultyModifiers = new List<string>(difficultyModifiers ?? throw new ArgumentNullException(nameof(difficultyModifiers)));
             Assist = assist;
-            World = world;
-            CurrentNodeId = currentNodeId;
             Status = status;
             _battlesStarted = battlesStarted;
             Rng = new Rng(seed);
@@ -169,6 +210,37 @@ namespace Chiki.Sim
                 {
                     Effects.Add(imprint.Id, imprint.Effects, fireAcquired: false);
                 }
+            }
+
+            World = world;
+            _maps[world] = GenerateMap(world);
+            if (currentNodeId is null)
+            {
+                CurrentNodeId = CurrentMap.EntryId;
+                _visited.Add(CurrentNodeId);
+                CurrentNodeCompleted = true;
+            }
+            else
+            {
+                if (!CurrentMap.Contains(currentNodeId))
+                {
+                    throw new ArgumentException($"World {world} has no node '{currentNodeId}'.", nameof(currentNodeId));
+                }
+
+                CurrentNodeId = currentNodeId;
+                if (visited != null)
+                {
+                    foreach (var id in visited)
+                    {
+                        if (CurrentMap.Contains(id))
+                        {
+                            _visited.Add(id);
+                        }
+                    }
+                }
+
+                _visited.Add(CurrentNodeId);
+                CurrentNodeCompleted = currentNodeCompleted;
             }
         }
 
@@ -195,6 +267,118 @@ namespace Chiki.Sim
 
                 return charms;
             }
+        }
+
+        /// <summary>The graph of a World, generated from the seed (PRD 3.2.4); the same for the same seed whenever it is asked for.</summary>
+        public MapGraph MapOf(int world)
+        {
+            if (!_maps.TryGetValue(world, out var map))
+            {
+                _maps[world] = map = GenerateMap(world);
+            }
+
+            return map;
+        }
+
+        private MapGraph GenerateMap(int world)
+        {
+            return MapGenerator.Generate(Fork("map-w" + world), world, Content.Enemies.Enemies);
+        }
+
+        /// <summary>
+        /// Commits to a node connected forward from the current one (PRD 3.2.7): the move is a
+        /// node transition that adds CRP (PRD 3.8.2); a stop without content in this plan
+        /// (Shop, Event, Blacksmith, Forge) counts as completed on arrival, a battle node waits
+        /// for its battle to be won.
+        /// </summary>
+        public MoveResult MoveTo(string nodeId)
+        {
+            if (nodeId is null)
+            {
+                throw new ArgumentNullException(nameof(nodeId));
+            }
+
+            if (IsOver)
+            {
+                return MoveResult.RunOver;
+            }
+
+            if (!CurrentMap.Contains(nodeId) || !CurrentMap.IsForward(CurrentNodeId, nodeId))
+            {
+                return MoveResult.NotForward;
+            }
+
+            if (CurrentBattle != null)
+            {
+                return MoveResult.BattleInProgress;
+            }
+
+            if (!CurrentNodeCompleted)
+            {
+                return MoveResult.NodeNotCompleted;
+            }
+
+            var from = CurrentNodeId;
+            var to = CurrentMap[nodeId];
+            CurrentNodeId = to.Id;
+            _visited.Add(to.Id);
+            CurrentNodeCompleted = !to.IsBattle;
+            _events.Add(new NodeTransition(World, from, to.Id, to.Type));
+            ChangeCrp(Tuning.CrpPerTransition, CrpSources.NodeTransition);
+            return MoveResult.Moved;
+        }
+
+        /// <summary>
+        /// The current node's content is done (PRD 3.2.8–3.2.14): a Boss node completed advances
+        /// to the next World's entry or, after World 3, wins the run (PRD 3.2.10, 3.2.1). The
+        /// battle settle calls this for a won battle node; the other node owners call it when
+        /// their stop resolves.
+        /// </summary>
+        public void CompleteNode()
+        {
+            RequireInProgress();
+            if (CurrentBattle != null)
+            {
+                throw new InvalidOperationException("The battle has not been settled.");
+            }
+
+            var node = CurrentNode;
+            CurrentNodeCompleted = true;
+            _events.Add(new NodeCompleted(World, node.Id, node.Type));
+            if (node.Type == NodeType.Boss)
+            {
+                if (World < Tuning.WorldCount)
+                {
+                    EnterWorld(World + 1);
+                }
+                else
+                {
+                    End(RunStatus.Won);
+                }
+            }
+        }
+
+        private void EnterWorld(int world)
+        {
+            World = world;
+            var map = MapOf(world);
+            _visited.Clear();
+            CurrentNodeId = map.EntryId;
+            _visited.Add(CurrentNodeId);
+            CurrentNodeCompleted = true;
+            _events.Add(new WorldEntered(world, map.EntryId));
+        }
+
+        /// <summary>Changes CRP by an amount from a named source (PRD 3.8.6); the value is clamped (PRD 3.8.1).</summary>
+        public void ChangeCrp(int amount, string source)
+        {
+            if (string.IsNullOrWhiteSpace(source))
+            {
+                throw new ArgumentException("A CRP change names its source.", nameof(source));
+            }
+
+            Stats.Crp += amount;
+            _events.Add(new CrpChanged(amount, source, Stats.Crp));
         }
 
         /// <summary>
@@ -236,6 +420,54 @@ namespace Chiki.Sim
             return imprint;
         }
 
+        /// <summary>The enemy the current battle node rolled (PRD 3.2.8–3.2.10); throws when the node is not a battle or its enemy is missing from the content.</summary>
+        public EnemyDefinition CurrentNodeEnemy
+        {
+            get
+            {
+                var node = CurrentNode;
+                if (!node.IsBattle)
+                {
+                    throw new InvalidOperationException($"Node {node.Id} is a {node.Type}, not a battle.");
+                }
+
+                return (node.EnemyId is null ? null : Content.FindEnemy(node.EnemyId))
+                    ?? throw new InvalidOperationException($"Node {node.Id} has no {NodeTypes.TierOf(node.Type)} enemy in the content.");
+            }
+        }
+
+        /// <summary>Starts the current battle node's battle at the World's balance (PRD 3.2.8–3.2.10); winning it completes the node.</summary>
+        public Battle StartNodeBattle()
+        {
+            return StartNodeBattle(EncounterBalance.ForWorld(World));
+        }
+
+        public Battle StartNodeBattle(EncounterBalance balance)
+        {
+            RequireNodeBattle();
+            var battle = StartBattle(CurrentNodeEnemy, balance);
+            _nodeBattle = true;
+            return battle;
+        }
+
+        /// <summary>Starts the current battle node's battle with a fixed enemy HP, for fixtures and tests that pin the number.</summary>
+        public Battle StartNodeBattle(int enemyHp)
+        {
+            RequireNodeBattle();
+            var battle = StartBattle(CurrentNodeEnemy, enemyHp);
+            _nodeBattle = true;
+            return battle;
+        }
+
+        private void RequireNodeBattle()
+        {
+            RequireBattleFree();
+            if (!CurrentNode.IsBattle || CurrentNodeCompleted)
+            {
+                throw new InvalidOperationException($"Node {CurrentNodeId} has no battle to start.");
+            }
+        }
+
         /// <summary>Starts a battle against the enemy at the run's World balance, reading cards from the loadout (PRD 3.5.1) with the Imprint and Charm effects attached (P18.4).</summary>
         public Battle StartBattle(EnemyDefinition enemy, EncounterBalance balance)
         {
@@ -259,14 +491,17 @@ namespace Chiki.Sim
         private Battle Begin(Battle battle)
         {
             CurrentBattle = battle;
+            _nodeBattle = false;
             Effects.AttachTo(battle);
             return battle;
         }
 
         /// <summary>
         /// Settles the battle the run started once it has ended: run-long modifiers are carried
-        /// forward (PRD 3.9.8), Unstable cards count the battle (PRD 3.4.16), and a death ends
-        /// the run (PRD 3.3.9.3). Returns the cards the Binder destroyed.
+        /// forward (PRD 3.9.8), the CRP changes it made join the run's stream with their source
+        /// (PRD 3.8.6), Unstable cards count the battle (PRD 3.4.16), a won battle node is
+        /// completed (PRD 3.2.8–3.2.10), and a death ends the run (PRD 3.3.9.3). Returns the
+        /// cards the Binder destroyed.
         /// </summary>
         public IReadOnlyList<CardInstance> SettleBattle(Battle battle)
         {
@@ -286,11 +521,25 @@ namespace Chiki.Sim
             }
 
             CurrentBattle = null;
+            bool nodeBattle = _nodeBattle;
+            _nodeBattle = false;
             Effects.Collect(battle);
+            foreach (var battleEvent in battle.Events)
+            {
+                if (battleEvent is StatChanged changed && changed.Stat == Chiki.Sim.Effects.RunStat.Crp)
+                {
+                    _events.Add(new CrpChanged(changed.Delta, changed.OwnerId ?? "battle", changed.Total));
+                }
+            }
+
             var destroyed = Binder.BattleEnded();
             if (battle.Outcome == BattleOutcome.Died)
             {
                 End(RunStatus.Died);
+            }
+            else if (nodeBattle && !CurrentNodeCompleted)
+            {
+                CompleteNode();
             }
 
             return destroyed;
@@ -311,9 +560,11 @@ namespace Chiki.Sim
             RequireInProgress();
             Status = outcome;
             CurrentBattle = null;
+            _nodeBattle = false;
             Binder.Discard();
             _imprints.Clear();
             Effects.Clear();
+            _events.Add(new RunEnded(outcome));
         }
 
         private void RequireInProgress()

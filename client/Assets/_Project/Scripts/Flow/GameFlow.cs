@@ -1,7 +1,9 @@
 #nullable enable
 using System;
+using System.Linq;
 using Chiki.Client.Content;
 using Chiki.Client.Profiles;
+using Chiki.Client.Scene;
 using Chiki.Client.Screens;
 using Chiki.Sim;
 using Chiki.Sim.Data;
@@ -79,9 +81,14 @@ namespace Chiki.Client.Flow
             }
 
             RequireProfile();
-            var starter = CardLoader.SetFromJson(ContentFiles.ReadText("sets/starter.json"));
+            var content = BattleContent.LoadFixtures();
+            var runContent = new RunContent(
+                content.Cards,
+                CharmLoader.SetFromJson(ContentFiles.ReadText("charms/fixtures.json")),
+                ImprintLoader.SetFromJson(ContentFiles.ReadText("imprints/fixtures.json")),
+                enemies: new EnemySet("fixtures", content.Enemies.Values.ToList()));
             var setup = new RunSetup(Profile!.Meta.CharmUnlocks);
-            Run = setup.Start(starter, seed: null, entropy: (ulong)DateTime.UtcNow.Ticks);
+            Run = setup.Start(runContent, seed: null, entropy: (ulong)DateTime.UtcNow.Ticks);
             EnterMap();
         }
 

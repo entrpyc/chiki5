@@ -1136,56 +1136,56 @@ Ties broken: 3.2.3 is delivered twice, the stat holder in Phase 1 and the Base D
 - Needs: P18.7
 - Test (unit): `Sim.Relationships › grant_records_source` — given a grant of 3 RP from "sacrifice", when read, then RP toward next is 3 and the last source is "sacrifice".
 
-### Phase 19 — The map
+### ✅ Phase 19 — The map
 
 *Delivers seeded World graphs with the PRD's shape and distribution, forward-only movement, and the Corruption clock that movement drives. Done when every P19 test is green and the suite passes.*
 
-#### P19.1 Graph shape
+#### ✅ P19.1 Graph shape
 
 - PRD: 3.2.5
-- Does: `MapGenerator.Generate(rng, world)` builds a layered directed graph: one entry node; the first layer branches into 2–3 routes; every route shares a node with another route at least once before the last layer; no path has more than 4 consecutive nodes with a single outgoing edge; the last layer is exactly one Boss node. Generation retries with the next `Rng` fork until all constraints hold.
+- Does: `MapGenerator.Generate(rng, world)` builds a layered directed graph: one entry node; the first layer branches into 2–3 routes; every route shares a node with another route at least once before the last layer; no path has more than 4 consecutive nodes with a single outgoing edge; the last layer is exactly one Boss node. Generation retries with the next `Rng` fork until all constraints hold. Assumption: the generator also takes the World's enemy pool for the content rolls of P19.3; every connection goes to the next layer, so all paths share one length; the entry node is a Normal battle the run stands on already completed; the pre-Boss layer's single connections to the Boss count toward the choiceless run.
 - Needs: P1.2
 - Test (unit): `Sim.Map › shape_constraints_hold_over_200_seeds` — given 200 seeds, when each graph is generated, then every graph has one entry, 2–3 first-layer routes, at least one reconnection per route, no run of more than 4 choiceless nodes, and one final Boss.
 
-#### P19.2 Size and distribution
+#### ✅ P19.2 Size and distribution
 
 - PRD: 3.2.6
-- Does: A graph has 55–70 nodes; every entry-to-Boss path has 13–17 nodes before the Boss; node types are assigned so that per-World percentages fall inside the table in 3.2.6 (Shop, Event, Blacksmith and Forge nodes are generated and typed but resolve as empty stops in this plan).
+- Does: A graph has 55–70 nodes; every entry-to-Boss path has 13–17 nodes before the Boss; node types are assigned so that per-World percentages fall inside the table in 3.2.6 (Shop, Event, Blacksmith and Forge nodes are generated and typed but resolve as empty stops in this plan). Assumption: target shares and bands per World live in `Tuning` (Normal 52/44/44, Elite 7/12/12, Shop 9, Event 17/17/12, Blacksmith 7/7/8, Forge 8/11/15 percent); a share is counted over all nodes including the Boss and rounded down.
 - Needs: P19.1
 - Test (unit): `Sim.Map › size_and_distribution_over_200_seeds` — given 200 World 1 seeds, when generated, then every graph has 55–70 nodes, path lengths of 13–17, and type shares inside the World 1 bands.
 
-#### P19.3 Same seed, same map
+#### ✅ P19.3 Same seed, same map
 
 - PRD: 3.2.4
-- Does: The generator draws only from its forked `Rng`, so two runs with one seed produce identical graphs, node types and node content rolls (enemy per battle node).
+- Does: The generator draws only from its forked `Rng`, so two runs with one seed produce identical graphs, node types and node content rolls (enemy per battle node). Assumption: a battle node rolls its enemy from the content's enemies of its tier, so the graphs are regenerated from the seed on restore rather than saved, and only the visited nodes and the current node's completion are written to the run file.
 - Needs: P19.2, P17.2
 - Test (unit): `Sim.Map › same_seed_identical_graph` — given seed "chiki-1", when two runs generate World 1, then the graphs, types and enemy assignments are equal node for node; a different seed differs.
 
-#### P19.4 Forward-only movement
+#### ✅ P19.4 Forward-only movement
 
 - PRD: 3.2.7
-- Does: `Run.MoveTo(node)` succeeds only for a node connected forward from the current node; there is no move backward; committing raises a NodeTransition event that P19.5 and P22.1 subscribe to.
+- Does: `Run.MoveTo(node)` succeeds only for a node connected forward from the current node; there is no move backward; committing raises a NodeTransition event that P19.5 and P22.1 subscribe to. Assumption: the run keeps an ordered `Events` stream of typed run events; a move is also refused while a battle is open or the current battle node is not yet won, and a Shop, Event, Blacksmith or Forge node counts as completed on arrival in this plan.
 - Needs: P19.1, P17.1
 - Test (unit): `Sim.Map › only_forward_neighbours_allowed` — given the current node with two forward neighbours, when moving to each, then it succeeds; when moving to the previous node or a non-neighbour, then it is rejected.
 
-#### P19.5 Corruption per transition
+#### ✅ P19.5 Corruption per transition
 
 - PRD: 3.8.2
 - Does: Every NodeTransition adds +1 CRP through P17.6.
 - Needs: P19.4, P17.6
 - Test (unit): `Sim.Crp › plus_one_per_transition` — given CRP 0, when 5 transitions are made, then CRP is 5.
 
-#### P19.6 CRP changes carry source and amount
+#### ✅ P19.6 CRP changes carry source and amount
 
 - PRD: 3.8.6
-- Does: Every CRP change emits a CrpChanged event with amount and source ("node transition", or the card, Imprint or Charm id); the presenter (P23.4) shows it.
+- Does: Every CRP change emits a CrpChanged event with amount and source ("node transition", or the card, Imprint or Charm id); the presenter (P23.4) shows it. Assumption: changes made inside a battle are mirrored into the run stream when the battle is settled, with the owner id the battle's StatChanged carries.
 - Needs: P19.5
 - Test (unit): `Sim.Crp › change_event_has_source` — given a transition, when the event stream is read, then the last CrpChanged has amount 1 and source "node transition".
 
-#### P19.7 Three Worlds
+#### ✅ P19.7 Three Worlds
 
 - PRD: 3.2.1
-- Does: A run generates World 1 at start and World 2 and 3 on entering them; defeating a World's Boss node advances to the next World's entry; defeating the World 3 Boss sets the run status to Won.
+- Does: A run generates World 1 at start and World 2 and 3 on entering them; defeating a World's Boss node advances to the next World's entry; defeating the World 3 Boss sets the run status to Won. Assumption: `Run.StartNodeBattle` fights the current node's rolled enemy and a won node battle completes the node on settle; `Run.CompleteNode` is the one entry point for node completion, which the other node owners call when their stop resolves.
 - Needs: P19.2, P17.1
 - Test (unit): `Sim.Run › three_worlds_then_won` — given a run, when each World's Boss node is completed in turn, then the World index goes 1, 2, 3 and the status after the third is Won.
 

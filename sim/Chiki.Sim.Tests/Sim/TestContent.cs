@@ -204,7 +204,8 @@ internal static class TestContent
             Chiki.Sim.Data.CardLoader.SetFromJson(ReadData("sets/starter.json")),
             Chiki.Sim.Data.CharmLoader.SetFromJson(ReadData("charms/fixtures.json")),
             Chiki.Sim.Data.ImprintLoader.SetFromJson(ReadData("imprints/fixtures.json")),
-            otherSets);
+            otherSets,
+            LoadFixtureEnemies());
     }
 
     /// <summary>A one-attack enemy with the given HP started by the run: a Perfect press on key E at 500 ms kills it before its attack lands.</summary>

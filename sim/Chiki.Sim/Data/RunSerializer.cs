@@ -36,6 +36,8 @@ namespace Chiki.Sim.Data
             w.Member("currentNode", run.CurrentNodeId);
             w.Member("status", StatusToId(run.Status));
             w.Member("battlesStarted", run.BattlesStarted);
+            w.Member("visited", run.Visited);
+            w.Member("currentNodeCompleted", run.CurrentNodeCompleted);
             w.Name("stats").BeginObject();
             w.Member("maxArd", run.Stats.MaxArd);
             w.Member("ard", run.Stats.Ard);
@@ -160,7 +162,9 @@ namespace Chiki.Sim.Data
                 root["world"].AsInt(),
                 root.Optional("currentNode")?.AsString(),
                 StatusFromId(root["status"].AsString()),
-                root.Optional("battlesStarted")?.AsInt() ?? 0);
+                root.Optional("battlesStarted")?.AsInt() ?? 0,
+                root.Optional("visited") is JsonValue visited ? Strings(visited) : null,
+                root.Optional("currentNodeCompleted")?.AsBool() ?? true);
         }
 
         public static string StatusToId(RunStatus status)

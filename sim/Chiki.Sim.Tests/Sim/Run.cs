@@ -164,6 +164,45 @@ public class Run
         });
     }
 
+    [Test]
+    public void three_worlds_then_won()
+    {
+        var run = new RunSetup(Array.Empty<string>()).Start(TestContent.LoadRunContent(), "chiki-1");
+        var worldsSeen = new List<int> { run.World };
+        var statuses = new List<RunStatus>();
+
+        for (int world = 1; world <= 3; world++)
+        {
+            while (run.CurrentNode.Type != NodeType.Boss)
+            {
+                if (!run.CurrentNodeCompleted)
+                {
+                    run.CompleteNode();
+                }
+
+                Assume.That(run.MoveTo(run.ForwardNodes[0].Id), Is.EqualTo(MoveResult.Moved));
+            }
+
+            var boss = run.StartNodeBattle(enemyHp: 1);
+            boss.Press(new Slot(0, SlotKey.E), boss.BeatMap.TimeAtQb(boss.Chart.Actions[0].PositionQb));
+            boss.AdvanceToBeat(boss.Chart.Actions[0].PositionQb / 4 + 2);
+            Assume.That(boss.Outcome, Is.EqualTo(BattleOutcome.Won), "the Boss battle must be won to complete the node");
+            run.SettleBattle(boss);
+            statuses.Add(run.Status);
+            if (!run.IsOver)
+            {
+                worldsSeen.Add(run.World);
+            }
+        }
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(worldsSeen, Is.EqualTo(new[] { 1, 2, 3 }));
+            Assert.That(statuses, Is.EqualTo(new[] { RunStatus.InProgress, RunStatus.InProgress, RunStatus.Won }));
+            Assert.That(run.Events.OfType<WorldEntered>().Select(e => e.World), Is.EqualTo(new[] { 2, 3 }));
+        });
+    }
+
     private static (int, string, bool, string?, int?, int?) Snapshot(CardInstance card) =>
         (card.Id, card.Definition.Id, card.Upgraded, card.TraitId, card.BattlesRemaining, card.ShopPrice);
 }

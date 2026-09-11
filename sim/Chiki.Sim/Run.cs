@@ -54,6 +54,8 @@ namespace Chiki.Sim
         private readonly Dictionary<int, MapGraph> _maps = new Dictionary<int, MapGraph>();
         private readonly HashSet<string> _visited = new HashSet<string>(StringComparer.Ordinal);
         private readonly List<RunEvent> _events = new List<RunEvent>();
+        private readonly List<BattleRecord> _battles = new List<BattleRecord>();
+        private readonly List<string> _route = new List<string>();
         private int _battlesStarted;
         private bool _nodeBattle;
 
@@ -127,6 +129,12 @@ namespace Chiki.Sim
         /// <summary>Everything that happened outside battle, in order.</summary>
         public IReadOnlyList<RunEvent> Events => _events;
 
+        /// <summary>The record of every battle settled this run, in order, for the run log (PRD 3.15.1); kept across a resume.</summary>
+        public IReadOnlyList<BattleRecord> Battles => _battles;
+
+        /// <summary>The route taken: every node committed to, across Worlds, the entry nodes included (PRD 3.15.1); kept across a resume.</summary>
+        public IReadOnlyList<string> Route => _route;
+
         /// <summary>A run as a save recorded it, or as <see cref="RunSetup.Start"/> builds it. The Imprints held register their battle effects; their acquisition effects are already in the stats.</summary>
         public Run(
             string seed,
@@ -143,7 +151,10 @@ namespace Chiki.Sim
             RunStatus status = RunStatus.InProgress,
             int battlesStarted = 0,
             IReadOnlyCollection<string>? visited = null,
-            bool currentNodeCompleted = true)
+            bool currentNodeCompleted = true,
+            IReadOnlyList<BattleRecord>? battles = null,
+            IReadOnlyList<string>? route = null,
+            RewardOffer? pendingReward = null)
         {
             if (string.IsNullOrWhiteSpace(seed))
             {
@@ -250,6 +261,32 @@ namespace Chiki.Sim
                 _visited.Add(CurrentNodeId);
                 CurrentNodeCompleted = currentNodeCompleted;
             }
+
+            if (battles != null)
+            {
+                _battles.AddRange(battles);
+            }
+
+            if (route != null)
+            {
+                _route.AddRange(route);
+            }
+
+            if (_route.Count == 0)
+            {
+                _route.Add(CurrentNodeId);
+            }
+
+            if (pendingReward != null)
+            {
+                if (pendingReward.IsResolved)
+                {
+                    throw new ArgumentException("A restored reward offer must still be open.", nameof(pendingReward));
+                }
+
+                PendingReward = pendingReward;
+                CurrentNodeCompleted = false;
+            }
         }
 
         /// <summary>An independent generator for a subsystem ("map", "shop", "battle"), the same for the same seed and label (PRD 3.2.4).</summary>
@@ -335,6 +372,7 @@ namespace Chiki.Sim
             var to = CurrentMap[nodeId];
             CurrentNodeId = to.Id;
             _visited.Add(to.Id);
+            _route.Add(to.Id);
             CurrentNodeCompleted = !to.IsBattle;
             _events.Add(new NodeTransition(World, from, to.Id, to.Type));
             ChangeCrp(Tuning.CrpPerTransition, CrpSources.NodeTransition);
@@ -383,6 +421,7 @@ namespace Chiki.Sim
             _visited.Clear();
             CurrentNodeId = map.EntryId;
             _visited.Add(CurrentNodeId);
+            _route.Add(CurrentNodeId);
             CurrentNodeCompleted = true;
             _events.Add(new WorldEntered(world, map.EntryId));
         }
@@ -542,6 +581,7 @@ namespace Chiki.Sim
             bool nodeBattle = _nodeBattle;
             _nodeBattle = false;
             Effects.Collect(battle);
+            _battles.Add(BattleRecord.From(battle, _battles.Count == 0 ? null : _battles[_battles.Count - 1].EnemyId));
             foreach (var battleEvent in battle.Events)
             {
                 if (battleEvent is StatChanged changed && changed.Stat == Chiki.Sim.Effects.RunStat.Crp)

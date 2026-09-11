@@ -97,6 +97,95 @@ namespace Chiki.Sim.Data
             return members.TryGetValue(name, out var value) && !value.IsNull ? value : null;
         }
 
+        public static readonly JsonValue Null = new JsonValue(JsonKind.Null);
+
+        public static JsonValue Of(string value) => new JsonValue(JsonKind.String, text: value ?? throw new ArgumentNullException(nameof(value)));
+
+        public static JsonValue Of(int value) => new JsonValue(JsonKind.Number, text: value.ToString(CultureInfo.InvariantCulture));
+
+        public static JsonValue Of(bool value) => new JsonValue(JsonKind.Boolean, boolean: value);
+
+        public static JsonValue EmptyArray() => new JsonValue(JsonKind.Array, items: new List<JsonValue>());
+
+        public static JsonValue EmptyObject() => new JsonValue(JsonKind.Object, members: new Dictionary<string, JsonValue>(StringComparer.Ordinal), memberNames: new List<string>());
+
+        /// <summary>Sets a member of an object, appending a new name at the end; a migration step adds a field this way (P22.3).</summary>
+        public void Set(string name, JsonValue value)
+        {
+            var members = _members ?? throw Wrong(JsonKind.Object);
+            if (value is null)
+            {
+                throw new ArgumentNullException(nameof(value));
+            }
+
+            if (!members.ContainsKey(name))
+            {
+                _memberNames!.Add(name);
+            }
+
+            members[name] = value;
+        }
+
+        /// <summary>Removes a member of an object; false when it was absent.</summary>
+        public bool Remove(string name)
+        {
+            var members = _members ?? throw Wrong(JsonKind.Object);
+            return members.Remove(name) && _memberNames!.Remove(name);
+        }
+
+        /// <summary>Writes the value back out, members in document order and numbers as their original text.</summary>
+        public void WriteTo(JsonWriter writer)
+        {
+            if (writer is null)
+            {
+                throw new ArgumentNullException(nameof(writer));
+            }
+
+            switch (Kind)
+            {
+                case JsonKind.Null:
+                    writer.Null();
+                    break;
+                case JsonKind.Boolean:
+                    writer.Value(_boolean);
+                    break;
+                case JsonKind.Number:
+                    writer.Number(_text!);
+                    break;
+                case JsonKind.String:
+                    writer.Value(_text);
+                    break;
+                case JsonKind.Array:
+                    writer.BeginArray();
+                    foreach (var item in _items!)
+                    {
+                        item.WriteTo(writer);
+                    }
+
+                    writer.EndArray();
+                    break;
+                case JsonKind.Object:
+                    writer.BeginObject();
+                    foreach (var name in _memberNames!)
+                    {
+                        writer.Name(name);
+                        _members![name].WriteTo(writer);
+                    }
+
+                    writer.EndObject();
+                    break;
+                default:
+                    throw new InvalidOperationException("Unknown JSON kind " + Kind + ".");
+            }
+        }
+
+        public string ToJson()
+        {
+            var writer = new JsonWriter();
+            WriteTo(writer);
+            return writer.ToString();
+        }
+
         public string AsString()
         {
             return Kind == JsonKind.String ? _text! : throw Wrong(JsonKind.String);

@@ -1274,48 +1274,48 @@ Ties broken: 3.2.3 is delivered twice, the stat holder in Phase 1 and the Base D
 - Needs: P21.4, P17.3, P16.7
 - Test (integration): `Client.Meta › first_boss_unlocks_fixture_charms` — given a profile with no unlocks, when the World 1 Boss is defeated, then bosses-defeated is 1 and both fixture Charms are unlocked.
 
-### Phase 22 — Save, resume, log
+### ✅ Phase 22 — Save, resume, log
 
 *Delivers the durability rules: the run is saved at every transition, never mid-battle, unlocks are written the moment they happen, and every run leaves a log. Done when every P22 test is green and the suite passes.*
 
-#### P22.1 Autosave and resume
+#### ✅ P22.1 Autosave and resume
 
 - PRD: 3.1.5
-- Does: The profile holds at most one run in progress; the run is serialised (P17.1) on every NodeTransition and whenever the map is returned to; loading the profile resumes at the saved node with the saved stats, Binder and loadout; starting a new run while one is in progress is rejected.
+- Does: The profile holds at most one run in progress; the run is serialised (P17.1) on every NodeTransition and whenever the map is returned to; loading the profile resumes at the saved node with the saved stats, Binder and loadout; starting a new run while one is in progress is rejected. Assumption: the run in progress is the profile's `runInProgress` string; `GameFlow.Begin` resumes onto the map when it is set, `GameFlow.MoveTo` and `EnterMap` save, `TryStartRun` answers RunInProgress, and a run that ends clears the slot and adds a run-history entry.
 - Needs: P17.1, P19.4, P15.1
 - Test (integration): `Client.Save › resume_at_last_node` — given a run moved to node 5 with Essence 40, when the game is restarted, then the run resumes at node 5 with Essence 40.
 - Test (integration): `Client.Save › one_run_per_profile` — given a run in progress, when a new run is requested, then it is rejected.
 
-#### P22.2 No mid-battle save
+#### ✅ P22.2 No mid-battle save
 
 - PRD: 3.1.6
-- Does: Battle state is never written to the save; quitting during a battle and resuming restarts that battle at beat 0 with ARD, Essence and CRP as they were at battle start.
+- Does: Battle state is never written to the save; quitting during a battle and resuming restarts that battle at beat 0 with ARD, Essence and CRP as they were at battle start. Assumption: `GameFlow.SaveRun` writes nothing while `Run.CurrentBattle` is set, so the save made at the node transition is what a resume restores.
 - Needs: P22.1
 - Test (integration): `Client.Save › quit_mid_battle_restarts_battle` — given a battle at beat 12 with ARD 200 (was 260 at start), when the game quits and resumes, then the battle is at beat 0 and ARD is 260.
 
-#### P22.3 Versioned schema
+#### ✅ P22.3 Versioned schema
 
 - PRD: 4.2
-- Does: The run and profile files carry a schema version; loading an older version runs a migration table; loading a newer version than the build knows refuses with a clear error instead of corrupting.
+- Does: The run and profile files carry a schema version; loading an older version runs a migration table; loading a newer version than the build knows refuses with a clear error instead of corrupting. Assumption: the run save moves to schema 2 with `route`, `battles` (the per-battle records of P22.5) and `pendingReward` (closing the P20.3 gap); the profile file moves to schema 2 for `bossesDefeated`; each serializer holds a table of one step per past version that adds the missing fields with their defaults.
 - Needs: P17.1, P15.1
 - Test (unit): `Sim.Save › migrates_old_version` — given a version-1 run file lacking a field added in version 2, when loaded, then the field has its default and the file version reads 2.
 - Test (unit): `Sim.Save › refuses_newer_version` — given a version-99 file, when loaded, then loading fails with a version error and the file is untouched.
 
-#### P22.4 Unlocks written when earned
+#### ✅ P22.4 Unlocks written when earned
 
 - PRD: 3.1.8
-- Does: A Charm unlock (P21.5) and an RP grant (P18.8) each write the profile to disk synchronously before returning, so a crash in the following battle loses nothing earned.
+- Does: A Charm unlock (P21.5) and an RP grant (P18.8) each write the profile to disk synchronously before returning, so a crash in the following battle loses nothing earned. Assumption: `GameFlow.SettleBattle` and `GameFlow.GrantRp` are the entry points that save; the simulated crash destroys the flow object without a further save.
 - Needs: P21.5, P18.8, P15.1
 - Test (integration): `Client.Save › unlock_survives_simulated_crash` — given a Boss defeat and an RP grant, when the process is terminated without a normal save and the profile is reloaded, then the Charm unlock and the RP are present.
 
-#### P22.5 Run log file
+#### ✅ P22.5 Run log file
 
 - PRD: 3.15.1
-- Does: At run end a JSON log is written under the profile's run-log folder with seed, difficulty modifiers, Assist flag, the ordered route, and per battle: enemy id, duration in beats and seconds, judgment counts per grade, damage taken, Signatures fired, cards played per slot, outcome. It contains no profile name and no OS user name.
+- Does: At run end a JSON log is written under the profile's run-log folder with seed, difficulty modifiers, Assist flag, the ordered route, and per battle: enemy id, duration in beats and seconds, judgment counts per grade, damage taken, Signatures fired, cards played per slot, outcome. It contains no profile name and no OS user name. Assumption: the run keeps a `BattleRecord` per settled battle and its route in the save, so a resumed run still logs every battle; the duration is written in beats, whole seconds and milliseconds; the file is `run-<utc time>-<seed>.json`.
 - Needs: P18.1, P22.1
 - Test (integration): `Client.RunLog › log_written_with_fields_and_no_identity` — given a run of 3 battles ended by death, when the log is read, then it has 3 battle records with every listed field, the seed, and no occurrence of the profile name or user name.
 
-#### P22.6 Repeated-enemy flag
+#### ✅ P22.6 Repeated-enemy flag
 
 - PRD: 3.15.2
 - Does: Each battle record carries `sameEnemyAsPrevious`, true when its enemy id equals the previous battle's.

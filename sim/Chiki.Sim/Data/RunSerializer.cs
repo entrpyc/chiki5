@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 
 namespace Chiki.Sim.Data
 {
@@ -13,13 +14,26 @@ namespace Chiki.Sim.Data
 
     /// <summary>
     /// Writes a <see cref="Run"/> to JSON and reads it back (PRD 4.2, 3.1.5). The document
-    /// carries <c>schemaVersion</c> so a later build can migrate it (P22.3); a newer version
-    /// than this build knows is refused. Card instances name their definition by id, so reading
-    /// needs the definitions the run draws on.
+    /// carries <c>schemaVersion</c>; an older version is brought up to date by the migration
+    /// table before it is read (P22.3), and a newer version than this build knows is refused
+    /// before anything is touched. Card instances name their definition by id, so reading needs
+    /// the definitions the run draws on. Battle state is never written (PRD 3.1.6).
     /// </summary>
     public static class RunSerializer
     {
-        public const int SchemaVersion = 1;
+        /// <summary>Version 2 added the route, the battle records and the open reward offer (P22.3).</summary>
+        public const int SchemaVersion = 2;
+
+        /// <summary>One step per past version: brings a document of that version to the next one by adding the fields it lacks with their defaults.</summary>
+        private static readonly Dictionary<int, Action<JsonValue>> Migrations = new Dictionary<int, Action<JsonValue>>
+        {
+            [1] = root =>
+            {
+                root.Set("route", JsonValue.EmptyArray());
+                root.Set("battles", JsonValue.EmptyArray());
+                root.Set("pendingReward", JsonValue.Null);
+            },
+        };
 
         public static string ToJson(Run run)
         {
@@ -38,6 +52,7 @@ namespace Chiki.Sim.Data
             w.Member("battlesStarted", run.BattlesStarted);
             w.Member("visited", run.Visited);
             w.Member("currentNodeCompleted", run.CurrentNodeCompleted);
+            w.Member("route", run.Route);
             w.Name("stats").BeginObject();
             w.Member("maxArd", run.Stats.MaxArd);
             w.Member("ard", run.Stats.Ard);
@@ -82,8 +97,124 @@ namespace Chiki.Sim.Data
             }
 
             w.EndArray();
+            w.Name("battles").BeginArray();
+            foreach (var battle in run.Battles)
+            {
+                WriteBattle(w, battle);
+            }
+
+            w.EndArray();
+            w.Name("pendingReward");
+            if (run.PendingReward is RewardOffer offer)
+            {
+                w.BeginObject();
+                w.Member("tier", TierToId(offer.Tier));
+                w.Member("node", offer.NodeId);
+                var cardIds = new List<string>();
+                foreach (var card in offer.Cards)
+                {
+                    cardIds.Add(card.Id);
+                }
+
+                w.Member("cards", cardIds);
+                w.Member("essence", offer.Essence);
+                w.Member("imprintTier", offer.ImprintTier is ImprintTier tier ? ImprintTierToId(tier) : null);
+                w.Member("imprintId", offer.ImprintId);
+                w.EndObject();
+            }
+            else
+            {
+                w.Null();
+            }
+
             w.EndObject();
             return w.ToString();
+        }
+
+        /// <summary>A battle record as the save and the run log write it (PRD 3.15.1, 3.15.2).</summary>
+        public static void WriteBattle(JsonWriter w, BattleRecord battle)
+        {
+            w.BeginObject();
+            w.Member("enemy", battle.EnemyId);
+            w.Member("durationBeats", battle.DurationBeats);
+            w.Member("durationSeconds", battle.DurationSeconds);
+            w.Member("durationMs", battle.DurationMs);
+            w.Name("judgments").BeginObject();
+            w.Member("perfect", battle.Perfects);
+            w.Member("good", battle.Goods);
+            w.Member("miss", battle.Misses);
+            w.Member("noInput", battle.NoInputs);
+            w.EndObject();
+            w.Member("damageTaken", battle.DamageTaken);
+            w.Member("signaturesFired", battle.SignaturesFired);
+            w.Name("cardsPerSlot").BeginObject();
+            foreach (var pair in battle.CardsPerSlot)
+            {
+                w.Member(pair.Key, pair.Value);
+            }
+
+            w.EndObject();
+            w.Member("outcome", OutcomeToId(battle.Outcome));
+            w.Member("sameEnemyAsPrevious", battle.SameEnemyAsPrevious);
+            w.EndObject();
+        }
+
+        public static BattleRecord ReadBattle(JsonValue json)
+        {
+            var judgments = json["judgments"];
+            var perSlot = new Dictionary<string, int>(StringComparer.Ordinal);
+            var slots = json["cardsPerSlot"];
+            foreach (var name in slots.MemberNames)
+            {
+                perSlot[name] = slots[name].AsInt();
+            }
+
+            return new BattleRecord(
+                json["enemy"].AsString(),
+                json["durationBeats"].AsInt(),
+                json["durationMs"].AsInt(),
+                judgments["perfect"].AsInt(),
+                judgments["good"].AsInt(),
+                judgments["miss"].AsInt(),
+                judgments["noInput"].AsInt(),
+                json["damageTaken"].AsInt(),
+                json["signaturesFired"].AsInt(),
+                perSlot,
+                OutcomeFromId(json["outcome"].AsString()),
+                json["sameEnemyAsPrevious"].AsBool());
+        }
+
+        /// <summary>
+        /// The document brought up to this build's schema: each past version's step runs in
+        /// order and the version is restamped. A newer document is refused and returned
+        /// nowhere; a current one comes back unchanged in content.
+        /// </summary>
+        public static string Migrate(string json)
+        {
+            var root = JsonValue.Parse(json);
+            MigrateInPlace(root);
+            return root.ToJson();
+        }
+
+        private static void MigrateInPlace(JsonValue root)
+        {
+            int version = root["schemaVersion"].AsInt();
+            if (version > SchemaVersion)
+            {
+                throw new SaveVersionException($"The run was saved by a newer build (schema {version}, this build reads up to {SchemaVersion}).");
+            }
+
+            for (int from = version; from < SchemaVersion; from++)
+            {
+                if (!Migrations.TryGetValue(from, out var step))
+                {
+                    throw new SaveVersionException($"No migration from run schema {from} to {from + 1}.");
+                }
+
+                step(root);
+            }
+
+            root.Set("schemaVersion", JsonValue.Of(SchemaVersion));
         }
 
         /// <summary>Reads a run whose card instances draw on the starter set alone and that holds no Charm or Imprint content.</summary>
@@ -92,7 +223,18 @@ namespace Chiki.Sim.Data
             return FromJson(json, new RunContent(starter ?? throw new ArgumentNullException(nameof(starter))));
         }
 
-        /// <summary>Reads a run against the content it draws on; an unknown card definition id is refused.</summary>
+        /// <summary>Reads the run file at the path against the content it draws on; a file of a newer schema is refused and left untouched.</summary>
+        public static Run FromFile(string path, RunContent content)
+        {
+            if (string.IsNullOrWhiteSpace(path))
+            {
+                throw new ArgumentException("A path is required.", nameof(path));
+            }
+
+            return FromJson(File.ReadAllText(path), content);
+        }
+
+        /// <summary>Reads a run against the content it draws on, migrating an older document first; an unknown card definition id is refused.</summary>
         public static Run FromJson(string json, RunContent content)
         {
             if (content is null)
@@ -103,11 +245,7 @@ namespace Chiki.Sim.Data
             var definitions = content.Cards;
 
             var root = JsonValue.Parse(json);
-            int version = root["schemaVersion"].AsInt();
-            if (version > SchemaVersion)
-            {
-                throw new SaveVersionException($"The run was saved by a newer build (schema {version}, this build reads up to {SchemaVersion}).");
-            }
+            MigrateInPlace(root);
 
             var statsJson = root["stats"];
             var stats = new RunStats(
@@ -149,6 +287,34 @@ namespace Chiki.Sim.Data
                 }
             }
 
+            var battles = new List<BattleRecord>();
+            foreach (var battleJson in root["battles"].Items)
+            {
+                battles.Add(ReadBattle(battleJson));
+            }
+
+            RewardOffer? pendingReward = null;
+            if (root.Optional("pendingReward") is JsonValue offerJson)
+            {
+                var offered = new List<CardDefinition>();
+                foreach (var idJson in offerJson["cards"].Items)
+                {
+                    string id = idJson.AsString();
+                    offered.Add(content.FindCard(id) ?? throw new JsonException($"The reward offer names an unknown card definition '{id}'."));
+                }
+
+                var imprintTierJson = offerJson.Optional("imprintTier");
+                pendingReward = new RewardOffer(
+                    TierFromId(offerJson["tier"].AsString()),
+                    offerJson["node"].AsString(),
+                    offered,
+                    offerJson["essence"].AsInt(),
+                    imprintTierJson is null ? (ImprintTier?)null : ImprintTierFromId(imprintTierJson.AsString()))
+                {
+                    ImprintId = offerJson.Optional("imprintId")?.AsString(),
+                };
+            }
+
             return new Run(
                 root["seed"].AsString(),
                 stats,
@@ -164,7 +330,10 @@ namespace Chiki.Sim.Data
                 StatusFromId(root["status"].AsString()),
                 root.Optional("battlesStarted")?.AsInt() ?? 0,
                 root.Optional("visited") is JsonValue visited ? Strings(visited) : null,
-                root.Optional("currentNodeCompleted")?.AsBool() ?? true);
+                root.Optional("currentNodeCompleted")?.AsBool() ?? true,
+                battles,
+                Strings(root["route"]),
+                pendingReward);
         }
 
         public static string StatusToId(RunStatus status)
@@ -189,6 +358,36 @@ namespace Chiki.Sim.Data
                 case "abandoned": return RunStatus.Abandoned;
                 default: throw new JsonException($"Unknown run status '{id}'.");
             }
+        }
+
+        public static string OutcomeToId(BattleOutcome outcome)
+        {
+            return outcome.ToString().ToLowerInvariant();
+        }
+
+        public static BattleOutcome OutcomeFromId(string id)
+        {
+            return Enum.TryParse<BattleOutcome>(id, true, out var outcome) ? outcome : throw new JsonException($"Unknown battle outcome '{id}'.");
+        }
+
+        public static string TierToId(EncounterTier tier)
+        {
+            return tier.ToString().ToLowerInvariant();
+        }
+
+        public static EncounterTier TierFromId(string id)
+        {
+            return Enum.TryParse<EncounterTier>(id, true, out var tier) ? tier : throw new JsonException($"Unknown encounter tier '{id}'.");
+        }
+
+        public static string ImprintTierToId(ImprintTier tier)
+        {
+            return tier.ToString().ToLowerInvariant();
+        }
+
+        public static ImprintTier ImprintTierFromId(string id)
+        {
+            return Enum.TryParse<ImprintTier>(id, true, out var tier) ? tier : throw new JsonException($"Unknown Imprint tier '{id}'.");
         }
 
         public static string KeyToId(SlotKey key)

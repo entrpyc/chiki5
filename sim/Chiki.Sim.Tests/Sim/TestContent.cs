@@ -270,13 +270,25 @@ internal static class TestContent
 
     /// <summary>
     /// Wins the current node's battle: the enemy has 1 HP and every charted action is answered
-    /// with a Perfect press, an attack slot of the action's side first so the hit lands through
-    /// any Block the enemy holds (Guard, PRD 3.6.25), any other line-0 slot otherwise so no
-    /// damage comes in; the battle is settled.
+    /// with a Perfect press (see <see cref="FightToWin"/>); the battle is settled.
     /// </summary>
     public static SimBattle WinNodeBattle(Chiki.Sim.Run run)
     {
         var battle = run.StartNodeBattle(enemyHp: 1);
+        FightToWin(battle);
+        Assume.That(battle.Outcome, Is.EqualTo(BattleOutcome.Won), "the node battle must be won");
+        run.SettleBattle(battle);
+        return battle;
+    }
+
+    /// <summary>
+    /// Plays a battle to its end: every charted action is answered with a Perfect press, an
+    /// attack slot of the action's side first so the hit lands through any Block the enemy
+    /// holds (Guard, PRD 3.6.25), any other line-0 slot otherwise so no damage comes in. With
+    /// the enemy at 1 HP the battle is won.
+    /// </summary>
+    public static void FightToWin(SimBattle battle)
+    {
         var others = new[] { SlotQ, new Slot(0, SlotKey.W), SlotO, new Slot(0, SlotKey.P) };
         foreach (var action in battle.Chart.Actions.OrderBy(a => a.LandingQb))
         {
@@ -302,10 +314,6 @@ internal static class TestContent
         {
             battle.AdvanceToBeat(battle.Track.LengthBeats + 1);
         }
-
-        Assume.That(battle.Outcome, Is.EqualTo(BattleOutcome.Won), "the node battle must be won");
-        run.SettleBattle(battle);
-        return battle;
     }
 
     /// <summary>The same definition with another damage per hit.</summary>

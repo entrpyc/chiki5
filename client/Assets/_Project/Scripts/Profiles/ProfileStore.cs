@@ -107,6 +107,38 @@ namespace Chiki.Client.Profiles
             return profile;
         }
 
+        /// <summary>
+        /// One step per past version: rewrites a file of that version into the next (P22.3).
+        /// Version 1 to 2: <c>bossesDefeated</c> joined the file (P21.5); Unity's JSON reader
+        /// gives a missing field its default, so the step changes nothing but the version.
+        /// </summary>
+        private static readonly Dictionary<int, Func<string, string>> Migrations = new Dictionary<int, Func<string, string>>
+        {
+            [1] = text => text,
+        };
+
+        /// <summary>The file text brought up to this build's schema; a newer file is refused untouched.</summary>
+        public static string Migrate(string text)
+        {
+            var probe = JsonUtility.FromJson<VersionProbe>(text);
+            if (probe.schemaVersion > Profile.CurrentSchemaVersion)
+            {
+                throw new ProfileVersionException("The profile was written by a newer build (schema " + probe.schemaVersion + ", this build reads up to " + Profile.CurrentSchemaVersion + ").");
+            }
+
+            for (int from = probe.schemaVersion; from < Profile.CurrentSchemaVersion; from++)
+            {
+                if (!Migrations.TryGetValue(from, out var step))
+                {
+                    throw new ProfileVersionException("No migration from profile schema " + from + " to " + (from + 1) + ".");
+                }
+
+                text = step(text);
+            }
+
+            return text;
+        }
+
         public Profile Load(string name)
         {
             name = ValidName(name);
@@ -116,14 +148,18 @@ namespace Chiki.Client.Profiles
                 throw new FileNotFoundException("No profile named '" + name + "'.", path);
             }
 
-            var text = File.ReadAllText(path);
-            var probe = JsonUtility.FromJson<VersionProbe>(text);
-            if (probe.schemaVersion > Profile.CurrentSchemaVersion)
+            string text;
+            try
             {
-                throw new ProfileVersionException("Profile '" + name + "' was written by a newer build (schema " + probe.schemaVersion + ", this build reads up to " + Profile.CurrentSchemaVersion + ").");
+                text = Migrate(File.ReadAllText(path));
+            }
+            catch (ProfileVersionException e)
+            {
+                throw new ProfileVersionException("Profile '" + name + "': " + e.Message);
             }
 
             var profile = JsonUtility.FromJson<Profile>(text);
+            profile.StampSchemaVersion();
             profile.Name = name;
             profile.RunLogFolder = Path.Combine(FolderOf(name), RunLogFolderName);
             profile.EnsureRelationships();

@@ -85,15 +85,22 @@ namespace Client
             }
         }
 
-        /// <summary>
-        /// Fights the current node's battle to a win: the enemy has 1 HP and every charted action
-        /// is answered with a Perfect press, an attack slot of the action's side first so the hit
-        /// lands through any Block the enemy holds (Guard, PRD 3.6.25), any other line-0 slot
-        /// otherwise. The battle is returned ended, not settled.
-        /// </summary>
+        /// <summary>Fights the current node's battle to a win: the enemy has 1 HP and every charted action is answered (see <see cref="FightToWin"/>). The battle is returned ended, not settled.</summary>
         public static SimBattle FightNodeBattle(Run run)
         {
             var battle = run.StartNodeBattle(enemyHp: 1);
+            FightToWin(battle);
+            return battle;
+        }
+
+        /// <summary>
+        /// Plays a battle to its end: every charted action is answered with a Perfect press, an
+        /// attack slot of the action's side first so the hit lands through any Block the enemy
+        /// holds (Guard, PRD 3.6.25), any other line-0 slot otherwise so no damage comes in.
+        /// With the enemy at 1 HP the battle is won.
+        /// </summary>
+        public static void FightToWin(SimBattle battle)
+        {
             var others = new[] { new Slot(0, SlotKey.Q), new Slot(0, SlotKey.W), new Slot(0, SlotKey.O), new Slot(0, SlotKey.P) };
             var left = new[] { SlotE, SlotR, new Slot(0, SlotKey.U), new Slot(0, SlotKey.I) };
             var right = new[] { new Slot(0, SlotKey.U), new Slot(0, SlotKey.I), SlotE, SlotR };
@@ -119,8 +126,6 @@ namespace Client
             {
                 battle.AdvanceToBeat(battle.Track.LengthBeats + 1);
             }
-
-            return battle;
         }
 
         public static Track FixtureTrack()

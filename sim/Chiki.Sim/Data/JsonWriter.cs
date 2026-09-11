@@ -86,6 +86,19 @@ namespace Chiki.Sim.Data
             return this;
         }
 
+        /// <summary>A number as its exact text, for writing a parsed document back out.</summary>
+        public JsonWriter Number(string text)
+        {
+            if (string.IsNullOrEmpty(text))
+            {
+                throw new ArgumentException("A number needs its text.", nameof(text));
+            }
+
+            BeforeValue();
+            _text.Append(text);
+            return this;
+        }
+
         public JsonWriter Value(int? value)
         {
             return value is null ? Null() : Value(value.Value);

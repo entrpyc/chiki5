@@ -16,7 +16,8 @@ namespace Chiki.Client.Profiles
     [Serializable]
     public sealed class Profile
     {
-        public const int CurrentSchemaVersion = 1;
+        /// <summary>Version 2 added <c>bossesDefeated</c> (P21.5, P22.3).</summary>
+        public const int CurrentSchemaVersion = 2;
 
         [SerializeField] private int schemaVersion = CurrentSchemaVersion;
         [SerializeField] private string name = "";
@@ -35,6 +36,12 @@ namespace Chiki.Client.Profiles
 
         /// <summary>The version of the file layout this profile was written with.</summary>
         public int SchemaVersion => schemaVersion;
+
+        /// <summary>Marks the record as this build's layout once the store has migrated it (P22.3).</summary>
+        internal void StampSchemaVersion()
+        {
+            schemaVersion = CurrentSchemaVersion;
+        }
 
         /// <summary>Unique on the install (PRD 3.1.1); also the profile's folder name.</summary>
         public string Name

@@ -891,51 +891,51 @@ Ties broken: 3.2.3 is delivered twice, the stat holder in Phase 1 and the Base D
 - Test (integration): `Client.Input › space_plus_key_sends` — given Space held, when D is pressed, then the driver receives a send for Left-Attack-1 and the chain holds 1 card.
 - Test (integration): `Client.Input › space_alone_does_nothing` — given no other key, when Space is pressed and released, then no event reaches the driver.
 
-### Phase 14 — A battle you can see
+### ✅ Phase 14 — A battle you can see
 
 *Delivers the minimal combat presenter needed to judge feel: the Rhythm Line, both loadout lines with cooldowns, status icons, judgment feedback, and the framerate measurement. Done when every P14 test is green and the suite passes.*
 
-#### P14.1 Rhythm Line view
+#### ✅ P14.1 Rhythm Line view
 
 - PRD: 3.3.1.1
-- Does: A horizontal timeline scrolling with the beat clock, marking every beat and the quarter-beat grid, every charted enemy action, and the Judgment Window on the next enemy action; it is on screen for the whole battle.
+- Does: A horizontal timeline scrolling with the beat clock, marking every beat and the quarter-beat grid, every charted enemy action, and the Judgment Window on the next enemy action; it is on screen for the whole battle. Assumption: the line is built in code on a world-space uGUI canvas (`RhythmLineView`) from flat-coloured elements until the visual catalogues carry art; it scrolls every frame to the clock's audio time converted through the beat map, with "now" fixed at 30% of its width, and shows 3 beats behind and 8 ahead.
 - Needs: P12.2, P12.5
 - Test (integration): `Client.Presenter › rhythm_line_present_and_scrolling` — given a running battle, when two beats elapse, then the Rhythm Line element is active and its beat markers have moved by two beat-widths.
 
-#### P14.2 Cooldown overlay and two lines
+#### ✅ P14.2 Cooldown overlay and two lines
 
 - PRD: 3.3.5.4
-- Does: Sixteen slot widgets in two rows; a slot on cooldown shows a dim overlay and the remaining beats as a number; the inactive row is rendered at reduced width; both rows are always visible.
+- Does: Sixteen slot widgets in two rows; a slot on cooldown shows a dim overlay and the remaining beats as a number; the inactive row is rendered at reduced width; both rows are always visible. Assumption: the inactive row is drawn at 70% of the active row's width and height; cooldowns are re-read from the battle after every event, and the active line follows `BattleInput.LineSwitched`.
 - Needs: P12.5, P13.4
 - Test (integration): `Client.Presenter › cooldown_countdown_and_thin_inactive_line` — given a slot with 3 beats left and line 1 active, when rendered, then the slot shows "3" with the overlay and line 2's row width is smaller than line 1's; both rows are active objects.
 
-#### P14.3 Judgment feedback
+#### ✅ P14.3 Judgment feedback
 
 - PRD: 3.3.8.1
-- Does: On InputJudged play a per-grade audio cue and flash the pressed key; while a slot's window is open glow its card; highlight upcoming actions on the Rhythm Line; on DamageTaken above 15 shake the camera briefly.
+- Does: On InputJudged play a per-grade audio cue and flash the pressed key; while a slot's window is open glow its card; highlight upcoming actions on the Rhythm Line; on DamageTaken above 15 shake the camera briefly. Assumption: cues play through their own source, never the track's, and are generated tones (high, middle, low) until recorded cues exist; the flash and the shake decay over half a beat measured on the beat clock; a card glows while the next action's Judgment Window contains the clock's time, its slot is off cooldown, the action is not yet answered and the player is not Stunned; the Rhythm Line brightens actions within a beat and highlights the one whose window is open.
 - Needs: P14.1, P12.5
 - Test (integration): `Client.Presenter › grade_cue_and_flash` — given a Perfect judgment event, when the presenter handles it, then the Perfect cue plays and the key widget's flash is triggered.
 - Test (integration): `Client.Presenter › glow_during_open_window` — given the Judgment Window opens, when rendered, then the playable cards glow and stop glowing after it closes.
 - Test (integration): `Client.Presenter › shake_on_heavy_hit` — given DamageTaken of 20, when handled, then the camera shake is triggered; given 5, it is not.
 
-#### P14.4 Status icons
+#### ✅ P14.4 Status icons
 
 - PRD: 3.3.7.1
-- Does: Statuses on each side render as icons above that side's HP or ARD bar with stack count and a tooltip on hover naming the status, its effect and remaining beats.
+- Does: Statuses on each side render as icons above that side's HP or ARD bar with stack count and a tooltip on hover naming the status, its effect and remaining beats. Assumption: one icon per status kind shows the kind's total stacks and its longest time left, or no countdown for a status that lasts until consumed; the string table of PRD 3.12.7 is the flat JSON file `data/strings/en.json` read through `Strings`, so another language is another file; the bars show the enemy's HP and the player's ARD with Block when held.
 - Needs: P12.5, P5.1
 - Test (integration): `Client.Presenter › status_icon_with_tooltip` — given Bleed 2 on the enemy with 6 beats left, when rendered, then an icon with "2" sits above the enemy bar and its tooltip contains "Bleed" and "6".
 
-#### P14.5 Frame rate holds
+#### ✅ P14.5 Frame rate holds
 
 - PRD: 6.2
-- Does: The battle scene, with the fixture Boss and all presenters active, renders at 1080p; a measurement records average and 1% low frame time over 30 seconds on the build machine, and audio underruns are counted.
+- Does: The battle scene, with the fixture Boss and all presenters active, renders at 1080p; a measurement records average and 1% low frame time over 30 seconds on the build machine, and audio underruns are counted. Assumption: `Battle.unity` holds a `BattleScene` bootstrap that loads the fixture content from `data/`, fills the sixteen slots from the starter set by Category, builds the battle against `enemy-malk` at World 1 balance and plays a generated click track until the track has a recording; the measurement raises the player's ARD so the window is not cut short by a death, the 1% low is the mean of the slowest 1% of frames, and an audio underrun is counted whenever the DSP clock falls behind the realtime clock by more than the output ring plus one buffer, with a 2-second settle before the window; the numbers are written to the test log.
 - Needs: P14.1, P14.2, P14.3, P14.4
 - Test (measurement): `Client.Perf › battle_scene_60fps_no_audio_dropouts` — given the battle scene at 1080p, when 30 seconds run, then the 1% low frame time is under 16.7ms and zero audio underruns are recorded.
 
-#### P14.6 Upcoming actions on the Rhythm Line
+#### ✅ P14.6 Upcoming actions on the Rhythm Line
 
 - PRD: 3.6.3
-- Does: Every upcoming enemy action from P9.5 is drawn on the Rhythm Line at its beat with its kind (Left, Right, Defend, Buff, Charge wind-up) and a beats-remaining number.
+- Does: Every upcoming enemy action from P9.5 is drawn on the Rhythm Line at its beat with its kind (Left, Right, Defend, Buff, Charge wind-up) and a beats-remaining number. Assumption: the kind is a colour and a string-table label, the number is the whole beats remaining from the battle's current position, and a Charge draws its wind-up as a bar from the telegraph's start to the landing.
 - Needs: P14.1, P9.5
 - Test (integration): `Client.Presenter › telegraph_drawn_with_countdown` — given AttackLeft at beat 4 and the battle at beat 1, when rendered, then a Left marker sits at beat 4 showing "3".
 

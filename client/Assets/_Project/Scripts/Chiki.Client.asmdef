@@ -2,7 +2,8 @@
     "name": "Chiki.Client",
     "rootNamespace": "Chiki.Client",
     "references": [
-        "Unity.InputSystem"
+        "Unity.InputSystem",
+        "UnityEngine.UI"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

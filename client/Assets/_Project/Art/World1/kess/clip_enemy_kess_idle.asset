@@ -1,0 +1,62 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 087105096b754cb4aaf6b6bf7eaf6cd6, type: 3}
+  m_Name: clip_enemy_kess_idle
+  m_EditorClassIdentifier: Chiki.Client::Chiki.Client.Visuals.SpriteClip
+  kind: enemy
+  subject: kess
+  variant: idle
+  frames:
+  - {fileID: 21300000, guid: c390dae73096fc54e9273abded27e137, type: 3}
+  - {fileID: 21300000, guid: 905082612480e65439b7f16eb78f712c, type: 3}
+  - {fileID: 21300000, guid: 032fa3c6ec06b3948b16e4f09a2688af, type: 3}
+  - {fileID: 21300000, guid: b593bb796b7413144bdd844c87105be0, type: 3}
+  - {fileID: 21300000, guid: efa53fba85f330d40b38cbce807df6f8, type: 3}
+  - {fileID: 21300000, guid: 1bd20cae7a8b4014885bd4ac60545050, type: 3}
+  - {fileID: 21300000, guid: 35b80973508d1574f88f1662b62bdfcd, type: 3}
+  - {fileID: 21300000, guid: b2f75ebbd3b254b42af33d1896e5425a, type: 3}
+  lengthBeats: 2
+  loop: 1
+  strikeFrame: 0
+  frameBounds:
+  - X: 168
+    Y: 0
+    Width: 158
+    Height: 427
+  - X: 154
+    Y: 0
+    Width: 170
+    Height: 428
+  - X: 148
+    Y: 0
+    Width: 176
+    Height: 428
+  - X: 154
+    Y: 0
+    Width: 170
+    Height: 428
+  - X: 168
+    Y: 0
+    Width: 158
+    Height: 427
+  - X: 184
+    Y: 0
+    Width: 144
+    Height: 427
+  - X: 190
+    Y: 0
+    Width: 138
+    Height: 426
+  - X: 184
+    Y: 0
+    Width: 144
+    Height: 427

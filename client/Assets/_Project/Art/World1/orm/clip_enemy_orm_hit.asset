@@ -1,0 +1,42 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 087105096b754cb4aaf6b6bf7eaf6cd6, type: 3}
+  m_Name: clip_enemy_orm_hit
+  m_EditorClassIdentifier: Chiki.Client::Chiki.Client.Visuals.SpriteClip
+  kind: enemy
+  subject: orm
+  variant: hit
+  frames:
+  - {fileID: 21300000, guid: 511350eaa9f58a94497c551fefaeb565, type: 3}
+  - {fileID: 21300000, guid: b0e5edba2a448554ba74eb565fa6f12b, type: 3}
+  - {fileID: 21300000, guid: 3637a9d13ab864d4d843fb3badc2ea83, type: 3}
+  - {fileID: 21300000, guid: 431e35fa8690ed04bb6baef6048c71a3, type: 3}
+  lengthBeats: 1
+  loop: 0
+  strikeFrame: 0
+  frameBounds:
+  - X: 175
+    Y: 0
+    Width: 287
+    Height: 348
+  - X: 207
+    Y: 0
+    Width: 274
+    Height: 334
+  - X: 171
+    Y: 0
+    Width: 249
+    Height: 356
+  - X: 166
+    Y: 0
+    Width: 185
+    Height: 365

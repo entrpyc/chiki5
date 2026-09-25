@@ -1,0 +1,62 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 087105096b754cb4aaf6b6bf7eaf6cd6, type: 3}
+  m_Name: clip_enemy_orm_death
+  m_EditorClassIdentifier: Chiki.Client::Chiki.Client.Visuals.SpriteClip
+  kind: enemy
+  subject: orm
+  variant: death
+  frames:
+  - {fileID: 21300000, guid: e5f91d49e96f6f245ad0676ad2edc61a, type: 3}
+  - {fileID: 21300000, guid: 5fd86441ca1f71c48abaaff28279a668, type: 3}
+  - {fileID: 21300000, guid: 00ff086c75b073c4492b1145e80542d9, type: 3}
+  - {fileID: 21300000, guid: b5481a91e8ad2864886a4c98814eedc2, type: 3}
+  - {fileID: 21300000, guid: 10eb3bece3b738e45875d693d2b25151, type: 3}
+  - {fileID: 21300000, guid: 7c23b517670afad4f982dfd6eb4b534f, type: 3}
+  - {fileID: 21300000, guid: 9fb6e471b058b064ba1231b4d4c2b73a, type: 3}
+  - {fileID: 21300000, guid: 1b54cf2da9391d04496b570acea41606, type: 3}
+  lengthBeats: 2
+  loop: 0
+  strikeFrame: 0
+  frameBounds:
+  - X: 164
+    Y: 0
+    Width: 214
+    Height: 365
+  - X: 164
+    Y: 0
+    Width: 192
+    Height: 349
+  - X: 152
+    Y: 0
+    Width: 199
+    Height: 328
+  - X: 136
+    Y: 0
+    Width: 231
+    Height: 300
+  - X: 119
+    Y: 0
+    Width: 264
+    Height: 268
+  - X: 107
+    Y: 0
+    Width: 291
+    Height: 230
+  - X: 100
+    Y: 0
+    Width: 312
+    Height: 189
+  - X: 99
+    Y: 0
+    Width: 326
+    Height: 152

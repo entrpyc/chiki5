@@ -1,0 +1,52 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 087105096b754cb4aaf6b6bf7eaf6cd6, type: 3}
+  m_Name: clip_enemy_malk_attack-left
+  m_EditorClassIdentifier: Chiki.Client::Chiki.Client.Visuals.SpriteClip
+  kind: enemy
+  subject: malk
+  variant: attack-left
+  frames:
+  - {fileID: 21300000, guid: 885ae7059c25273458902c68e273b962, type: 3}
+  - {fileID: 21300000, guid: 26619e476aa99f24bb6dc3dff35d56a8, type: 3}
+  - {fileID: 21300000, guid: 655d274760f0596418b0314d0dcb5499, type: 3}
+  - {fileID: 21300000, guid: 0b3923d33658fdc498db1a64f7e7706d, type: 3}
+  - {fileID: 21300000, guid: 7600b576b88375f41b290b88605dcf9f, type: 3}
+  - {fileID: 21300000, guid: e1689493d2812394e86ef32914de316f, type: 3}
+  lengthBeats: 2
+  loop: 0
+  strikeFrame: 3
+  frameBounds:
+  - X: 214
+    Y: 0
+    Width: 258
+    Height: 424
+  - X: 176
+    Y: 0
+    Width: 209
+    Height: 425
+  - X: 0
+    Y: 0
+    Width: 339
+    Height: 411
+  - X: 0
+    Y: 0
+    Width: 339
+    Height: 422
+  - X: 55
+    Y: 0
+    Width: 280
+    Height: 428
+  - X: 130
+    Y: 0
+    Width: 201
+    Height: 431

@@ -4,10 +4,12 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Chiki.Client.Presenter;
 using Chiki.Client.Profiles;
 using Chiki.Sim;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.TestTools;
 using Object = UnityEngine.Object;
 
@@ -116,6 +118,43 @@ namespace Client
             Assert.That(flow.Battle, Is.Not.Null, "Confirm did not start the battle");
             Assert.That(run.CurrentBattle, Is.Not.Null);
             Assert.That(flow.Binder, Is.Null, "the Binder stayed open");
+        }
+
+        [UnityTest]
+        [Timeout(60000)]
+        public IEnumerator binder_previews_card_faces()
+        {
+            var flow = ClientTestContent.FlowWithRun(_root, "A", "chiki-1", _hosts, out _);
+            var run = flow.Run!;
+            yield return ClientTestContent.OpenBattleNode(flow);
+            Assume.That(flow.PreBattle, Is.Not.Null, "no battle node could be opened");
+            Assume.That(flow.PreBattle!.ChooseEdit(), Is.True, "Edit did not open the Binder");
+            yield return null;
+            var binder = flow.Binder;
+            Assume.That(binder, Is.Not.Null, "the Binder screen did not open");
+            Assume.That(binder!.Candidates, Has.Count.GreaterThanOrEqualTo(2), "the selected slot needs two cards to move between");
+
+            var slotFaces = binder.SlotFaces;
+            var owned = binder.OwnedFaces.ToArray();
+            var first = binder.PreviewFace.Card;
+            binder.KeyDown(Key.DownArrow);
+            var moved = binder.Highlighted;
+            var preview = binder.PreviewFace;
+
+            Assert.That(slotFaces, Has.Count.EqualTo(16), "the Binder does not show sixteen slot faces");
+            foreach (var slot in Slot.All)
+            {
+                var face = slotFaces[slot];
+                Assert.That(face.Size, Is.EqualTo(CardFaceSize.Compact), slot + " is not a compact face");
+                Assert.That(face.Card, Is.SameAs(run.Loadout[slot]!.Definition), slot + "'s face does not show the card in the slot");
+            }
+
+            Assert.That(owned.Select(f => f.Size), Has.All.EqualTo(CardFaceSize.Compact), "an owned card is not a compact face");
+            Assert.That(owned.Select(f => f.Card), Is.EqualTo(run.Binder.Cards.Select(c => c.Definition)), "not every owned card appears as a face");
+            Assert.That(first, Is.SameAs(binder.Candidates[0].Definition), "the preview did not start on the highlighted card");
+            Assert.That(moved, Is.SameAs(binder.Candidates[1]), "Down did not move the selection to the next card");
+            Assert.That(preview.Size, Is.EqualTo(CardFaceSize.Full), "the preview is not a full face");
+            Assert.That(preview.Card, Is.SameAs(moved!.Definition), "the preview does not show the card the selection moved to");
         }
 
         [UnityTest]

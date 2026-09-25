@@ -21,6 +21,12 @@ namespace Chiki.Client.Presenter
         public const float CanvasHeight = 1080f;
         public const float PixelsPerUnit = 100f;
 
+        /// <summary>Where the enemy's bar and its statuses sit.</summary>
+        public static readonly Vector2 EnemyPoint = new Vector2(520f, 150f);
+
+        /// <summary>Where the player's bar sits, and so where a heavy hit bursts over the player (P4.2).</summary>
+        public static readonly Vector2 PlayerPoint = new Vector2(-520f, -150f);
+
         public Canvas Canvas { get; private set; } = null!;
 
         public RhythmLineView RhythmLine { get; private set; } = null!;
@@ -38,6 +44,9 @@ namespace Chiki.Client.Presenter
 
         /// <summary>The shake on the battle camera; null when the HUD was built without a camera.</summary>
         public CameraShake? Shake { get; private set; }
+
+        /// <summary>The burst a heavy hit plays over the player (P4.2).</summary>
+        public HitEffectView HitEffect { get; private set; } = null!;
 
         public static BattleHud Build(BattleDriver driver, Camera? camera, BattleInput? input, Func<Slot, CardDefinition?>? cardInSlot)
         {
@@ -59,7 +68,8 @@ namespace Chiki.Client.Presenter
             hud.Canvas = canvas;
 
             hud.RhythmLine = RhythmLineView.Build(driver, rect, new Vector2(0f, 330f), new Vector2(1600f, 180f));
-            hud.Statuses = StatusIconsView.Build(driver, rect, new Vector2(520f, 150f), new Vector2(-520f, -150f));
+            hud.Statuses = StatusIconsView.Build(driver, rect, EnemyPoint, PlayerPoint);
+            hud.HitEffect = HitEffectView.Build(rect, PlayerPoint, driver.Clock);
             hud.Slots = SlotRowsView.Build(driver, rect, new Vector2(0f, -360f), cardInSlot, input);
             hud.Crp = CrpView.Build(driver, rect, new Vector2(0f, 500f));
 
@@ -75,7 +85,7 @@ namespace Chiki.Client.Presenter
             }
 
             hud.Cues = root.AddComponent<JudgmentCues>();
-            hud.Feedback = FeedbackPresenter.Build(driver, root, hud.Cues, hud.Slots, hud.Shake, cardInSlot);
+            hud.Feedback = FeedbackPresenter.Build(driver, root, hud.Cues, hud.Slots, hud.Shake, cardInSlot, hud.HitEffect);
             return hud;
         }
     }

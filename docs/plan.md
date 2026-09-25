@@ -236,13 +236,13 @@ After that the order follows what the player reads first in a fight. The Rhythm 
 - Needs: P3.1, P1.4
 - Test (integration): `Client.Presenter › disabled_press_sound_and_flash` — given the shipped catalogues and E cooling with 2 beats left, when E is pressed, then the shipped `press-disabled` clip plays once, E shows the disabled flash and not the press flash, and no judgment cue plays.
 
-### Phase 4 — Feedback you hear and feel
+### ✅ Phase 4 — Feedback you hear and feel
 
 *Judgments sound like the game, heavy hits burst, and statuses, bars, Block and CRP are drawn. Done when every P4 test is green and the suite passes.*
 
 **Generated assets:** `tools/gen-phase4-art.mjs` draws the four-frame heavy-hit burst with its clip sidecar, the six status icons, the tooltip panel, the bar frame, the two bar fills, the Block icon and the CRP icon; `tools/gen-phase4-audio.mjs` renders the three judgment cues as short shaped tones, each struck in its first millisecond and each unmistakable against the other two. Sixteen sprites, one sidecar and three WAVs.
 
-#### P4.1 Recorded judgment cues
+#### ✅ P4.1 Recorded judgment cues
 - PRD: 3.3.8.1
 - Does: `JudgmentCues` plays the recorded Perfect, Good and Miss clips from the audio catalogue through its own source.
 - Assets: `sfx_cue_perfect.wav`, `sfx_cue_good.wav`, `sfx_cue_miss.wav`, each under 150 ms with its attack inside the first 5 ms, so the cue sits on the beat.
@@ -250,14 +250,14 @@ After that the order follows what the player reads first in a fight. The Rhythm 
 - Test (measurement): `Client.Catalogue › judgment_cues_complete_and_tight` — given the shipped audio catalogue, when the three cues are read, then each exists, lasts under 150 ms, imports as Decompress On Load, and has its first sample above half its peak within 5 ms of the start.
 - Test (integration): `Client.Presenter › judgment_cues_play_recordings` — given the shipped catalogue, when a Perfect, a Good and a Miss are judged, then the three recorded clips play in that order and no generated tone plays.
 
-#### P4.2 Heavy-hit effect
+#### ✅ P4.2 Heavy-hit effect
 - PRD: 3.3.8.1
 - Does: a `DamageTaken` of 15 or more plays the heavy-hit clip over the player through `BeatAnimator`, alongside today's camera shake; smaller hits play neither.
 - Assets: `spr_vfx_hit-heavy_burst_01.png` to `_04.png`, 256 × 256, one beat long; `vfx_hit-heavy.clips.json` giving burst 1 beat, no loop, strike frame 1.
 - Needs: P1.5, P1.3
 - Test (integration): `Client.Presenter › heavy_hit_plays_effect` — given the shipped catalogue, when DamageTaken 20 is handled, then the heavy-hit clip starts over the player and the shake triggers; when DamageTaken 5 is handled, neither happens.
 
-#### P4.3 Status icons and tooltip
+#### ✅ P4.3 Status icons and tooltip
 - PRD: 3.3.7.1
 - Does: status icons use their art, 44 px on screen, with the stack count as text; the tooltip panel uses the tooltip sprite.
 - Assets, in `Art/Shared/status/`: `spr_status_scar_static_01.png`, `spr_status_weak_static_01.png`, `spr_status_stun_static_01.png`, `spr_status_bleed_static_01.png`, `spr_status_thorns_static_01.png`, `spr_status_disarmed_static_01.png`, 64 × 64 each, told apart by shape; `spr_ui_tooltip_static_01.png`, 9-slice, 260 × 70, 12 px borders.
@@ -265,14 +265,14 @@ After that the order follows what the player reads first in a fight. The Rhythm 
 - Test (integration): `Client.Catalogue › status_icons_complete` — given the shipped catalogue, when the six statuses are looked up, then each has a 64 × 64 icon and no two are the same image.
 - Test (integration): `Client.Presenter › status_icon_drawn_from_catalogue` — given Bleed 2 on the enemy with 6 beats left, when rendered, then the icon carries the bleed sprite with "2" and its tooltip panel carries the tooltip sprite.
 
-#### P4.4 Bars and Block
+#### ✅ P4.4 Bars and Block
 - PRD: 3.3.7.1
 - Does: the enemy HP and player ARD bars use a frame and a horizontal filled image each; Block shows as its icon and value beside the bar instead of a text suffix.
 - Assets: `spr_ui_bar_frame_01.png`, 9-slice, 560 × 32, 8 px borders; `spr_ui_bar_fill-enemy_01.png` and `spr_ui_bar_fill-ard_01.png`, 552 × 24; `spr_ui_block_static_01.png`, 64 × 64.
 - Needs: P1.3
 - Test (integration): `Client.Presenter › bars_fill_and_block_icon` — given enemy HP 60 of 120 and ARD 300 of 300 with Block 10, when rendered, then the enemy fill is 0.5, the ARD fill is 1, the Block icon shows with 10, and every bar image carries a catalogue sprite.
 
-#### P4.5 CRP badge
+#### ✅ P4.5 CRP badge
 - PRD: 3.8.1
 - Does: the CRP value on the map and in battle sits beside the CRP icon; the change label still shows source and amount.
 - Assets: `spr_ui_crp_static_01.png`, 64 × 64.

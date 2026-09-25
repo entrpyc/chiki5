@@ -9,18 +9,32 @@ namespace Chiki.Client.Presenter
 {
     /// <summary>
     /// One status icon above a side's bar (PRD 3.3.7.1): the icon the visual catalogue holds
-    /// for the status, tinted by its colour, its stack count, and a tooltip on hover naming the status,
-    /// its effect and the beats remaining.
+    /// for the status at <see cref="SideBarView.IconSize"/> on screen, its stack count, and a
+    /// tooltip on hover naming the status, its effect and the beats remaining. The icon carries
+    /// the status's colour only while its art is owed; shipped art brings its own (P4.3).
     /// </summary>
     [DisallowMultipleComponent]
     public sealed class StatusIconWidget : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     {
+        /// <summary>The kind the status icons are catalogued under; the id is the status's (PRD 3.3.7.1).</summary>
+        public const string StatusKindName = "status";
+
+        /// <summary>The kind the tooltip panel is catalogued under (P4.3).</summary>
+        public const string UiKind = "ui";
+
+        public const string TooltipId = "tooltip";
+
+        /// <summary>The tooltip panel's drawn size, the sprite's own (P4.3).</summary>
+        public static readonly Vector2 TooltipSize = new Vector2(260f, 70f);
+
         private static readonly Color TooltipBackground = new Color(0.05f, 0.05f, 0.07f, 0.95f);
 
         private Image _icon = null!;
         private UnityEngine.UI.Text _stacks = null!;
+        private Image _tooltipPanel = null!;
         private RectTransform _tooltip = null!;
         private UnityEngine.UI.Text _tooltipLabel = null!;
+        private StatusKind? _drawn;
 
         public RectTransform Rect => (RectTransform)transform;
 
@@ -40,6 +54,12 @@ namespace Chiki.Client.Presenter
         /// <summary>The icon's sprite, from the visual catalogue under <c>status/&lt;kind&gt;</c> (P1.3).</summary>
         public Sprite? Sprite => _icon.sprite;
 
+        /// <summary>The icon on screen, at <see cref="SideBarView.IconSize"/> square (P4.3).</summary>
+        public Image Icon => _icon;
+
+        /// <summary>The panel behind the tooltip's text, drawn from the catalogue (P4.3).</summary>
+        public Image TooltipPanel => _tooltipPanel;
+
         /// <summary>The catalogue id of a status kind, the lowercase name (<c>bleed</c>).</summary>
         public static string IdOf(StatusKind kind)
         {
@@ -57,7 +77,9 @@ namespace Chiki.Client.Presenter
             widget._stacks.rectTransform.offsetMin = new Vector2(0f, 2f);
             widget._stacks.rectTransform.offsetMax = new Vector2(-3f, 0f);
 
-            var tooltip = HudFactory.Image("Tooltip", icon.rectTransform, TooltipBackground, new Vector2(0f, size / 2f + 40f), new Vector2(260f, 70f));
+            var panel = new LinePiece(UiKind, TooltipId, TooltipBackground);
+            var tooltip = HudFactory.Image("Tooltip", icon.rectTransform, panel.Tint, new Vector2(0f, size / 2f + 40f), TooltipSize, panel.Sprite);
+            widget._tooltipPanel = tooltip;
             widget._tooltip = tooltip.rectTransform;
             widget._tooltipLabel = HudFactory.StretchedText("Text", widget._tooltip, 14, Color.white, TextAnchor.MiddleLeft);
             widget._tooltipLabel.rectTransform.offsetMin = new Vector2(8f, 4f);
@@ -71,8 +93,14 @@ namespace Chiki.Client.Presenter
             Kind = kind;
             Stacks = stacks;
             RemainingBeats = remainingBeats;
-            _icon.color = ColorFor(kind);
-            HudFactory.SetSprite(_icon, VisualCatalogue.Active.Sprite("status", IdOf(kind)));
+            if (_drawn != kind)
+            {
+                _drawn = kind;
+                var art = new LinePiece(StatusKindName, IdOf(kind), ColorFor(kind));
+                _icon.color = art.Tint;
+                HudFactory.SetSprite(_icon, art.Sprite);
+            }
+
             _stacks.text = stacks.ToString();
             _tooltipLabel.text = Labels.StatusTooltip(kind, stacks, remainingBeats);
         }

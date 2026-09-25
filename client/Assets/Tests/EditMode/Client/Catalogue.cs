@@ -175,11 +175,101 @@ namespace Client
             Assert.That(catalogue.Missing, Is.Empty, "a Category's art fell back: " + string.Join(", ", catalogue.Missing));
         }
 
+        /// <summary>P4.1: the three recorded cues exist, are short, decompress on load and land on their first millisecond.</summary>
+        [Test]
+        public void judgment_cues_complete_and_tight()
+        {
+            var catalogue = ShippedAudio();
+            foreach (var grade in new[] { Judgment.Perfect, Judgment.Good, Judgment.Miss })
+            {
+                string id = JudgmentCues.IdOf(grade);
+                var clip = catalogue.Sound(id);
+                Assert.That(clip, Is.Not.Null, id + " has no recording in the shipped audio catalogue");
+
+                float milliseconds = clip!.length * 1000f;
+                Assert.That(milliseconds, Is.LessThan(150f), id + " lasts " + milliseconds + " ms, at or over the 150 ms the plan allows");
+
+                string assetPath = AssetDatabase.GetAssetPath(clip);
+                var importer = (AudioImporter)AssetImporter.GetAtPath(assetPath);
+                Assert.That(
+                    importer.defaultSampleSettings.loadType,
+                    Is.EqualTo(AudioClipLoadType.DecompressOnLoad),
+                    id + " does not import as Decompress On Load, so it would decode on the beat");
+
+                var samples = new float[clip.samples * clip.channels];
+                Assert.That(clip.GetData(samples, 0), Is.True, id + " could not be read back");
+
+                float peak = 0f;
+                foreach (float sample in samples)
+                {
+                    peak = Mathf.Max(peak, Mathf.Abs(sample));
+                }
+
+                Assert.That(peak, Is.GreaterThan(0f), id + " is silent");
+
+                int first = -1;
+                for (int i = 0; i < samples.Length; i++)
+                {
+                    if (Mathf.Abs(samples[i]) >= peak / 2f)
+                    {
+                        first = i / clip.channels;
+                        break;
+                    }
+                }
+
+                Assert.That(first, Is.GreaterThanOrEqualTo(0));
+                float attackMs = first * 1000f / clip.frequency;
+                Assert.That(attackMs, Is.LessThan(5f), id + " reaches half its peak after " + attackMs + " ms, so the cue would drag behind the beat");
+            }
+
+            Assert.That(catalogue.Missing, Is.Empty, "a judgment cue fell back: " + string.Join(", ", catalogue.Missing));
+        }
+
+        /// <summary>P4.3: one icon per status, each at 64 by 64 and each a different image.</summary>
+        [Test]
+        public void status_icons_complete()
+        {
+            var catalogue = Shipped();
+            var images = new Dictionary<string, byte[]>();
+            foreach (StatusKind kind in System.Enum.GetValues(typeof(StatusKind)))
+            {
+                string id = StatusIconWidget.IdOf(kind);
+                Assert.That(catalogue.Has(StatusIconWidget.StatusKindName, id), Is.True, id + " has no icon in the shipped catalogue");
+                var sprite = catalogue.Sprite(StatusIconWidget.StatusKindName, id);
+                Assert.That(sprite.rect.size, Is.EqualTo(new Vector2(64f, 64f)), id + " is not a 64 by 64 icon");
+                images[id] = File.ReadAllBytes(AssetDatabase.GetAssetPath(sprite));
+            }
+
+            Assert.That(images, Has.Count.EqualTo(6), "the six statuses of PRD 3.3.7.1 were not all looked up");
+
+            foreach (var one in images)
+            {
+                foreach (var other in images)
+                {
+                    if (one.Key != other.Key)
+                    {
+                        Assert.That(one.Value, Is.Not.EqualTo(other.Value), one.Key + " and " + other.Key + " are the same image");
+                    }
+                }
+            }
+
+            Assert.That(catalogue.Missing, Is.Empty, "a status icon fell back: " + string.Join(", ", catalogue.Missing));
+        }
+
         /// <summary>The catalogue the game ships with, with nothing recorded as missing yet.</summary>
         private static VisualCatalogue Shipped()
         {
             var catalogue = AssetDatabase.LoadAssetAtPath<VisualCatalogue>(VisualCatalogue.AssetPath);
             Assert.That(catalogue, Is.Not.Null, "no catalogue at " + VisualCatalogue.AssetPath + "; run Chiki > Rebuild Visual Catalogue");
+            catalogue.ClearMissing();
+            return catalogue;
+        }
+
+        /// <summary>The audio catalogue the game ships with, with nothing recorded as missing yet.</summary>
+        private static AudioCatalogue ShippedAudio()
+        {
+            var catalogue = AssetDatabase.LoadAssetAtPath<AudioCatalogue>(AudioCatalogue.AssetPath);
+            Assert.That(catalogue, Is.Not.Null, "no catalogue at " + AudioCatalogue.AssetPath + "; run Chiki > Rebuild Visual Catalogue");
             catalogue.ClearMissing();
             return catalogue;
         }

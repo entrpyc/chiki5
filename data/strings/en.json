@@ -21,7 +21,7 @@
   "action.charge": "Charge",
   "bar.enemy_hp": "{0} / {1}",
   "bar.ard": "ARD {0} / {1}",
-  "bar.block": "Block {0}",
+  "bar.block": "{0}",
   "slot.empty": "-",
   "line.label": "Line {0}",
   "calibration.title": "Calibration",

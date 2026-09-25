@@ -10,7 +10,8 @@ namespace Chiki.Client.Presenter
     /// <summary>
     /// Judgment feedback (PRD 3.3.8.1): a cue per grade and a key flash on every graded input,
     /// a glow on the cards that can be played while the next action's Judgment Window is open,
-    /// and a light camera shake when a hit costs more than <see cref="HeavyHitThreshold"/> ARD.
+    /// and a light camera shake with a burst over the player when a hit costs
+    /// <see cref="HeavyHitThreshold"/> ARD or more.
     /// A refused press gets its own sound and its own flash instead (PRD 3.3.5.3).
     /// The Rhythm Line highlights its own incoming actions. Everything here reads the event
     /// stream and battle state; nothing changes them.
@@ -18,7 +19,7 @@ namespace Chiki.Client.Presenter
     [DisallowMultipleComponent]
     public sealed class FeedbackPresenter : MonoBehaviour, IBattlePresenter
     {
-        /// <summary>ARD lost in one hit above which the hit counts as heavy (PRD 3.3.8.1).</summary>
+        /// <summary>ARD lost in one hit at or above which the hit counts as heavy (PRD 3.3.8.1).</summary>
         public const int HeavyHitThreshold = 15;
 
         /// <summary>The shake offset on a heavy hit, in world units.</summary>
@@ -34,9 +35,12 @@ namespace Chiki.Client.Presenter
 
         public CameraShake? Shake { get; private set; }
 
+        /// <summary>The burst a heavy hit plays over the player (P4.2); null when the HUD was built without one.</summary>
+        public HitEffectView? HeavyHit { get; private set; }
+
         public BeatClock? Clock { get; private set; }
 
-        public static FeedbackPresenter Build(BattleDriver driver, GameObject host, JudgmentCues cues, SlotRowsView? slots, CameraShake? shake, Func<Slot, CardDefinition?>? cardInSlot)
+        public static FeedbackPresenter Build(BattleDriver driver, GameObject host, JudgmentCues cues, SlotRowsView? slots, CameraShake? shake, Func<Slot, CardDefinition?>? cardInSlot, HitEffectView? heavyHit = null)
         {
             if (driver == null)
             {
@@ -52,6 +56,7 @@ namespace Chiki.Client.Presenter
             presenter.Cues = cues != null ? cues : throw new ArgumentNullException(nameof(cues));
             presenter.Slots = slots;
             presenter.Shake = shake;
+            presenter.HeavyHit = heavyHit;
             presenter.Clock = driver.Clock;
             presenter._battle = driver.Battle;
             presenter._cardInSlot = cardInSlot;
@@ -75,8 +80,9 @@ namespace Chiki.Client.Presenter
                     Slots?.FlashDisabled(disabled.Slot, NowMs(battle));
                     break;
 
-                case DamageTaken taken when taken.Amount > HeavyHitThreshold:
+                case DamageTaken taken when taken.Amount >= HeavyHitThreshold:
                     Shake?.Trigger(NowMs(battle), HudFactory.BeatMs(battle), ShakeAmplitude);
+                    HeavyHit?.Play(NowMs(battle));
                     break;
             }
         }

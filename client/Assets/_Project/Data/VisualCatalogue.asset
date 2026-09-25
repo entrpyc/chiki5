@@ -13,6 +13,56 @@ MonoBehaviour:
   m_Name: VisualCatalogue
   m_EditorClassIdentifier: Chiki.Client::Chiki.Client.Visuals.VisualCatalogue
   sprites:
+  - kind: ui
+    id: bar-fill-ard
+    subject: bar
+    variant: fill-ard
+    sprite: {fileID: 21300000, guid: 309522e0025227a4195dbb5eec05ee7c, type: 3}
+    opaque:
+      X: 0
+      Y: 0
+      Width: 552
+      Height: 24
+  - kind: ui
+    id: bar-fill-enemy
+    subject: bar
+    variant: fill-enemy
+    sprite: {fileID: 21300000, guid: 027ce74c3bf332f4698c4fc9e14cde25, type: 3}
+    opaque:
+      X: 0
+      Y: 0
+      Width: 552
+      Height: 24
+  - kind: ui
+    id: bar-frame
+    subject: bar
+    variant: frame
+    sprite: {fileID: 21300000, guid: 29be9f65a3beb6640b5bd0ae264b00fc, type: 3}
+    opaque:
+      X: 0
+      Y: 0
+      Width: 560
+      Height: 32
+  - kind: ui
+    id: block
+    subject: block
+    variant: static
+    sprite: {fileID: 21300000, guid: a120c4502bf006e4f9718c96db36b20d, type: 3}
+    opaque:
+      X: 2
+      Y: 2
+      Width: 60
+      Height: 60
+  - kind: ui
+    id: crp
+    subject: crp
+    variant: static
+    sprite: {fileID: 21300000, guid: 69e1e78d5f06f714db4c9b00bed3cfea, type: 3}
+    opaque:
+      X: 9
+      Y: 2
+      Width: 46
+      Height: 60
   - kind: ability
     id: iron-veil
     subject: iron-veil
@@ -193,6 +243,76 @@ MonoBehaviour:
       Y: 1
       Width: 170
       Height: 130
+  - kind: status
+    id: bleed
+    subject: bleed
+    variant: static
+    sprite: {fileID: 21300000, guid: 3392d48f733a6f344908b359891ff2fe, type: 3}
+    opaque:
+      X: 13
+      Y: 5
+      Width: 38
+      Height: 55
+  - kind: status
+    id: disarmed
+    subject: disarmed
+    variant: static
+    sprite: {fileID: 21300000, guid: 563d541aebf4b4044a2a9771fdb9fe54, type: 3}
+    opaque:
+      X: 4
+      Y: 4
+      Width: 56
+      Height: 56
+  - kind: status
+    id: scar
+    subject: scar
+    variant: static
+    sprite: {fileID: 21300000, guid: c2b157b10e115764ba6d76bc70bd72a8, type: 3}
+    opaque:
+      X: 4
+      Y: 5
+      Width: 56
+      Height: 54
+  - kind: status
+    id: stun
+    subject: stun
+    variant: static
+    sprite: {fileID: 21300000, guid: 11dbab7618db0be479e7f21bfefa2f9b, type: 3}
+    opaque:
+      X: 5
+      Y: 9
+      Width: 54
+      Height: 51
+  - kind: status
+    id: thorns
+    subject: thorns
+    variant: static
+    sprite: {fileID: 21300000, guid: 6f1b7720c409cca4f92e71f71aaa7b2b, type: 3}
+    opaque:
+      X: 0
+      Y: 0
+      Width: 64
+      Height: 64
+  - kind: status
+    id: weak
+    subject: weak
+    variant: static
+    sprite: {fileID: 21300000, guid: aa0561721db9fb548ad8420e2516b6ae, type: 3}
+    opaque:
+      X: 12
+      Y: 4
+      Width: 40
+      Height: 56
+  - kind: ui
+    id: tooltip
+    subject: tooltip
+    variant: static
+    sprite: {fileID: 21300000, guid: 837db34aafa1bd3488188efa15e9e51e, type: 3}
+    opaque:
+      X: 0
+      Y: 0
+      Width: 260
+      Height: 70
   - kind: action
     id: attack-left
     subject: attack-left
@@ -263,4 +383,9 @@ MonoBehaviour:
       Y: 0
       Width: 64
       Height: 6
-  clips: []
+  clips:
+  - kind: vfx
+    id: hit-heavy-burst
+    subject: hit-heavy
+    variant: burst
+    clip: {fileID: 11400000, guid: 7e03b35b5db73ba448fb3b2d83d499ab, type: 2}

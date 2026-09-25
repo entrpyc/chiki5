@@ -620,5 +620,162 @@ namespace Client
             Object.Destroy(hud.gameObject);
             rig.Destroy();
         }
+
+        /// <summary>P4.1: every grade plays its shipped recording, never a tone generated in code.</summary>
+        [UnityTest]
+        [Timeout(30000)]
+        public IEnumerator judgment_cues_play_recordings()
+        {
+            ClientTestContent.ShippedVisuals();
+            var audio = ClientTestContent.ShippedAudio();
+            var rig = ClientTestContent.ScheduledRig("presenter-cue-art", Beats.ToQuarterBeats(60));
+            var hud = BattleHud.Build(rig.Driver, null, null, _ => ClientTestContent.LeftAttack10);
+            var battle = rig.Driver.Battle!;
+            yield return rig.WaitUntilAudioMs(0);
+
+            var grades = new[] { Judgment.Perfect, Judgment.Good, Judgment.Miss };
+            var played = new System.Collections.Generic.List<AudioClip>();
+            for (int i = 0; i < grades.Length; i++)
+            {
+                var recorded = audio.Sound(JudgmentCues.IdOf(grades[i]));
+                Assert.That(recorded, Is.Not.Null, "the shipped audio catalogue holds no " + JudgmentCues.IdOf(grades[i]));
+
+                hud.Feedback.OnBattleEvent(battle, new InputJudged(0, i, ClientTestContent.SlotE, ClientTestContent.LeftAttack10.Id, grades[i], 0, false));
+
+                Assert.That(hud.Cues.LastPlayed, Is.EqualTo(grades[i]), grades[i] + " was not the grade that sounded");
+                Assert.That(hud.Cues.LastClip, Is.SameAs(recorded), grades[i] + " did not play the shipped recording");
+                Assert.That(hud.Cues.IsRecorded(grades[i]), Is.True, grades[i] + " fell back to a generated tone");
+                Assert.That(hud.Cues.PlayCount, Is.EqualTo(i + 1), "the cues did not sound once each, in order");
+                played.Add(hud.Cues.LastClip!);
+            }
+
+            Assert.That(played[0], Is.Not.SameAs(played[1]), "Perfect and Good play the same recording");
+            Assert.That(played[1], Is.Not.SameAs(played[2]), "Good and Miss play the same recording");
+            Assert.That(audio.Missing, Is.Empty, "a judgment cue fell back: " + string.Join(", ", audio.Missing));
+
+            Object.Destroy(hud.gameObject);
+            rig.Destroy();
+        }
+
+        /// <summary>P4.2: a hit of 15 ARD or more bursts over the player and shakes the camera; a lighter one does neither.</summary>
+        [UnityTest]
+        [Timeout(30000)]
+        public IEnumerator heavy_hit_plays_effect()
+        {
+            var catalogue = ClientTestContent.ShippedVisuals();
+            var camera = MakeCamera("presenter-heavy-camera");
+            var rig = ClientTestContent.ScheduledRig("presenter-heavy", Beats.ToQuarterBeats(60));
+            var hud = BattleHud.Build(rig.Driver, camera.GetComponent<Camera>(), null, null);
+            var battle = rig.Driver.Battle!;
+            yield return rig.WaitUntilAudioMs(0);
+            Assert.That(hud.Shake, Is.Not.Null, "the HUD has no camera shake");
+
+            hud.Feedback.OnBattleEvent(battle, new DamageTaken(0, 0, 5, 0));
+            Assert.That(hud.HitEffect.Shown, Is.False, "a light hit burst over the player");
+            Assert.That(hud.HitEffect.Animator.Playing, Is.Null, "a light hit started the heavy-hit clip");
+            Assert.That(hud.Shake!.TriggerCount, Is.EqualTo(0), "a light hit shook the camera");
+
+            hud.Feedback.OnBattleEvent(battle, new DamageTaken(0, 0, 20, 0));
+            var clip = catalogue.FindClip(HitEffectView.VfxKind, HitEffectView.HeavyHitSubject, HitEffectView.BurstVariant);
+            Assert.That(clip, Is.Not.Null, "the shipped catalogue holds no heavy-hit burst");
+            Assert.That(clip!.FrameCount, Is.EqualTo(4), "the burst is not the four frames the plan states");
+            Assert.That(clip.StrikeFrame, Is.EqualTo(1), "the burst does not strike on its first frame");
+            Assert.That(hud.HitEffect.Shown, Is.True, "a heavy hit did not burst over the player");
+            Assert.That(hud.HitEffect.Animator.Playing, Is.SameAs(clip), "the burst is not the catalogue's heavy-hit clip");
+            Assert.That(hud.HitEffect.Image.sprite, Is.SameAs(clip.Frame(0)), "the burst is not showing its strike frame");
+            Assert.That(hud.HitEffect.Image.rectTransform.anchoredPosition, Is.EqualTo(BattleHud.PlayerPoint), "the burst is not over the player");
+            Assert.That(hud.Shake.TriggerCount, Is.EqualTo(1), "a heavy hit did not shake the camera");
+            Assert.That(hud.Shake.IsShaking, Is.True);
+
+            Object.Destroy(hud.gameObject);
+            rig.Destroy();
+            Object.Destroy(camera);
+        }
+
+        /// <summary>P4.3: a status icon and its tooltip are shipped art, drawn at the size the plan states.</summary>
+        [UnityTest]
+        [Timeout(30000)]
+        public IEnumerator status_icon_drawn_from_catalogue()
+        {
+            var catalogue = ClientTestContent.ShippedVisuals();
+            var rig = ClientTestContent.ScheduledRig("presenter-status-art", Beats.ToQuarterBeats(60));
+            var hud = BattleHud.Build(rig.Driver, null, null, null);
+            var battle = rig.Driver.Battle!;
+            yield return rig.WaitUntilAudioMs(0);
+
+            // Bleed lasts 8 beats and ticks at the end of beats 0 and 1, so at beat 2 it has 6 left.
+            battle.ApplyStatus(StatusTarget.Enemy, StatusKind.Bleed, 2);
+            yield return rig.WaitUntilAudioMs(1100);
+            Assert.That(battle.EnemyStatuses.RemainingBeats(StatusKind.Bleed), Is.EqualTo(6), "the fixture's Bleed is not at 6 beats left");
+
+            var icon = hud.Statuses.Enemy.Icons.Single(i => i.Kind == StatusKind.Bleed);
+            icon.ShowTooltip();
+
+            Assert.That(
+                icon.Sprite,
+                Is.SameAs(catalogue.Sprite(StatusIconWidget.StatusKindName, StatusIconWidget.IdOf(StatusKind.Bleed))),
+                "the icon does not carry the shipped Bleed sprite");
+            Assert.That(icon.Rect.sizeDelta, Is.EqualTo(new Vector2(SideBarView.IconSize, SideBarView.IconSize)), "the icon is not 44 px square on screen");
+            Assert.That(icon.StacksText, Is.EqualTo("2"));
+            Assert.That(icon.TooltipShown, Is.True);
+            Assert.That(
+                icon.TooltipPanel.sprite,
+                Is.SameAs(catalogue.Sprite(StatusIconWidget.UiKind, StatusIconWidget.TooltipId)),
+                "the tooltip panel is not the catalogue's");
+            Assert.That(icon.TooltipText, Does.Contain("6"), "the tooltip does not name the beats left");
+            Assert.That(catalogue.Missing, Does.Not.Contain(StatusIconWidget.StatusKindName + "/" + StatusIconWidget.IdOf(StatusKind.Bleed)));
+            Assert.That(catalogue.Missing, Does.Not.Contain(StatusIconWidget.UiKind + "/" + StatusIconWidget.TooltipId));
+
+            Object.Destroy(hud.gameObject);
+            rig.Destroy();
+        }
+
+        /// <summary>P4.4: both bars fill by fraction from shipped art, and Block is an icon and a value beside the bar.</summary>
+        [UnityTest]
+        [Timeout(30000)]
+        public IEnumerator bars_fill_and_block_icon()
+        {
+            var catalogue = ClientTestContent.ShippedVisuals();
+            var track = ClientTestContent.FixtureTrack();
+            var chart = ClientTestContent.Chart(track, Beats.ToQuarterBeats(60));
+            var rig = ClientTestContent.ScheduledRig("presenter-bars", chart, ClientTestContent.Enemy(chart), enemyHp: 120);
+            var hud = BattleHud.Build(rig.Driver, null, null, null);
+            var battle = rig.Driver.Battle!;
+            yield return rig.WaitUntilAudioMs(0);
+
+            battle.DealTrueDamage(StatusTarget.Enemy, 60);
+            battle.GrantBlock(StatusTarget.Player, 10);
+            yield return null;
+
+            Assert.That(battle.EnemyHp, Is.EqualTo(60), "the enemy is not at 60 of 120 HP");
+            Assert.That(battle.EnemyMaxHp, Is.EqualTo(120));
+            Assert.That(battle.Stats.Ard, Is.EqualTo(battle.Stats.MaxArd), "the player is not at full ARD");
+            Assert.That(battle.Block, Is.EqualTo(10), "the player does not hold 10 Block");
+
+            var enemy = hud.Statuses.Enemy;
+            var player = hud.Statuses.Player;
+
+            Assert.That(enemy.Fill, Is.EqualTo(0.5f).Within(0.001f), "the enemy bar is not half full");
+            Assert.That(player.Fill, Is.EqualTo(1f).Within(0.001f), "the ARD bar is not full");
+            Assert.That(enemy.FillImage.type, Is.EqualTo(UnityEngine.UI.Image.Type.Filled), "the enemy bar is not a filled image");
+            Assert.That(enemy.FillImage.fillMethod, Is.EqualTo(UnityEngine.UI.Image.FillMethod.Horizontal), "the enemy bar does not fill horizontally");
+
+            Assert.That(player.BlockShown, Is.True, "the player's Block is not shown");
+            Assert.That(player.BlockText, Does.Contain("10"), "the Block badge does not show 10");
+            Assert.That(player.LabelText, Does.Not.Contain("10").And.Not.Contain("Block"), "Block is still a suffix on the bar's text");
+            Assert.That(enemy.BlockShown, Is.False, "the enemy shows Block it does not hold");
+
+            Assert.That(enemy.Frame.sprite, Is.SameAs(catalogue.Sprite(SideBarView.UiKind, SideBarView.FrameId)), "the enemy bar's frame is not the catalogue's");
+            Assert.That(player.Frame.sprite, Is.SameAs(catalogue.Sprite(SideBarView.UiKind, SideBarView.FrameId)), "the ARD bar's frame is not the catalogue's");
+            Assert.That(enemy.FillImage.sprite, Is.SameAs(catalogue.Sprite(SideBarView.UiKind, SideBarView.EnemyFillId)), "the enemy fill is not the catalogue's");
+            Assert.That(player.FillImage.sprite, Is.SameAs(catalogue.Sprite(SideBarView.UiKind, SideBarView.ArdFillId)), "the ARD fill is not the catalogue's");
+            Assert.That(player.BlockIcon.sprite, Is.SameAs(catalogue.Sprite(SideBarView.UiKind, SideBarView.BlockId)), "the Block icon is not the catalogue's");
+
+            var barArt = catalogue.Missing.Where(id => id.StartsWith(SideBarView.UiKind + "/bar-") || id == SideBarView.UiKind + "/" + SideBarView.BlockId).ToList();
+            Assert.That(barArt, Is.Empty, "the bars fell back for: " + string.Join(", ", barArt));
+
+            Object.Destroy(hud.gameObject);
+            rig.Destroy();
+        }
     }
 }

@@ -145,6 +145,14 @@ namespace Chiki.Client.Flow
             {
                 ShowReward(Run.PendingReward);
             }
+            else if (Run != null && !Run.IsOver && Run.CurrentNode.IsBattle && !Run.CurrentNodeCompleted)
+            {
+                // The run cannot leave a battle node it has not won (MoveResult.NodeNotCompleted),
+                // so the node's own panel is the only way forward. Open it whenever the map opens
+                // standing on one — a resumed run above all, which would otherwise strand the
+                // player on a map that refuses every move (PRD 3.1.5, 3.2.7).
+                OpenNode();
+            }
         }
 
         /// <summary>Start Run from the pre-run screen; refused while the calibration screen is open or a run is in progress.</summary>

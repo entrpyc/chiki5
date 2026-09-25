@@ -9,25 +9,15 @@
 // opposite: a body under 100 Hz that drops a fifth in 40 ms, a noise transient the low-pass
 // smothers, and nothing left after 120 ms. It carries no pitch to hear and no ring to place.
 
-import { mkdirSync, writeFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { RATE, noise, normalise, writeWav } from './audio-lib.mjs'
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const AUDIO = join(ROOT, 'client', 'Assets', '_Project', 'Audio')
 
-const RATE = 48000
 const MS = 120 // the plan's ceiling is 150 ms
 const PEAK = 0.55 // muted: it is a refusal, not an event
-
-/** A deterministic noise source, so the file is the same on every machine that renders it. */
-function noise(seed) {
-  let state = seed >>> 0
-  return () => {
-    state = (state * 1664525 + 1013904223) >>> 0
-    return state / 2147483648 - 1
-  }
-}
 
 function render() {
   const samples = (RATE * MS) / 1000
@@ -52,34 +42,7 @@ function render() {
     data[i] = (body * 0.85 + low * 2.2) * envelope
   }
 
-  let peak = 0
-  for (const v of data) peak = Math.max(peak, Math.abs(v))
-  const gain = peak > 0 ? PEAK / peak : 0
-  return { data, gain, samples }
-}
-
-function writeWav(path, { data, gain, samples }) {
-  const bytes = Buffer.alloc(44 + samples * 2)
-  bytes.write('RIFF', 0, 'ascii')
-  bytes.writeUInt32LE(36 + samples * 2, 4)
-  bytes.write('WAVE', 8, 'ascii')
-  bytes.write('fmt ', 12, 'ascii')
-  bytes.writeUInt32LE(16, 16) // PCM header length
-  bytes.writeUInt16LE(1, 20) // PCM
-  bytes.writeUInt16LE(1, 22) // mono
-  bytes.writeUInt32LE(RATE, 24)
-  bytes.writeUInt32LE(RATE * 2, 28) // bytes per second
-  bytes.writeUInt16LE(2, 32) // bytes per frame
-  bytes.writeUInt16LE(16, 34) // bits per sample
-  bytes.write('data', 36, 'ascii')
-  bytes.writeUInt32LE(samples * 2, 40)
-  for (let i = 0; i < samples; i++) {
-    const v = Math.max(-1, Math.min(1, data[i] * gain))
-    bytes.writeInt16LE(Math.round(v * 32767), 44 + i * 2)
-  }
-
-  mkdirSync(dirname(path), { recursive: true })
-  writeFileSync(path, bytes)
+  return normalise(data, PEAK)
 }
 
 const name = 'sfx_press_disabled.wav'

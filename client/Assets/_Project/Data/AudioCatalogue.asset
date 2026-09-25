@@ -13,6 +13,12 @@ MonoBehaviour:
   m_Name: AudioCatalogue
   m_EditorClassIdentifier: Chiki.Client::Chiki.Client.Visuals.AudioCatalogue
   sounds:
+  - id: cue-good
+    clip: {fileID: 8300000, guid: 83d140a6f0b120f46ae67f6a210786e2, type: 3}
+  - id: cue-miss
+    clip: {fileID: 8300000, guid: aabc4741c17391640b8e8dce5da5a0ec, type: 3}
+  - id: cue-perfect
+    clip: {fileID: 8300000, guid: 90e6fc2eb97d79943804668b2b8e3db7, type: 3}
   - id: press-disabled
     clip: {fileID: 8300000, guid: 7c53b9c24331a2b4b8ac56891c4fae76, type: 3}
   tracks: []

@@ -1,0 +1,42 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 087105096b754cb4aaf6b6bf7eaf6cd6, type: 3}
+  m_Name: clip_vfx_hit-heavy_burst
+  m_EditorClassIdentifier: Chiki.Client::Chiki.Client.Visuals.SpriteClip
+  kind: vfx
+  subject: hit-heavy
+  variant: burst
+  frames:
+  - {fileID: 21300000, guid: e5425f1ed7c027248b5a0fbfaada3352, type: 3}
+  - {fileID: 21300000, guid: 29b88459e77638041bf3edb541f8d55f, type: 3}
+  - {fileID: 21300000, guid: 9f4baa5cbda68ca43bbbd913fc15364b, type: 3}
+  - {fileID: 21300000, guid: 1bfc54e3ce6b3424eb1e0fcc50527933, type: 3}
+  lengthBeats: 1
+  loop: 0
+  strikeFrame: 1
+  frameBounds:
+  - X: 56
+    Y: 56
+    Width: 144
+    Height: 144
+  - X: 37
+    Y: 37
+    Width: 182
+    Height: 182
+  - X: 18
+    Y: 18
+    Width: 220
+    Height: 220
+  - X: 0
+    Y: 0
+    Width: 256
+    Height: 256

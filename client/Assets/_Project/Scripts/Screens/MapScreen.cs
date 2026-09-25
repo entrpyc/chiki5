@@ -16,7 +16,7 @@ namespace Chiki.Client.Screens
     /// The map screen (PRD 3.2.16, P23.1): the current World's nodes and connections drawn
     /// layer by layer with a type icon and label each, the player marker on the current node,
     /// the forward neighbours selectable with the arrow keys and committed with Enter, a header
-    /// with ARD, Essence, the seed and CRP (PRD 3.8.1), a floating label for every CRP change
+    /// with ARD, Essence, the seed and CRP beside its icon (PRD 3.8.1, P4.5), a floating label for every CRP change
     /// (PRD 3.8.6) and the settings entry (PRD 3.12.1). Built in code from flat-coloured
     /// elements until the visual catalogues carry art. With no run it is only the frame.
     /// </summary>
@@ -28,6 +28,11 @@ namespace Chiki.Client.Screens
         public const float NodeSize = 34f;
         public const float CrpChangeSeconds = 1.6f;
 
+        /// <summary>The CRP icon's drawn size in the header, and the gap between it and the value (P4.5).</summary>
+        public const float CrpIconSize = 46f;
+
+        public const float CrpIconGap = 12f;
+
         private static readonly Color Line = new Color(0.35f, 0.36f, 0.45f, 1f);
         private static readonly Color Visited = new Color(0.55f, 0.6f, 0.75f, 1f);
         private static readonly Color Marker = new Color(1f, 1f, 1f, 1f);
@@ -36,6 +41,7 @@ namespace Chiki.Client.Screens
         private Button _settings = null!;
         private UnityEngine.UI.Text _header = null!;
         private UnityEngine.UI.Text _crp = null!;
+        private Image _crpIcon = null!;
         private UnityEngine.UI.Text _crpChange = null!;
         private UnityEngine.UI.Text _hint = null!;
         private RectTransform _board = null!;
@@ -60,6 +66,12 @@ namespace Chiki.Client.Screens
         /// <summary>The CRP readout of the header (PRD 3.8.1).</summary>
         public string CrpText => _crp.text;
 
+        /// <summary>The CRP icon the value sits beside (P4.5); hidden while no run is on.</summary>
+        public Image CrpIcon => _crpIcon;
+
+        /// <summary>The rect the CRP value is drawn in, to the icon's right.</summary>
+        public RectTransform CrpLabel => _crp.rectTransform;
+
         public string HeaderText => _header.text;
 
         /// <summary>The floating CRP change label while it shows; null otherwise.</summary>
@@ -74,7 +86,9 @@ namespace Chiki.Client.Screens
             ScreenFactory.Fill("Backdrop", root, ScreenFactory.Backdrop);
             ScreenFactory.Label("Title", root, Strings.Get("map.title"), 48, new Vector2(-780f, 470f), new Vector2(300f, 80f), TextAnchor.MiddleLeft);
             screen._header = ScreenFactory.Label("Header", root, "", 30, new Vector2(0f, 470f), new Vector2(1100f, 80f), TextAnchor.MiddleCenter, ScreenFactory.MutedText);
-            screen._crp = ScreenFactory.Label("Crp", root, "", 40, new Vector2(0f, 410f), new Vector2(600f, 60f), TextAnchor.MiddleCenter, ScreenFactory.Accent);
+            var crpPiece = new LinePiece(CrpView.UiKind, CrpView.CrpIconId, ScreenFactory.Accent);
+            screen._crpIcon = HudFactory.Image("CrpIcon", root, crpPiece.Tint, new Vector2(-CrpIconSize / 2f - CrpIconGap / 2f, 410f), new Vector2(CrpIconSize, CrpIconSize), crpPiece.Sprite);
+            screen._crp = ScreenFactory.Label("Crp", root, "", 40, new Vector2(CrpIconGap / 2f + 150f, 410f), new Vector2(300f, 60f), TextAnchor.MiddleLeft, ScreenFactory.Accent);
             screen._crpChange = ScreenFactory.Label("CrpChange", root, "", 32, new Vector2(0f, 360f), new Vector2(600f, 50f), TextAnchor.MiddleCenter, ScreenFactory.Accent);
             screen._crpChange.gameObject.SetActive(false);
             screen._settings = ScreenFactory.Button("Settings", root, Strings.Get("menu.settings"), new Vector2(780f, 470f), new Vector2(300f, 80f), () => screen.SettingsChosen?.Invoke());
@@ -100,6 +114,7 @@ namespace Chiki.Client.Screens
             {
                 _header.text = "";
                 _crp.text = "";
+                _crpIcon.gameObject.SetActive(false);
                 _hint.text = "";
                 return;
             }
@@ -107,6 +122,7 @@ namespace Chiki.Client.Screens
             var stats = _run.Stats;
             _header.text = Strings.Format("map.header", _run.World, stats.Ard, stats.MaxArd, stats.Essence, _run.Seed);
             _crp.text = Strings.Format("crp.label", stats.Crp);
+            _crpIcon.gameObject.SetActive(true);
             _hint.text = Strings.Get("map.hint");
             _neighbours.AddRange(_run.ForwardNodes);
 

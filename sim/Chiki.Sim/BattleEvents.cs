@@ -57,10 +57,17 @@ namespace Chiki.Sim
     public sealed record TrackLooped(int PositionQb, int Loop) : BattleEvent(PositionQb);
 
     /// <summary>
-    /// A pressed input was graded against an enemy action (PRD 3.3.3.1). <see cref="SignatureSend"/>
-    /// is true when the press was Space plus the slot key (PRD 3.3.2.3).
+    /// A pressed input was graded (PRD 3.3.3.1). <see cref="SignatureSend"/> is true when the
+    /// press was Space plus the slot key (PRD 3.3.2.3). <see cref="ActionIndex"/> is
+    /// <see cref="NoAction"/> for a wasted press between enemy actions (PRD 3.3.5.5), which is a
+    /// Miss answering no action and applies nothing; <see cref="OffsetMs"/> is then the distance
+    /// to the next action's centre.
     /// </summary>
-    public sealed record InputJudged(int PositionQb, int ActionIndex, Slot Slot, string CardId, Judgment Grade, int OffsetMs, bool SignatureSend) : BattleEvent(PositionQb);
+    public sealed record InputJudged(int PositionQb, int ActionIndex, Slot Slot, string CardId, Judgment Grade, int OffsetMs, bool SignatureSend) : BattleEvent(PositionQb)
+    {
+        /// <summary>The <see cref="ActionIndex"/> of a press that answered no enemy action (PRD 3.3.5.5).</summary>
+        public const int NoAction = -1;
+    }
 
     /// <summary>
     /// A press on a slot that cannot be played right now (PRD 3.3.5.3): the feedback hook for

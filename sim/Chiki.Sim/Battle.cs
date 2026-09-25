@@ -18,7 +18,9 @@ namespace Chiki.Sim
     /// incoming damage, the action's statuses, player effect (PRD 3.3.4.1, 3.3.4.6).
     ///
     /// Every accepted press starts its slot's cooldown (PRD 3.3.5.1); a cooling slot cannot be
-    /// played (PRD 3.3.5.3). A Signature send banks its card instead of playing it, and the
+    /// played (PRD 3.3.5.3) and a press that answers no action is wasted: a Miss that applies
+    /// nothing and still cools the slot down (PRD 3.3.5.5). A Signature send banks its card
+    /// instead of playing it, and the
     /// Signature fires when the chain is full (PRD 3.3.6). Statuses on either side act in the
     /// order of <see cref="StatusPriority"/> (PRD 3.3.7.2) and tick down at beat end (PRD 3.3.7.1).
     /// </summary>
@@ -352,11 +354,13 @@ namespace Chiki.Sim
         /// <summary>
         /// A slot press that plays the slot's card, stamped with the audio time of the key event
         /// (PRD 3.3.3.1). The press is graded against the enemy action whose Judgment Window
-        /// contains the time; the first press for an action is accepted and any later one
-        /// rejected, as is a press when no window is open (PRD 3.3.1.3), on a slot still on
-        /// cooldown (PRD 3.3.5.3) or while the player is Stunned (PRD 3.3.3.3). A rejected press
-        /// consumes nothing and records nothing. An accepted press starts the slot's cooldown at
-        /// once, whatever its grade (PRD 3.3.5.1). The card's effect resolves when the window
+        /// contains the time; the first press for an action is accepted. A press that answers no
+        /// action — a later press on the same action, or one with no window open (PRD 3.3.1.3) —
+        /// is wasted: it applies nothing but is recorded as a Miss and burns the slot's cooldown
+        /// (PRD 3.3.5.5). A press on a slot still on cooldown (PRD 3.3.5.3) or while the player is
+        /// Stunned (PRD 3.3.3.3) consumes nothing and records nothing, and so does a press after
+        /// the battle ended. An accepted press starts the slot's cooldown at once, whatever its
+        /// grade (PRD 3.3.5.1). The card's effect resolves when the window
         /// closes, by the efficacy matrix (PRD 3.3.4.4). This overload is for fixture battles built
         /// without a loadout: the caller supplies the card the slot holds, and it must belong to
         /// the slot's Category (PRD 3.4.1). A run battle presses through <see cref="Press(Slot, int)"/>.
@@ -371,7 +375,7 @@ namespace Chiki.Sim
         /// <see cref="Press"/>, but the card is banked into the Signature Chain instead of
         /// resolving its effect (PRD 3.3.6.1); incoming damage on the beat follows the grade as
         /// normal, a Missed send still banks (PRD 3.3.6.3) and a send with every chain slot
-        /// taken is rejected like a disabled press.
+        /// taken is rejected like a disabled press. A wasted send (PRD 3.3.5.5) banks nothing.
         /// </summary>
         public PressResult Send(Slot slot, CardDefinition card, int audioTimeMs)
         {
@@ -605,13 +609,13 @@ namespace Chiki.Sim
 
             if (Outcome != null)
             {
-                return PressResult.NoWindow;
+                return PressResult.BattleOver;
             }
 
             Advance(audioTimeMs);
             if (Outcome != null)
             {
-                return PressResult.NoWindow;
+                return PressResult.BattleOver;
             }
 
             // A Stunned player's presses are ignored (PRD 3.3.3.3).
@@ -637,12 +641,12 @@ namespace Chiki.Sim
 
             if (!_pending.Contains(audioTimeMs))
             {
-                return PressResult.NoWindow;
+                return Waste(slot, card, signatureSend, audioTimeMs, null);
             }
 
             if (_pendingPress != null)
             {
-                return PressResult.AlreadyAnswered(_pending.Index);
+                return Waste(slot, card, signatureSend, audioTimeMs, _pending.Index);
             }
 
             int offset = audioTimeMs - _pending.CentreMs;
@@ -651,6 +655,28 @@ namespace Chiki.Sim
             Emit(new InputJudged(_pending.PositionQb, _pending.Index, slot, card.Id, grade, offset, signatureSend));
             StartCooldown(slot, card, _pending.PositionQb);
             return new PressResult(PressOutcome.Accepted, _pending.Index, grade, 0);
+        }
+
+        /// <summary>
+        /// A wasted press (PRD 3.3.5.5): a ready slot pressed where no enemy action can be
+        /// answered — between actions, or on an action another press already answered. The card
+        /// applies nothing and nothing is banked by a wasted Signature send, but the press is
+        /// recorded as a Miss (PRD 3.3.3.1) and the slot cools down as any pressed card does
+        /// (PRD 3.3.5.1). <paramref name="actionIndex"/> is the open action's when one is open.
+        /// </summary>
+        private PressResult Waste(Slot slot, CardDefinition card, bool signatureSend, int audioTimeMs, int? actionIndex)
+        {
+            int positionQb = PositionAt(audioTimeMs);
+            Emit(new InputJudged(
+                positionQb,
+                actionIndex ?? InputJudged.NoAction,
+                slot,
+                card.Id,
+                Judgment.Miss,
+                audioTimeMs - _pending.CentreMs,
+                signatureSend));
+            StartCooldown(slot, card, positionQb);
+            return actionIndex is null ? PressResult.BetweenActions : PressResult.AlreadyAnswered(actionIndex.Value);
         }
 
         /// <summary>Any accepted press starts its slot's cooldown, regardless of grade (PRD 3.3.5.1).</summary>

@@ -17,7 +17,9 @@ public class Beats
         {
             Assert.That(second.Rejected, Is.True);
             Assert.That(second.Outcome, Is.EqualTo(PressOutcome.ActionAlreadyAnswered));
-            Assert.That(battle.Events.OfType<InputJudged>().Count(), Is.EqualTo(1), "the second press consumed something");
+            Assert.That(second.Wasted, Is.True, "the second press was not wasted");
+            Assert.That(second.Grade, Is.EqualTo(Chiki.Sim.Judgment.Miss), "a wasted press is a Miss (PRD 3.3.5.5)");
+            Assert.That(battle.JudgmentLog.Count(e => e.Grade != null), Is.EqualTo(0), "the action has not resolved yet");
         });
     }
 
@@ -32,8 +34,59 @@ public class Beats
         {
             Assert.That(result.Rejected, Is.True);
             Assert.That(result.Outcome, Is.EqualTo(PressOutcome.NoOpenWindow));
-            Assert.That(battle.Events.OfType<InputJudged>(), Is.Empty);
-            Assert.That(battle.JudgmentLog.Where(e => e.Grade != null), Is.Empty, "a judgment was recorded");
+            Assert.That(result.Wasted, Is.True);
+            Assert.That(result.Grade, Is.EqualTo(Chiki.Sim.Judgment.Miss), "a wasted press is a Miss (PRD 3.3.5.5)");
+            Assert.That(battle.JudgmentLog.Where(e => e.Grade != null), Is.Empty, "a wasted press answers no action");
+        });
+    }
+
+    [Test]
+    public void wasted_press_starts_the_cooldown()
+    {
+        var battle = TestContent.Battle(4, 12); // actions at 500 ms and 1500 ms
+        var card = TestContent.LeftAttack(10, cooldownBeats: 4);
+
+        var result = battle.Press(TestContent.SlotE, card, 1000); // between the two windows
+
+        var judged = battle.Events.OfType<InputJudged>().Single();
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Wasted, Is.True);
+            Assert.That(battle.CooldownOf(TestContent.SlotE), Is.EqualTo(4), "the wasted press did not burn the cooldown");
+            Assert.That(judged.Grade, Is.EqualTo(Chiki.Sim.Judgment.Miss));
+            Assert.That(judged.ActionIndex, Is.EqualTo(InputJudged.NoAction), "the press answered no action");
+            Assert.That(battle.Events.OfType<CooldownStarted>().Single().Beats, Is.EqualTo(4));
+        });
+    }
+
+    [Test]
+    public void wasted_press_applies_nothing()
+    {
+        var battle = TestContent.Battle(4, 12); // actions at 500 ms and 1500 ms
+        int hpBefore = battle.EnemyHp;
+
+        battle.Press(TestContent.SlotE, TestContent.LeftAttack10, 1000);
+        battle.AdvanceToBeat(4); // past the first window, which now closes with no input
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(battle.EnemyHp, Is.EqualTo(hpBefore), "the wasted card dealt damage");
+            Assert.That(battle.JudgmentLog.Single(e => e.ActionIndex == 0).NoInput, Is.True, "the wasted press answered the next action");
+        });
+    }
+
+    [Test]
+    public void wasted_send_banks_nothing()
+    {
+        var battle = TestContent.Battle(4, 12); // actions at 500 ms and 1500 ms
+
+        var result = battle.Send(TestContent.SlotE, TestContent.LeftAttack10, 1000);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Wasted, Is.True);
+            Assert.That(battle.SignatureChain, Is.Empty, "a wasted send banked its card");
+            Assert.That(battle.CooldownOf(TestContent.SlotE), Is.EqualTo(Tuning.CooldownMinBeats));
         });
     }
 

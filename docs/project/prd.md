@@ -109,7 +109,7 @@ Node catalogue — each row is a node type the map can generate, and the feature
 
 - ✅ **3.3.1.1** Every battle is synchronised to the current track's BPM, and a beat timeline (the Rhythm Line) showing the enemy's telegraphed actions (3.6.3) is visible for the whole battle.
 - **3.3.1.2** Withdrawn. Player action opportunities are the enemy's charted actions (3.3.1.8); there is no fixed action grid.
-- ✅ **3.3.1.3** On each enemy action the player may play exactly one card or take no action; between enemy actions no card can be played.
+- ✅ **3.3.1.3** On each enemy action the player may play exactly one card or take no action; between enemy actions no card can be played, and a press there is wasted (3.3.5.5).
 - ✅ **3.3.1.4** All durations in combat (statuses, cooldowns, effects) are measured in beats, never seconds.
 - ✅ **3.3.1.5** Timing windows scale with BPM so perceived difficulty is constant across tracks.
 - ✅ **3.3.1.6** The music is never desynchronised, time-stretched, paused or interrupted by a game mechanic; a mechanic that changes rhythm changes the enemy's chart (3.6.13), never the track.
@@ -158,6 +158,7 @@ Node catalogue — each row is a node type the map can generate, and the feature
 | Perfect Ability while the enemy attacks | effect resolves fully; take 0 |
 | Good Defense while the enemy attacks | gain 50% of the card's Block; take 50% minus Block |
 | No input while the enemy attacks | take 100% minus Block; no cooldown; Miss-triggered effects do not fire |
+| A press between enemy actions | nothing applied; recorded as a Miss; slot enters cooldown (3.3.5.5) |
 | Signature send with Perfect timing while the enemy attacks | card banked; take 0 |
 | Stun is active when an enemy action arrives | action treated as no input |
 | Enemy applies a non-damage debuff on a Perfect beat | debuff lands |
@@ -168,12 +169,13 @@ Node catalogue — each row is a node type the map can generate, and the feature
 - **3.3.5.2** Enemy abilities may impose or extend slot cooldowns or locks (3.6.4).
 - ✅ **3.3.5.3** A slot on cooldown cannot be played: pressing it gives disabled feedback (sound and flash), consumes nothing, starts nothing and is not a Miss.
 - ✅ **3.3.5.4** A slot on cooldown shows a dim overlay and a numeric or radial beat countdown; both lines are always on screen and the inactive line is rendered thinner.
+- ✅ **3.3.5.5** A press on a playable slot that answers no enemy action — one between actions (3.3.1.3), or one on an action an earlier press already answered — is wasted: its card applies nothing and a Signature send banks nothing, but the press is recorded as a Miss (3.3.3.1) and starts the slot's cooldown (3.3.5.1), so mashing costs the slot. A press that gives disabled feedback instead is never wasted: a cooling slot (3.3.5.3), a Stunned player (3.3.3.3), a full Signature Chain (3.3.6.1) and a press after the battle has ended (3.3.9.2) each consume nothing and record nothing.
 
 #### 🔨 3.3.6 Signature Chain
 
 - ✅ **3.3.6.1** Space plus a slot key (3.3.2.3) banks that slot's card into one of three Signature Chain slots instead of playing it; incoming damage on a banking beat follows timing as normal (3.3.4.2).
 - ✅ **3.3.6.2** When three cards are banked the Signature triggers automatically and the chain empties; the Signature deals 30 damage to the enemy. Any other Signature variant requires a decision-log entry.
-- ✅ **3.3.6.3** A Missed Signature send still banks the card, and banking starts the slot's cooldown (3.3.5.1).
+- ✅ **3.3.6.3** A Missed Signature send still banks the card, and banking starts the slot's cooldown (3.3.5.1); a send that answers no action banks nothing (3.3.5.5).
 - **3.3.6.4** Cards banked in the chain can be destroyed by an enemy ability before the Signature triggers (3.6.14).
 
 #### 🔨 3.3.7 Status effects

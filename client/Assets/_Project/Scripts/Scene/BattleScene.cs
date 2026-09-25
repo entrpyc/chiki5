@@ -16,8 +16,8 @@ namespace Chiki.Client.Scene
     /// <summary>
     /// Composes the Battle scene (P14.5): loads the fixture content, builds one battle against
     /// the chosen enemy at World 1 balance, schedules its track on the beat clock, wires the keys
-    /// to the driver and builds the HUD. Until tracks ship with recordings the clock plays a
-    /// generated click track. Runs on Start unless <see cref="Compose"/> was called first.
+    /// to the driver and builds the HUD. The clock plays the track's recording from the audio
+    /// catalogue, or a generated click track while no recording has shipped (P1.6). Runs on Start unless <see cref="Compose"/> was called first.
     /// </summary>
     [DisallowMultipleComponent]
     public sealed class BattleScene : MonoBehaviour
@@ -122,7 +122,7 @@ namespace Chiki.Client.Scene
             Driver = rig.AddComponent<BattleDriver>();
             Input = rig.AddComponent<BattleInput>();
 
-            Clock.Schedule(enemy.Track, PlaceholderAudio.ClickTrack(enemy.Track));
+            Clock.Schedule(enemy.Track, TrackAudio.For(enemy.Track));
             Driver.Bind(Clock, battle);
             Driver.CalibrationOffsetMs = ActiveProfile.CalibrationOffsetMs;
             Input.Driver = Driver;

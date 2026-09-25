@@ -65,7 +65,7 @@ Assemblies: `Chiki.Sim`, `Chiki.Client`, `Chiki.Client.Editor`, `Chiki.Client.Te
 
 ```
 dotnet test sim/Chiki.sln
-Unity -batchmode -nographics -projectPath client -runTests -testPlatform PlayMode -testResults results.xml
+powershell -File tools/run-client-tests.ps1                                # EditMode then PlayMode (P1.1)
 node ~/.claude/skills/project-prd/check.js docs/project/prd.md          # after editing the PRD
 node ~/.claude/skills/project-plan/check.js docs/plan.md docs/project/prd.md   # after editing the plan
 ```

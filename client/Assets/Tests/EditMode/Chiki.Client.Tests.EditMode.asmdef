@@ -4,7 +4,9 @@
     "references": [
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",
-        "Chiki.Client"
+        "Chiki.Client",
+        "Chiki.Client.Editor",
+        "UnityEngine.UI"
     ],
     "includePlatforms": [
         "Editor"

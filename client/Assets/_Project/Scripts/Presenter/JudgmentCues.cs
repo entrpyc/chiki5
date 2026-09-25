@@ -1,5 +1,6 @@
 #nullable enable
 using System;
+using Chiki.Client.Visuals;
 using Chiki.Sim;
 using UnityEngine;
 
@@ -7,8 +8,9 @@ namespace Chiki.Client.Presenter
 {
     /// <summary>
     /// The audio cue per judgment grade (PRD 3.3.8.1). Cues play through their own source, never
-    /// the track's (PRD 3.3.1.6). Until the audio catalogue carries recorded cues, a short tone
-    /// per grade is generated: high for Perfect, middle for Good, low for Miss.
+    /// the track's (PRD 3.3.1.6). A grade plays the recording the audio catalogue holds for its
+    /// id — <c>cue-perfect</c>, <c>cue-good</c>, <c>cue-miss</c> — and, only for an id the
+    /// catalogue lacks, a generated tone: high for Perfect, middle for Good, low for Miss.
     /// </summary>
     [DisallowMultipleComponent]
     public sealed class JudgmentCues : MonoBehaviour
@@ -48,20 +50,39 @@ namespace Chiki.Client.Presenter
 
         public int PlayCount { get; private set; }
 
-        /// <summary>The clip a grade plays: the assigned cue, or the generated tone when none is assigned.</summary>
-        public AudioClip ClipFor(Judgment grade)
+        /// <summary>The catalogue id of a grade's cue (PRD 3.3.8.1).</summary>
+        public static string IdOf(Judgment grade)
         {
             switch (grade)
             {
+                case Judgment.Perfect: return "cue-perfect";
+                case Judgment.Good: return "cue-good";
+                case Judgment.Miss: return "cue-miss";
+                default: throw new ArgumentOutOfRangeException(nameof(grade), grade, "Unknown grade.");
+            }
+        }
+
+        /// <summary>The clip a grade plays: the assigned cue, the catalogue's recording, or the generated tone.</summary>
+        public AudioClip ClipFor(Judgment grade)
+        {
+            var recorded = AudioCatalogue.Active.Sound(IdOf(grade));
+            switch (grade)
+            {
                 case Judgment.Perfect:
-                    return perfectCue != null ? perfectCue : _generatedPerfect ??= Tone("cue-perfect", 1760f, 60, 0.5f);
+                    return perfectCue != null ? perfectCue : recorded != null ? recorded : _generatedPerfect ??= Tone("cue-perfect", 1760f, 60, 0.5f);
                 case Judgment.Good:
-                    return goodCue != null ? goodCue : _generatedGood ??= Tone("cue-good", 880f, 60, 0.5f);
+                    return goodCue != null ? goodCue : recorded != null ? recorded : _generatedGood ??= Tone("cue-good", 880f, 60, 0.5f);
                 case Judgment.Miss:
-                    return missCue != null ? missCue : _generatedMiss ??= Tone("cue-miss", 220f, 100, 0.6f);
+                    return missCue != null ? missCue : recorded != null ? recorded : _generatedMiss ??= Tone("cue-miss", 220f, 100, 0.6f);
                 default:
                     throw new ArgumentOutOfRangeException(nameof(grade), grade, "Unknown grade.");
             }
+        }
+
+        /// <summary>Whether a grade plays a recording rather than a generated tone.</summary>
+        public bool IsRecorded(Judgment grade)
+        {
+            return AudioCatalogue.Active.HasSound(IdOf(grade));
         }
 
         public void Play(Judgment grade)

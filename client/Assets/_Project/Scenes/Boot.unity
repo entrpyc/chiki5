@@ -168,6 +168,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   profileName: default
+  visuals: {fileID: 11400000, guid: 54b4dd879202b69498201579c1c42079, type: 2}
+  audio: {fileID: 11400000, guid: cb4be4732c6b33f4b861662a03a0c6ea, type: 2}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

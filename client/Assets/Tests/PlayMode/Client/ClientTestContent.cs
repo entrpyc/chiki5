@@ -8,6 +8,7 @@ using Chiki.Client.Driver;
 using Chiki.Client.Flow;
 using Chiki.Client.Profiles;
 using Chiki.Client.Scene;
+using Chiki.Client.Visuals;
 using Chiki.Sim;
 using Chiki.Sim.Data;
 using UnityEngine;
@@ -226,6 +227,61 @@ namespace Client
             rig.Clock.Schedule(track, SilentClip(track));
             rig.Driver.Bind(rig.Clock, Battle(Chart(track, positionsQb)));
             return rig;
+        }
+
+        /// <summary>A named 4 by 4 sprite the catalogue tests can tell apart by reference (P1.3).</summary>
+        public static Sprite TestSprite(string name)
+        {
+            var texture = new Texture2D(4, 4, TextureFormat.RGBA32, false) { name = name };
+            texture.Apply();
+            var sprite = Sprite.Create(texture, new Rect(0f, 0f, 4f, 4f), new Vector2(0.5f, 0.5f), 100f);
+            sprite.name = name;
+            return sprite;
+        }
+
+        /// <summary>A named clip of silence the audio catalogue tests can tell apart by reference (P1.4).</summary>
+        public static AudioClip TestAudioClip(string name, int milliseconds)
+        {
+            int samples = SampleRate * milliseconds / 1000;
+            var clip = AudioClip.Create(name, samples, 1, SampleRate, false);
+            clip.SetData(new float[samples], 0);
+            return clip;
+        }
+
+        /// <summary>A recording one lap of the track long with a single click starting at the given audio time (P1.6).</summary>
+        public static AudioClip ClickAt(Track track, int audioTimeMs, int clickMs = 5)
+        {
+            int samples = checked((int)((long)(track.OffsetMs + track.BeatMap.LengthMs) * SampleRate / 1000));
+            var data = new float[samples];
+            int start = audioTimeMs * SampleRate / 1000;
+            int length = SampleRate * clickMs / 1000;
+            for (int i = 0; i < length && start + i < data.Length; i++)
+            {
+                data[start + i] = 1f - i / (float)length;
+            }
+
+            var clip = AudioClip.Create("recorded-" + track.Id, samples, 1, SampleRate, false);
+            clip.SetData(data, 0);
+            return clip;
+        }
+
+        /// <summary>A sprite clip of the given frame count, each frame a sprite of its own (P1.5).</summary>
+        public static SpriteClip SpriteClip(string subject, string variant, int frames, int lengthBeats, bool loop, int? strikeFrame = null)
+        {
+            var sprites = new List<Sprite>(frames);
+            for (int i = 1; i <= frames; i++)
+            {
+                sprites.Add(TestSprite("spr_enemy_" + subject + "_" + variant + "_" + i.ToString("00")));
+            }
+
+            return Chiki.Client.Visuals.SpriteClip.Create("enemy", subject, variant, sprites, lengthBeats, loop, strikeFrame);
+        }
+
+        /// <summary>Puts the catalogues back to empty between tests, since both are static handovers from Boot.</summary>
+        public static void ClearCatalogues()
+        {
+            VisualCatalogue.Clear();
+            AudioCatalogue.Clear();
         }
     }
 }

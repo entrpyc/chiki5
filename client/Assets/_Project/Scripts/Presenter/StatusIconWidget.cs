@@ -1,4 +1,5 @@
 #nullable enable
+using Chiki.Client.Visuals;
 using Chiki.Sim;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -7,8 +8,8 @@ using UnityEngine.UI;
 namespace Chiki.Client.Presenter
 {
     /// <summary>
-    /// One status icon above a side's bar (PRD 3.3.7.1): the status's colour until the visual
-    /// catalogue carries its icon, its stack count, and a tooltip on hover naming the status,
+    /// One status icon above a side's bar (PRD 3.3.7.1): the icon the visual catalogue holds
+    /// for the status, tinted by its colour, its stack count, and a tooltip on hover naming the status,
     /// its effect and the beats remaining.
     /// </summary>
     [DisallowMultipleComponent]
@@ -36,6 +37,15 @@ namespace Chiki.Client.Presenter
 
         public bool TooltipShown => _tooltip.gameObject.activeSelf;
 
+        /// <summary>The icon's sprite, from the visual catalogue under <c>status/&lt;kind&gt;</c> (P1.3).</summary>
+        public Sprite? Sprite => _icon.sprite;
+
+        /// <summary>The catalogue id of a status kind, the lowercase name (<c>bleed</c>).</summary>
+        public static string IdOf(StatusKind kind)
+        {
+            return kind.ToString().ToLowerInvariant();
+        }
+
         public static StatusIconWidget Create(RectTransform parent, float size)
         {
             var icon = HudFactory.Image("Status", parent, Color.white, Vector2.zero, new Vector2(size, size));
@@ -62,6 +72,7 @@ namespace Chiki.Client.Presenter
             Stacks = stacks;
             RemainingBeats = remainingBeats;
             _icon.color = ColorFor(kind);
+            HudFactory.SetSprite(_icon, VisualCatalogue.Active.Sprite("status", IdOf(kind)));
             _stacks.text = stacks.ToString();
             _tooltipLabel.text = Labels.StatusTooltip(kind, stacks, remainingBeats);
         }

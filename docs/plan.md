@@ -98,20 +98,20 @@ After that the order follows what the player reads first in a fight. The Rhythm 
 
 ## Phases
 
-### Phase 1 — Assets have somewhere to land
+### ✅ Phase 1 — Assets have somewhere to land
 
 *The client imports sprites and sprite clips by name, looks up art and sound by content id with placeholders as the fallback, animates clips from the beat clock, and plays a recorded track when one exists. Done when every P1 test is green and the suite passes.*
 
 **Operator supplies:** nothing. Every Phase 1 test generates its own sprites and clips.
 
-#### P1.1 Client runner runs EditMode and PlayMode
+#### ✅ P1.1 Client runner runs EditMode and PlayMode
 - PRD: — (groundwork for every item from P1.2 to P11.4)
 - Does: `tools/run-client-tests.ps1` runs the EditMode suite, then the PlayMode suite, in two batch-mode invocations; writes `results-editmode.xml` and `results-playmode.xml`; prints one summary line per platform; and exits non-zero when either platform fails or writes no results. Asset checks that need `UnityEditor` live in `Chiki.Client.Tests.EditMode`, which gains a reference to `Chiki.Client.Editor`.
 - Assets: none.
 - Needs: —
 - Test (integration): `Client.Pipeline › editmode_suite_runs` — given the EditMode assembly, when the runner executes, then this test is reported passed in `results-editmode.xml` and `results-playmode.xml` is still written.
 
-#### P1.2 Sprite importer and clip sidecar
+#### ✅ P1.2 Sprite importer and clip sidecar
 - PRD: — (groundwork for P1.3, P1.5 and every item with sprite assets)
 - Does: an `AssetPostprocessor` in `Chiki.Client.Editor` imports every PNG under `client/Assets/_Project/Art/` named by the asset conventions as a single sprite at 100 pixels per unit, bilinear, no mipmaps, pivot at bottom centre for kinds enemy, player and vfx and centred otherwise, and records each sprite's opaque bounds. A PNG under `Art/` whose name does not match, or whose kind is not listed, fails the import with an error naming the file. For enemy, player and vfx, frames sharing kind, subject and variant become one `SpriteClip` asset, in `nn` order, with length in beats, loop flag and strike frame read from the sidecar; a clip with no sidecar entry, or a strike frame past its last frame, fails the import. Sprites pack into one Sprite Atlas per subject at 2048 px, 4096 when the frames do not fit. Assumption: this settles the unity-setup contradiction between one atlas per enemy and one per World in favour of one per subject.
 - Assets: none.
@@ -119,7 +119,7 @@ After that the order follows what the player reads first in a fight. The Rhythm 
 - Test (integration): `Client.Importer › sequence_becomes_clip` — given generated `spr_enemy_test_attack-left_01.png` to `_03.png` and a sidecar giving attack-left 1 beat, no loop, strike frame 2, when imported, then one clip exists with 3 frames in order, 100 pixels per unit, bilinear filtering, bottom-centre pivot and strike frame 2.
 - Test (integration): `Client.Importer › misnamed_file_rejected` — given `spr_enemy_test.png` under `Art/`, when imported, then an import error names the file and no clip or catalogue entry is created for it.
 
-#### P1.3 Visual catalogue
+#### ✅ P1.3 Visual catalogue
 - PRD: — (groundwork for P2.1 to P10.4)
 - Does: a `VisualCatalogue` ScriptableObject at `client/Assets/_Project/Data/VisualCatalogue.asset` maps a kind and a content id to a `Sprite`, or to a `SpriteClip` for enemy, player and vfx. A lookup of an unknown id returns the fallback sprite, or a one-frame fallback clip, and records `kind/id` in `Missing`. The menu command Chiki › Rebuild Visual Catalogue fills it from every imported `spr_` asset, so the operator never edits it by hand. Boot loads it once and hands it to `BattleHud`, `ScreenFactory` and `HudFactory`; `HudFactory.Image` takes an optional sprite and uses Sliced mode when the sprite has a border. A built-in 4 × 4 white sprite, made by the implementer, serves plain colour fills such as scrims and is never counted as missing.
 - Assets: none.
@@ -128,7 +128,7 @@ After that the order follows what the player reads first in a fight. The Rhythm 
 - Test (integration): `Client.Catalogue › rebuild_collects_imported_sprites` — given imported test files `spr_status_bleed_static_01.png` and `spr_node_elite_static_01.png`, when the catalogue is rebuilt, then both resolve by kind and id.
 - Test (integration): `Client.Presenter › hud_reads_catalogue_from_boot` — given Boot started with a catalogue whose status `bleed` is a test sprite, when the battle HUD shows Bleed on the enemy, then the status icon carries that sprite.
 
-#### P1.4 Audio catalogue
+#### ✅ P1.4 Audio catalogue
 - PRD: — (groundwork for P1.6, P3.4, P4.1, P10.4)
 - Does: an `AudioCatalogue` ScriptableObject beside the visual catalogue maps sound-effect ids (`cue-perfect`, `cue-good`, `cue-miss`, `press-disabled`, `click-beat`, `click-accent`) and track ids to `AudioClip`s, rebuilt by the same menu command from files named by the asset conventions. Sound effects import as Decompress On Load so they play without decode latency; tracks import as Compressed In Memory with Preload Audio Data on, so scheduling never waits on disk. `JudgmentCues`, `Metronome` and `PlaceholderAudio` ask the catalogue first and fall back to today's generated tones only for ids it lacks.
 - Assets: none.
@@ -136,7 +136,7 @@ After that the order follows what the player reads first in a fight. The Rhythm 
 - Test (integration): `Client.Catalogue › audio_lookup_or_generated_fallback` — given a catalogue holding a test clip for `cue-perfect` only, when a Perfect and a Good are judged, then the Perfect plays the test clip and the Good plays the generated tone.
 - Test (integration): `Client.Catalogue › metronome_uses_catalogue_click` — given a catalogue holding a test clip for `click-beat`, when the metronome is on for 4 beats, then 4 plays of that clip are scheduled at the beat map's times.
 
-#### P1.5 BeatAnimator
+#### ✅ P1.5 BeatAnimator
 - PRD: — (groundwork for P4.2, P5.1, P5.2)
 - Does: a `BeatAnimator` component shows a `SpriteClip` on a `SpriteRenderer` or uGUI `Image`, picking the frame from the `BeatClock`'s audio time only, never `Time.time`, `Time.deltaTime` or Animator time. It runs at 8 frames per second at 120 BPM, scaled by the BPM in force ÷ 120, so a tempo change retimes the clip at the change. Looping clips wrap on whole beats. `PlayStrikeAt(clip, audioMs)` starts a one-shot clip early enough that its strike frame is on screen at `audioMs`, then returns to the idle loop.
 - Assets: none.
@@ -145,7 +145,7 @@ After that the order follows what the player reads first in a fight. The Rhythm 
 - Test (integration): `Client.BeatAnimator › strike_frame_lands_on_beat` — given a 6-frame attack clip with strike frame 4 requested to strike at beat 8, when audio time reaches beat 8, then frame 4 is on screen, within one frame.
 - Test (integration): `Client.BeatAnimator › follows_audio_not_frame_time` — given the frame rate capped at 20 fps, when 2 seconds of audio time elapse, then the frame on screen equals the frame computed from audio time.
 
-#### P1.6 Recorded track loader
+#### ✅ P1.6 Recorded track loader
 - PRD: 4.14
 - Does: `BattleScene` and `CalibrationScreen` resolve a track id through the audio catalogue and schedule the recorded clip on the `BeatClock`; the generated click track plays only when the catalogue has no clip for the id, with a warning naming it. The sidecar's offset puts beat 0 that many milliseconds into the clip and the tempo map places every later beat (3.3.1.9).
 - Assets: none.

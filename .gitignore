@@ -15,6 +15,6 @@ client/.idea/
 sim/**/bin/
 sim/**/obj/
 sim/.vs/
-results.xml
+results*.xml
 TestResults/
-client-tests.log
+client-tests*.log

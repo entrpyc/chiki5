@@ -1,8 +1,12 @@
 #nullable enable
 using System.Collections;
+using System.IO;
 using System.Linq;
+using Chiki.Client.Flow;
 using Chiki.Client.Presenter;
+using Chiki.Client.Profiles;
 using Chiki.Client.Text;
+using Chiki.Client.Visuals;
 using Chiki.Sim;
 using NUnit.Framework;
 using UnityEngine;
@@ -225,6 +229,48 @@ namespace Client
 
             Object.Destroy(hud.gameObject);
             rig.Destroy();
+        }
+
+        /// <summary>P1.3: the catalogue Boot hands over is the one the HUD draws from.</summary>
+        [UnityTest]
+        [Timeout(30000)]
+        public IEnumerator hud_reads_catalogue_from_boot()
+        {
+            var catalogue = ScriptableObject.CreateInstance<VisualCatalogue>();
+            var bleed = ClientTestContent.TestSprite("spr_status_bleed_static_01");
+            catalogue.Put("status", "bleed", bleed);
+
+            string root = Path.Combine(Application.temporaryCachePath, "boot-catalogue-" + System.Guid.NewGuid().ToString("N"));
+            var store = new ProfileStore(root);
+            var profile = store.Create("catalogue");
+            profile.Calibrated = true;
+            store.Save(profile);
+
+            var bootHost = new GameObject("Boot");
+            var boot = bootHost.AddComponent<BootScene>();
+            boot.ProfileName = "catalogue";
+            boot.Visuals = catalogue;
+            boot.Begin(store);
+            Assert.That(boot.Started, Is.True);
+            Assert.That(VisualCatalogue.Active, Is.SameAs(catalogue), "Boot did not hand its catalogue to the presenters");
+
+            var rig = ClientTestContent.ScheduledRig("presenter-catalogue", Beats.ToQuarterBeats(60));
+            var hud = BattleHud.Build(rig.Driver, null, null, null);
+            var battle = rig.Driver.Battle!;
+            yield return rig.WaitUntilAudioMs(0);
+
+            battle.ApplyStatus(StatusTarget.Enemy, StatusKind.Bleed, 2);
+            yield return rig.WaitUntilAudioMs(200);
+
+            var icon = hud.Statuses.Enemy.Icons.Single(i => i.Kind == StatusKind.Bleed);
+            Assert.That(icon.Sprite, Is.SameAs(bleed), "the status icon does not carry the catalogue's sprite");
+            Assert.That(catalogue.Missing, Does.Not.Contain("status/bleed"));
+
+            Object.Destroy(hud.gameObject);
+            Object.Destroy(bootHost);
+            rig.Destroy();
+            ClientTestContent.ClearCatalogues();
+            Directory.Delete(root, true);
         }
     }
 }

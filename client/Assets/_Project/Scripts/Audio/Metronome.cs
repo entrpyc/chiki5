@@ -1,17 +1,18 @@
 #nullable enable
 using System;
 using System.Collections.Generic;
+using Chiki.Client.Visuals;
 using UnityEngine;
 
 namespace Chiki.Client.Audio
 {
-    /// <summary>One click the metronome scheduled: the beat, its audio time on the beat map and the DSP time it plays at.</summary>
-    public sealed record ScheduledClick(int Beat, int AudioTimeMs, double DspTime);
+    /// <summary>One click the metronome scheduled: the beat, its audio time on the beat map, the DSP time it plays at and the clip it plays.</summary>
+    public sealed record ScheduledClick(int Beat, int AudioTimeMs, double DspTime, AudioClip Clip);
 
     /// <summary>
-    /// The optional metronome (PRD 3.12.2, 3.3.8.2): a click on every beat of the track, placed
-    /// on the DSP clock at the beat map's time through the <see cref="BeatClock"/>, never from
-    /// frame time. Clicks play through sources of their own, never the track's (PRD 3.3.1.6).
+    /// The optional metronome (PRD 3.12.2, 3.3.8.2): the audio catalogue's click on every beat
+    /// of the track (P1.4), placed on the DSP clock at the beat map's time through the
+    /// <see cref="BeatClock"/>, never from frame time. Clicks play through sources of their own, never the track's (PRD 3.3.1.6).
     /// Each clock tick schedules the beats that fall inside the lookahead; a beat already
     /// behind the clock when it is reached is skipped, never played late.
     /// </summary>
@@ -19,6 +20,10 @@ namespace Chiki.Client.Audio
     public sealed class Metronome : MonoBehaviour
     {
         public const int LookaheadMs = 250;
+
+        /// <summary>The audio catalogue id of the click (P1.4, P10.4).</summary>
+        public const string ClickId = "click-beat";
+
         private const int SampleRate = 48000;
         private const int SourceCount = 2;
 
@@ -118,11 +123,12 @@ namespace Chiki.Client.Audio
         {
             var source = SourceAt(_nextSource);
             _nextSource = (_nextSource + 1) % SourceCount;
-            source.clip = Click;
+            var clip = Click;
+            source.clip = clip;
             source.volume = _volume;
             double dsp = _clock!.ToDspTime(beatMs);
             source.PlayScheduled(dsp);
-            _scheduled.Add(new ScheduledClick(beat, beatMs, dsp));
+            _scheduled.Add(new ScheduledClick(beat, beatMs, dsp, clip));
         }
 
         private AudioSource SourceAt(int index)
@@ -140,10 +146,17 @@ namespace Chiki.Client.Audio
             return _sources[index];
         }
 
-        private AudioClip Click
+        /// <summary>The click each beat plays: the audio catalogue's <c>click-beat</c> recording, or a generated tone until one ships (P1.4).</summary>
+        public AudioClip Click
         {
             get
             {
+                var recorded = AudioCatalogue.Active.Sound(ClickId);
+                if (recorded != null)
+                {
+                    return recorded;
+                }
+
                 if (_click == null)
                 {
                     const int milliseconds = 15;

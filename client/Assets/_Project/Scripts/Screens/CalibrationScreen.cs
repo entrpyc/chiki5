@@ -229,7 +229,7 @@ namespace Chiki.Client.Screens
             _metronomeHost.transform.SetParent(transform, false);
             _metronomeHost.AddComponent<AudioSource>();
             _clock = _metronomeHost.AddComponent<BeatClock>();
-            _clock.Schedule(Track, PlaceholderAudio.ClickTrack(Track), LeadSeconds);
+            _clock.Schedule(Track, TrackAudio.For(Track), LeadSeconds);
         }
 
         private void StopMetronome()

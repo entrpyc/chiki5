@@ -1,6 +1,7 @@
 #nullable enable
 using System;
 using Chiki.Client.Text;
+using Chiki.Client.Visuals;
 using Chiki.Sim;
 using UnityEngine;
 using UnityEngine.UI;
@@ -8,9 +9,10 @@ using UnityEngine.UI;
 namespace Chiki.Client.Presenter
 {
     /// <summary>
-    /// Builds the plain uGUI pieces the battle presenters are made of. Until the visual
-    /// catalogues carry art, every element is a flat-coloured Image or a Text; the layout and
-    /// the state they show are what the presenter tests prove.
+    /// Builds the plain uGUI pieces the battle presenters are made of. Every image carries a
+    /// sprite: the one the visual catalogue holds for its content id, or the built-in white
+    /// sprite for a plain colour fill (P1.3). The layout and the state they show are what the
+    /// presenter tests prove.
     /// </summary>
     internal static class HudFactory
     {
@@ -71,28 +73,47 @@ namespace Chiki.Client.Presenter
             return rect;
         }
 
-        public static Image Image(string name, Transform parent, Color color)
+        /// <summary>
+        /// An image carrying a catalogue sprite, or the built-in white sprite when none is
+        /// given, so a plain colour fill is never mistaken for missing art (P1.3). A sprite with
+        /// a 9-slice border is drawn Sliced; anything else Simple.
+        /// </summary>
+        public static Image Image(string name, Transform parent, Color color, Sprite? sprite = null)
         {
             var rect = Rect(name, parent);
             var image = rect.gameObject.AddComponent<Image>();
             image.color = color;
             image.raycastTarget = false;
+            SetSprite(image, sprite);
             return image;
         }
 
-        public static Image Image(string name, Transform parent, Color color, Vector2 anchoredPosition, Vector2 size)
+        public static Image Image(string name, Transform parent, Color color, Vector2 anchoredPosition, Vector2 size, Sprite? sprite = null)
         {
-            var image = Image(name, parent, color);
+            var image = Image(name, parent, color, sprite);
             image.rectTransform.anchoredPosition = anchoredPosition;
             image.rectTransform.sizeDelta = size;
             return image;
         }
 
-        public static Image StretchedImage(string name, Transform parent, Color color)
+        public static Image StretchedImage(string name, Transform parent, Color color, Sprite? sprite = null)
         {
-            var image = Image(name, parent, color);
+            var image = Image(name, parent, color, sprite);
             Stretch(image.rectTransform);
             return image;
+        }
+
+        /// <summary>Puts a sprite on an image, Sliced when it has a 9-slice border; null means the built-in white fill.</summary>
+        public static void SetSprite(Image image, Sprite? sprite)
+        {
+            if (image == null)
+            {
+                throw new ArgumentNullException(nameof(image));
+            }
+
+            var drawn = sprite != null ? sprite : VisualCatalogue.White;
+            image.sprite = drawn;
+            image.type = drawn.border == Vector4.zero ? UnityEngine.UI.Image.Type.Simple : UnityEngine.UI.Image.Type.Sliced;
         }
 
         public static UnityEngine.UI.Text Text(string name, Transform parent, int fontSize, Color color, TextAnchor alignment)

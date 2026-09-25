@@ -275,6 +275,44 @@ namespace Client
             Assert.That(charge.LengthBeats, Is.EqualTo(1), "Ren's charge wind-up does not last one beat");
         }
 
+        /// <summary>P7.1: a card frame per Category and a treatment per rarity, each drawn at the card's 512 by 720.</summary>
+        [Test]
+        public void card_frames_complete()
+        {
+            var catalogue = Shipped();
+            var frames = new[] { CardCategory.LeftAttack, CardCategory.Defense, CardCategory.Ability }.Select(CardFace.FrameId).ToArray();
+            var rarities = ((CardRarity[])System.Enum.GetValues(typeof(CardRarity))).Select(CardFace.RarityId).ToArray();
+            Assert.That(frames, Is.Unique.And.Length.EqualTo(3), "the three Category frames are not three ids");
+            Assert.That(rarities, Is.Unique.And.Length.EqualTo(4), "the four rarity treatments are not four ids");
+
+            foreach (string id in frames.Concat(rarities))
+            {
+                Assert.That(catalogue.Has(CardFace.UiKind, id), Is.True, id + " is not in the shipped catalogue");
+                var sprite = catalogue.Sprite(CardFace.UiKind, id);
+                Assert.That(sprite.rect.size, Is.EqualTo(CardFace.ArtSize), id + " is not drawn at 512 by 720");
+            }
+
+            Assert.That(catalogue.Missing, Is.Empty, "a card frame or treatment fell back: " + string.Join(", ", catalogue.Missing));
+        }
+
+        /// <summary>P7.2: every card of the starter set has its illustration, at the card's 512 by 720.</summary>
+        [Test]
+        public void starter_card_art_complete()
+        {
+            var catalogue = Shipped();
+            var set = CardLoader.SetFromJson(Chiki.Client.Content.ContentFiles.ReadText("sets/starter.json"));
+            Assert.That(set.Cards, Is.Not.Empty, "the starter set holds no cards");
+
+            foreach (var card in set.Cards)
+            {
+                string id = CardFace.IllustrationId(card);
+                var sprite = catalogue.Sprite(CardFace.CardKind, id);
+                Assert.That(sprite.rect.size, Is.EqualTo(CardFace.ArtSize), card.Id + "'s illustration is not drawn at 512 by 720");
+            }
+
+            Assert.That(catalogue.Missing, Is.Empty, "a starter card has no illustration: " + string.Join(", ", catalogue.Missing));
+        }
+
         /// <summary>
         /// One fighter's clip set as the plan specifies it (P5.4, P5.5): all seven catalogued,
         /// an eight-frame idle looping over two beats, every other clip three to eight frames,

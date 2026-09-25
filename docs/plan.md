@@ -364,15 +364,15 @@ After that the order follows what the player reads first in a fight. The Rhythm 
 - Needs: P5.1
 - Test (integration): `Client.Catalogue › enemy_malk_art_complete` — given the shipped catalogue, when Malk's clips are read, then they meet every condition of `enemy_ren_art_complete`.
 
-### Phase 7 — Cards look like cards
+### ✅ Phase 7 — Cards look like cards
 
 *A card face shows the whole anatomy over its illustration, and the Binder and the reward panel show faces instead of text. Done when every P7 test is green and the suite passes.*
 
 **Generated assets:** `tools/gen-phase7-art.mjs` draws the three category card frames with their illustration windows and plain text areas, the four rarity treatments as border and gem overlays, and the twenty card illustrations, each an emblem composed of shapes seeded by the card id inside the central band the item names, so no two cards share an illustration and a renamed card gets a new one. Twenty-seven sprites.
 
-#### P7.1 Card face
+#### ✅ P7.1 Card face
 - PRD: 3.4.7
-- Does: a `CardFace` prefab renders the anatomy: illustration, the category frame of 3.4.2, a rarity treatment, name, value, cooldown in beats, the icons of statuses it applies, special rules and flavour text when present. It comes in a full size, 256 × 360, for previews and offers, and a compact size, 100 × 140, showing illustration, frame, rarity and name, for Binder slots. All text comes from the card definition or the string table.
+- Does: a `CardFace` prefab renders the anatomy: illustration, the category frame of 3.4.2, a rarity treatment, name, value, cooldown in beats, the icons of statuses it applies, special rules and flavour text when present. It comes in a full size, 256 × 360, for previews and offers, and a compact size, 100 × 140, showing illustration, frame, rarity and name, for Binder slots. All text comes from the card definition or the string table. Assumption: `CardFace` is a component built in code, as every other screen piece is built through `HudFactory` and `ScreenFactory`, rather than a prefab asset; it lays itself out in the art's 512 × 720 space and scales to its size. Assumption: an Ability card whose value is 0 shows no value badge, since its worth is in its rules text.
 - Assets, in `Art/Shared/cards/`:
   - `spr_ui_card-frame_attack_01.png`, `spr_ui_card-frame_defense_01.png`, `spr_ui_card-frame_ability_01.png`, 512 × 720, with a transparent illustration window and plain areas for name, value, cooldown and rules text
   - `spr_ui_card-rarity_common_01.png`, `_uncommon_01`, `_rare_01`, `_legendary_01`, 512 × 720 overlays, border and gem only, transparent elsewhere
@@ -380,7 +380,7 @@ After that the order follows what the player reads first in a fight. The Rhythm 
 - Test (integration): `Client.Catalogue › card_frames_complete` — given the shipped catalogue, when frames and rarity treatments are read, then three frames and four treatments exist at 512 × 720.
 - Test (integration): `Client.Cards › card_face_shows_anatomy` — given `card-rend` with a test illustration, when a full face renders, then it shows the illustration, the attack frame, the Common treatment, "Rend", 10, 3 beats, the Bleed icon and "Applies 1 Bleed." with no flavour line; and `card-jab` shows its flavour line.
 
-#### P7.2 Starter card illustrations
+#### ✅ P7.2 Starter card illustrations
 - PRD: 3.4.7
 - Does: every card in `data/sets/starter.json` has an illustration in the catalogue.
 - Assets, in `Art/Shared/cards/`:
@@ -390,16 +390,16 @@ After that the order follows what the player reads first in a fight. The Rhythm 
 - Needs: P7.1
 - Test (integration): `Client.Catalogue › starter_card_art_complete` — given the shipped catalogue and `data/sets/starter.json`, when every card id is looked up, then each has a 512 × 720 illustration and `Missing` stays empty.
 
-#### P7.3 Binder previews card faces
+#### ✅ P7.3 Binder previews card faces
 - PRD: 3.5.5
-- Does: the Binder screen shows its 16 slots as compact faces, replaces the text list of owned cards with a scrolling column of compact faces, and shows the highlighted card as a full face preview. Keys, Confirm and Back behave as today.
+- Does: the Binder screen shows its 16 slots as compact faces, replaces the text list of owned cards with a scrolling column of compact faces, and shows the highlighted card as a full face preview. Keys, Confirm and Back behave as today. Assumption: the highlighted card is the candidate Up and Down select for the selected slot, the one Enter would place; it is outlined in the owned column, which scrolls to keep it in view, and owned cards already in the loadout carry a small mark where the text list starred them.
 - Assets: none beyond P7.1 and P7.2.
 - Needs: P7.1
 - Test (integration): `Client.Loadout › binder_previews_card_faces` — given the starter Binder, when the Binder opens, then 16 compact faces fill the slots, every owned card appears as a compact face, and moving the selection shows that card as the full face preview.
 
-#### P7.4 Reward offers as card faces
+#### ✅ P7.4 Reward offers as card faces
 - PRD: 3.7.2
-- Does: the reward panel offers its three cards as three full faces side by side, chosen with Left, Right and Enter or with keys 1 to 3; Skip stays on Esc.
+- Does: the reward panel offers its three cards as three full faces side by side, chosen with Left, Right and Enter or with keys 1 to 3; Skip stays on Esc. Assumption: the highlight starts on the first face and stops at the first and last rather than wrapping; a click on a face takes it.
 - Assets: none beyond P7.1 and P7.2.
 - Needs: P7.1
 - Test (integration): `Client.Reward › three_offers_as_card_faces` — given a Normal win offering three cards, when the reward panel renders, then three full faces show those cards, and choosing the second puts it in the Binder.

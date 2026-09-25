@@ -63,6 +63,276 @@ MonoBehaviour:
       Y: 0
       Width: 2560
       Height: 1080
+  - kind: card
+    id: brace
+    subject: brace
+    variant: static
+    sprite: {fileID: 21300000, guid: 5e7d2f10f0a9c4143ba7c8b4f97e62d0, type: 3}
+    opaque:
+      X: 0
+      Y: 0
+      Width: 512
+      Height: 720
+  - kind: card
+    id: cleave
+    subject: cleave
+    variant: static
+    sprite: {fileID: 21300000, guid: 2254dcc99e93f6c46b8ef3980db08389, type: 3}
+    opaque:
+      X: 0
+      Y: 0
+      Width: 512
+      Height: 720
+  - kind: card
+    id: cross
+    subject: cross
+    variant: static
+    sprite: {fileID: 21300000, guid: 62afe902a7f45c44997eb68528f7800b, type: 3}
+    opaque:
+      X: 0
+      Y: 0
+      Width: 512
+      Height: 720
+  - kind: card
+    id: dull-edge
+    subject: dull-edge
+    variant: static
+    sprite: {fileID: 21300000, guid: 7357298a44893fa4682c33205cd33125, type: 3}
+    opaque:
+      X: 0
+      Y: 0
+      Width: 512
+      Height: 720
+  - kind: card
+    id: ember-mark
+    subject: ember-mark
+    variant: static
+    sprite: {fileID: 21300000, guid: 461ce838aa1646343883c4458923721d, type: 3}
+    opaque:
+      X: 0
+      Y: 0
+      Width: 512
+      Height: 720
+  - kind: card
+    id: fang
+    subject: fang
+    variant: static
+    sprite: {fileID: 21300000, guid: c48d6356d0d46c24b9df27022b64bca1, type: 3}
+    opaque:
+      X: 0
+      Y: 0
+      Width: 512
+      Height: 720
+  - kind: card
+    id: guard
+    subject: guard
+    variant: static
+    sprite: {fileID: 21300000, guid: e8e8bdf09fec5e64cbf4e9731c0ec91c, type: 3}
+    opaque:
+      X: 0
+      Y: 0
+      Width: 512
+      Height: 720
+  - kind: card
+    id: hollow-cut
+    subject: hollow-cut
+    variant: static
+    sprite: {fileID: 21300000, guid: 77fd93c9bdd24c44ea0636dc91e26b2d, type: 3}
+    opaque:
+      X: 0
+      Y: 0
+      Width: 512
+      Height: 720
+  - kind: card
+    id: hook
+    subject: hook
+    variant: static
+    sprite: {fileID: 21300000, guid: 4840659049d999b42b2b63b6b0ef19f5, type: 3}
+    opaque:
+      X: 0
+      Y: 0
+      Width: 512
+      Height: 720
+  - kind: card
+    id: jab
+    subject: jab
+    variant: static
+    sprite: {fileID: 21300000, guid: 34c35e5483fa25746b32d87c69d65fc1, type: 3}
+    opaque:
+      X: 0
+      Y: 0
+      Width: 512
+      Height: 720
+  - kind: card
+    id: rend
+    subject: rend
+    variant: static
+    sprite: {fileID: 21300000, guid: 296cfe4435d11bf4d9d3bdafac177109, type: 3}
+    opaque:
+      X: 0
+      Y: 0
+      Width: 512
+      Height: 720
+  - kind: card
+    id: spark
+    subject: spark
+    variant: static
+    sprite: {fileID: 21300000, guid: a05ae9003c84ed145a6ae3d7807ad0a9, type: 3}
+    opaque:
+      X: 0
+      Y: 0
+      Width: 512
+      Height: 720
+  - kind: card
+    id: starter-1
+    subject: starter-1
+    variant: static
+    sprite: {fileID: 21300000, guid: 569c4e0e53fe7ae47b2499dac31842d2, type: 3}
+    opaque:
+      X: 0
+      Y: 0
+      Width: 512
+      Height: 720
+  - kind: card
+    id: starter-2
+    subject: starter-2
+    variant: static
+    sprite: {fileID: 21300000, guid: f2549cd1c5fb46144a7cfb60931f7651, type: 3}
+    opaque:
+      X: 0
+      Y: 0
+      Width: 512
+      Height: 720
+  - kind: card
+    id: starter-3
+    subject: starter-3
+    variant: static
+    sprite: {fileID: 21300000, guid: 27fbe7ea8fcdee04994fd01b574b0457, type: 3}
+    opaque:
+      X: 0
+      Y: 0
+      Width: 512
+      Height: 720
+  - kind: card
+    id: starter-4
+    subject: starter-4
+    variant: static
+    sprite: {fileID: 21300000, guid: f763edf8199c0ab4a87f9102865f3b36, type: 3}
+    opaque:
+      X: 0
+      Y: 0
+      Width: 512
+      Height: 720
+  - kind: card
+    id: starter-5
+    subject: starter-5
+    variant: static
+    sprite: {fileID: 21300000, guid: b06fe844e78c60145ad3273a854bb5a6, type: 3}
+    opaque:
+      X: 0
+      Y: 0
+      Width: 512
+      Height: 720
+  - kind: card
+    id: starter-6
+    subject: starter-6
+    variant: static
+    sprite: {fileID: 21300000, guid: 41e95251ef44ccf4fa799a6155f4a219, type: 3}
+    opaque:
+      X: 0
+      Y: 0
+      Width: 512
+      Height: 720
+  - kind: card
+    id: starter-7
+    subject: starter-7
+    variant: static
+    sprite: {fileID: 21300000, guid: cda80624f3f6d0d42b2eedd9380499d2, type: 3}
+    opaque:
+      X: 0
+      Y: 0
+      Width: 512
+      Height: 720
+  - kind: card
+    id: starter-8
+    subject: starter-8
+    variant: static
+    sprite: {fileID: 21300000, guid: e0d300195206635428c878a12cd8a7f5, type: 3}
+    opaque:
+      X: 0
+      Y: 0
+      Width: 512
+      Height: 720
+  - kind: ui
+    id: card-frame-ability
+    subject: card-frame
+    variant: ability
+    sprite: {fileID: 21300000, guid: 3c6707cfab6e76544ba2fe2559fcb8f5, type: 3}
+    opaque:
+      X: 0
+      Y: 0
+      Width: 512
+      Height: 720
+  - kind: ui
+    id: card-frame-attack
+    subject: card-frame
+    variant: attack
+    sprite: {fileID: 21300000, guid: cb03a86442d9e3b4eada53fb9f484dd1, type: 3}
+    opaque:
+      X: 0
+      Y: 0
+      Width: 512
+      Height: 720
+  - kind: ui
+    id: card-frame-defense
+    subject: card-frame
+    variant: defense
+    sprite: {fileID: 21300000, guid: ecc2864701eb0ee42845d0e16155ec0b, type: 3}
+    opaque:
+      X: 0
+      Y: 0
+      Width: 512
+      Height: 720
+  - kind: ui
+    id: card-rarity-common
+    subject: card-rarity
+    variant: common
+    sprite: {fileID: 21300000, guid: f338546c40bbc3f4eb8d9d8fb7fee814, type: 3}
+    opaque:
+      X: 0
+      Y: 0
+      Width: 512
+      Height: 720
+  - kind: ui
+    id: card-rarity-legendary
+    subject: card-rarity
+    variant: legendary
+    sprite: {fileID: 21300000, guid: c8fe44a26ac0a514abdd950a5414159e, type: 3}
+    opaque:
+      X: 0
+      Y: 0
+      Width: 512
+      Height: 720
+  - kind: ui
+    id: card-rarity-rare
+    subject: card-rarity
+    variant: rare
+    sprite: {fileID: 21300000, guid: ae03d5fb9bdb37e4f849aa7207257cbf, type: 3}
+    opaque:
+      X: 0
+      Y: 0
+      Width: 512
+      Height: 720
+  - kind: ui
+    id: card-rarity-uncommon
+    subject: card-rarity
+    variant: uncommon
+    sprite: {fileID: 21300000, guid: 8f9fffbb685f0824fb3e8e4f3e851706, type: 3}
+    opaque:
+      X: 0
+      Y: 0
+      Width: 512
+      Height: 720
   - kind: ui
     id: crp
     subject: crp

@@ -139,6 +139,16 @@ export function joints(s, p) {
  */
 export function drawPose(s, p) {
   const c = canvas(FRAME, FRAME)
+  drawPoseOn(c, s, p)
+  bleed(c)
+  return c
+}
+
+/**
+ * Draws one pose onto a canvas the caller owns, in the puppet's own space; a canvas with a view
+ * (art-lib.mjs, `paint`) draws it magnified, which is how a portrait is the fighter up close.
+ */
+export function drawPoseOn(c, s, p) {
   const j = joints(s, p)
   const back = (colour) => lerp(colour, [0, 0, 0], 0.34)
 
@@ -166,9 +176,6 @@ export function drawPose(s, p) {
   if (s.implement) {
     s.implement(c, j, s, p, { limb, blob, slab, rad })
   }
-
-  bleed(c)
-  return c
 }
 
 /** A foot: a short capsule lying along the ground under the ankle, toward the facing direction. */

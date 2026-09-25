@@ -46,7 +46,7 @@ function emit(folder, name, c, note) {
  * Lulu (PRD 3.14.1): the cute exterior. A big head on a small body, a rose bob with two tufts,
  * a mint coat and a wand — the only round-headed, light-limbed silhouette on the stage.
  */
-const lulu = {
+export const lulu = {
   kind: 'player',
   subject: 'lulu',
   folder: LULU,
@@ -102,7 +102,7 @@ const lulu = {
  * head sunk between heavy pauldrons, and a bar held in both hands — a block of a silhouette that
  * reads as something to be timed rather than outrun.
  */
-const ren = {
+export const ren = {
   kind: 'enemy',
   subject: 'ren',
   folder: REN,
@@ -245,10 +245,16 @@ function arena() {
 
 // ------------------------------------------------------------------ run ---
 
-emit(BG, 'spr_bg_arena_static_01.png', arena(), 'floor line 200 px above the bottom')
-drawCharacter(lulu, written)
-drawCharacter(ren, written)
+// Run as a script it writes the art; imported, it only lends its characters (the portraits of
+// gen-phase8-art.mjs draw Ren from here, so the portrait is the fighter).
+const isMain = process.argv[1] !== undefined && resolve(process.argv[1]) === fileURLToPath(import.meta.url)
 
-const sprites = written.filter((f) => f.name.endsWith('.png')).length
-console.log(`\n${sprites} sprites and ${written.length - sprites} sidecars written under Art/`)
-console.log(`frame canvas ${FRAME} x ${FRAME}, soles on y = ${SOLE}`)
+if (isMain) {
+  emit(BG, 'spr_bg_arena_static_01.png', arena(), 'floor line 200 px above the bottom')
+  drawCharacter(lulu, written)
+  drawCharacter(ren, written)
+
+  const sprites = written.filter((f) => f.name.endsWith('.png')).length
+  console.log(`\n${sprites} sprites and ${written.length - sprites} sidecars written under Art/`)
+  console.log(`frame canvas ${FRAME} x ${FRAME}, soles on y = ${SOLE}`)
+}

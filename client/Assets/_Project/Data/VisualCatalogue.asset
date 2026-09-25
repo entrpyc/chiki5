@@ -749,50 +749,50 @@ MonoBehaviour:
     variant: static
     sprite: {fileID: 21300000, guid: 43b4b0b4f9f9b7848b698206bfcb5514, type: 3}
     opaque:
-      X: 140
+      X: 154
       Y: 0
-      Width: 281
-      Height: 485
+      Width: 264
+      Height: 489
   - kind: portrait
     id: malk
     subject: malk
     variant: static
     sprite: {fileID: 21300000, guid: b9d3adb53508e5d42805ceb86cd82507, type: 3}
     opaque:
-      X: 129
+      X: 117
       Y: 0
-      Width: 278
-      Height: 492
+      Width: 273
+      Height: 488
   - kind: portrait
     id: orm
     subject: orm
     variant: static
     sprite: {fileID: 21300000, guid: 61d9ca6e732a73e4b9e62ba660244b42, type: 3}
     opaque:
-      X: 125
+      X: 5
       Y: 0
-      Width: 279
-      Height: 473
+      Width: 493
+      Height: 479
   - kind: portrait
     id: ren
     subject: ren
     variant: static
     sprite: {fileID: 21300000, guid: 0a7024850245be24b88f89ca392d3986, type: 3}
     opaque:
-      X: 102
+      X: 73
       Y: 0
-      Width: 325
-      Height: 433
+      Width: 361
+      Height: 483
   - kind: portrait
     id: vey
     subject: vey
     variant: static
     sprite: {fileID: 21300000, guid: ea0626878c0247f4ea2163c6a9905fa0, type: 3}
     opaque:
-      X: 125
+      X: 127
       Y: 0
-      Width: 285
-      Height: 490
+      Width: 262
+      Height: 481
   clips:
   - kind: player
     id: lulu-ability

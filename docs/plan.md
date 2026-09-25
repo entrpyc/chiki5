@@ -426,7 +426,7 @@ After that the order follows what the player reads first in a fight. The Rhythm 
 
 #### ✅ P8.3 Enemy portraits
 - PRD: 3.6.26
-- Does: every enemy's portrait id resolves to a portrait in the catalogue. Assumption: Kess, Vey, Orm and Malk have no fighter art until Phase 6, so `tools/gen-phase8-art.mjs` states their puppet specs — proportions seeded from the enemy id, palette and headpiece given — and Phase 6 draws the fighters from those same specs so portrait and fighter stay one character. Portraits sit in each enemy's own `Art/World1/<name>/` folder.
+- Does: every enemy's portrait id resolves to a portrait in the catalogue. Assumption: a portrait is drawn from the very character record its fighter is drawn from — Ren's in `tools/gen-phase5-art.mjs`, the others' in `tools/gen-phase6-art.mjs` — in its first idle pose, magnified onto the canvas through a view in `paint`, so portrait and fighter stay one character and redrawing a fighter redraws its portrait. Portraits sit in each enemy's own `Art/World1/<name>/` folder.
 - Assets: `spr_portrait_ren_static_01.png`, `spr_portrait_kess_static_01.png`, `spr_portrait_vey_static_01.png`, `spr_portrait_orm_static_01.png`, `spr_portrait_malk_static_01.png`, 512 × 512, head and shoulders, facing left, transparent background.
 - Needs: P8.2
 - Test (integration): `Client.Catalogue › enemy_portraits_complete` — given the shipped catalogue and `data/enemies/fixtures.json`, when every enemy's portrait id is looked up, then each resolves to a 512 × 512 sprite.

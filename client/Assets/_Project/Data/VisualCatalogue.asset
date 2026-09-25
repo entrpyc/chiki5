@@ -12,5 +12,155 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 25c81c1c142b6bc41a15313b246af248, type: 3}
   m_Name: VisualCatalogue
   m_EditorClassIdentifier: Chiki.Client::Chiki.Client.Visuals.VisualCatalogue
-  sprites: []
+  sprites:
+  - kind: ability
+    id: iron-veil
+    subject: iron-veil
+    variant: static
+    sprite: {fileID: 21300000, guid: 0176814ab8420cd4fb6bda404ecef51e, type: 3}
+    opaque:
+      X: 8
+      Y: 6
+      Width: 48
+      Height: 54
+  - kind: ui
+    id: rhythmline-beat
+    subject: rhythmline
+    variant: beat
+    sprite: {fileID: 21300000, guid: b2c698c1eaad46047ae3787752428a13, type: 3}
+    opaque:
+      X: 0
+      Y: 0
+      Width: 4
+      Height: 126
+  - kind: ui
+    id: rhythmline-bg-dark
+    subject: rhythmline
+    variant: bg-dark
+    sprite: {fileID: 21300000, guid: 1553c06a68ffde842ad77e5cb9a96a49, type: 3}
+    opaque:
+      X: 0
+      Y: 0
+      Width: 400
+      Height: 180
+  - kind: ui
+    id: rhythmline-bg
+    subject: rhythmline
+    variant: bg
+    sprite: {fileID: 21300000, guid: 7107e24604ca7374b8feef7ef99285b9, type: 3}
+    opaque:
+      X: 0
+      Y: 0
+      Width: 400
+      Height: 180
+  - kind: ui
+    id: rhythmline-playhead
+    subject: rhythmline
+    variant: playhead
+    sprite: {fileID: 21300000, guid: 7951e25a67305a24d8b5b93d1f0ae76f, type: 3}
+    opaque:
+      X: 0
+      Y: 0
+      Width: 8
+      Height: 180
+  - kind: ui
+    id: rhythmline-quarter
+    subject: rhythmline
+    variant: quarter
+    sprite: {fileID: 21300000, guid: c0c718bc312724f4f8cdc0a6e79d3d4b, type: 3}
+    opaque:
+      X: 0
+      Y: 0
+      Width: 2
+      Height: 54
+  - kind: ui
+    id: rhythmline-window-open
+    subject: rhythmline
+    variant: window-open
+    sprite: {fileID: 21300000, guid: ad556d6d01374ab419e4b918b11aaeb2, type: 3}
+    opaque:
+      X: 0
+      Y: 0
+      Width: 64
+      Height: 144
+  - kind: ui
+    id: rhythmline-window
+    subject: rhythmline
+    variant: window
+    sprite: {fileID: 21300000, guid: cee00b95fba02544795d72980935aa39, type: 3}
+    opaque:
+      X: 0
+      Y: 0
+      Width: 64
+      Height: 144
+  - kind: action
+    id: attack-left
+    subject: attack-left
+    variant: static
+    sprite: {fileID: 21300000, guid: 5d6fb14eb031ef04d962695c6517acf6, type: 3}
+    opaque:
+      X: 11
+      Y: 7
+      Width: 58
+      Height: 66
+  - kind: action
+    id: attack-right
+    subject: attack-right
+    variant: static
+    sprite: {fileID: 21300000, guid: 58a1a97c89f4140429fd94737ecea746, type: 3}
+    opaque:
+      X: 11
+      Y: 7
+      Width: 58
+      Height: 66
+  - kind: action
+    id: buff
+    subject: buff
+    variant: static
+    sprite: {fileID: 21300000, guid: 684f645f9dbd022498f20994e24537d5, type: 3}
+    opaque:
+      X: 5
+      Y: 5
+      Width: 70
+      Height: 70
+  - kind: action
+    id: charge
+    subject: charge
+    variant: static
+    sprite: {fileID: 21300000, guid: ca4d36f151255914ab2762678d011ddd, type: 3}
+    opaque:
+      X: 4
+      Y: 4
+      Width: 72
+      Height: 72
+  - kind: action
+    id: defend
+    subject: defend
+    variant: static
+    sprite: {fileID: 21300000, guid: f52fdb367cdeaf848bca5cd1b547da26, type: 3}
+    opaque:
+      X: 11
+      Y: 8
+      Width: 58
+      Height: 66
+  - kind: ui
+    id: telegraph-glow
+    subject: telegraph-glow
+    variant: static
+    sprite: {fileID: 21300000, guid: 55972fe63557fbb4fbd2bf1afb96a7ba, type: 3}
+    opaque:
+      X: 2
+      Y: 2
+      Width: 116
+      Height: 116
+  - kind: ui
+    id: windup-bar
+    subject: windup-bar
+    variant: static
+    sprite: {fileID: 21300000, guid: 03ad687196a9ac34692135711db970f6, type: 3}
+    opaque:
+      X: 0
+      Y: 0
+      Width: 64
+      Height: 6
   clips: []

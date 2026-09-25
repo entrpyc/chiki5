@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Chiki.Client.Driver;
 using Chiki.Client.Text;
+using Chiki.Client.Visuals;
 using Chiki.Sim;
 using UnityEngine;
 using UnityEngine.UI;
@@ -20,12 +21,16 @@ namespace Chiki.Client.Presenter
         public const float IconSize = 44f;
         public const float IconGap = 6f;
 
+        /// <summary>The kind a standing ability's badge is catalogued under (P2.4).</summary>
+        public const string AbilityKind = "ability";
+
         private static readonly Color BarBackground = new Color(0.12f, 0.12f, 0.15f, 1f);
         private static readonly Color EnemyFill = new Color(0.8f, 0.2f, 0.25f, 1f);
         private static readonly Color PlayerFill = new Color(0.25f, 0.65f, 0.9f, 1f);
 
         private readonly float _width;
         private readonly Image _fill;
+        private readonly Image _ability;
         private readonly UnityEngine.UI.Text _label;
         private readonly List<StatusIconWidget> _pool = new List<StatusIconWidget>();
         private readonly List<StatusIconWidget> _shown = new List<StatusIconWidget>();
@@ -41,6 +46,12 @@ namespace Chiki.Client.Presenter
 
         /// <summary>The icons on screen, one per status kind on this side, in kind order.</summary>
         public IReadOnlyList<StatusIconWidget> Icons => _shown;
+
+        /// <summary>The badge of a standing ability on this side, Iron Veil among them (PRD 3.6.9); hidden while none stands.</summary>
+        public Image AbilityBadge => _ability;
+
+        /// <summary>The content id the badge shows, or null while no ability stands.</summary>
+        public string? AbilityShown { get; private set; }
 
         public string LabelText => _label.text;
 
@@ -63,6 +74,28 @@ namespace Chiki.Client.Presenter
             _label = HudFactory.StretchedText("Label", Bar, 18, Color.white, TextAnchor.MiddleCenter);
 
             IconsRow = HudFactory.Rect("Statuses", Root, new Vector2(0f, BarHeight / 2f + IconGap + IconSize / 2f), new Vector2(width, IconSize));
+
+            _ability = HudFactory.Image("Ability", IconsRow, Color.white, new Vector2(width / 2f - IconSize / 2f, 0f), new Vector2(IconSize, IconSize));
+            _ability.gameObject.SetActive(false);
+        }
+
+        /// <summary>Shows a standing ability's badge at the end of this side's icon row, or hides it when the id is null (P2.4).</summary>
+        public void ShowAbility(string? abilityId)
+        {
+            if (AbilityShown != abilityId)
+            {
+                AbilityShown = abilityId;
+                if (abilityId != null)
+                {
+                    HudFactory.SetSprite(_ability, VisualCatalogue.Active.Sprite(AbilityKind, abilityId));
+                }
+            }
+
+            bool shown = abilityId != null;
+            if (_ability.gameObject.activeSelf != shown)
+            {
+                _ability.gameObject.SetActive(shown);
+            }
         }
 
         public void SetBar(int value, int max, string text)
@@ -142,6 +175,8 @@ namespace Chiki.Client.Presenter
     {
         public const float BarWidth = 560f;
 
+        private int? _veilModifierId;
+
         public SideBarView Player { get; private set; } = null!;
 
         public SideBarView Enemy { get; private set; } = null!;
@@ -171,8 +206,24 @@ namespace Chiki.Client.Presenter
             return target == StatusTarget.Enemy ? Enemy : Player;
         }
 
+        /// <summary>
+        /// Refreshes both bars after every event, and follows the stream for the modifiers that
+        /// veil the enemy (PRD 3.6.9): the ability's badge joins the enemy's icons while one
+        /// stands and leaves when that same modifier expires.
+        /// </summary>
         public void OnBattleEvent(Sim.Battle battle, BattleEvent battleEvent)
         {
+            if (battleEvent is ModifierActivated activated && EnemyVeil.Veils(activated))
+            {
+                _veilModifierId = activated.ModifierId;
+                Enemy.ShowAbility(EnemyVeil.AbilityId(battle));
+            }
+            else if (battleEvent is ModifierExpired expired && _veilModifierId == expired.ModifierId)
+            {
+                _veilModifierId = null;
+                Enemy.ShowAbility(null);
+            }
+
             Refresh(battle);
         }
 

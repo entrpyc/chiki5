@@ -8,6 +8,8 @@ using Chiki.Client.Profiles;
 using Chiki.Client.Text;
 using Chiki.Client.Visuals;
 using Chiki.Sim;
+using Chiki.Sim.Data;
+using Chiki.Sim.Effects;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -17,6 +19,12 @@ namespace Client
     public class Presenter
     {
         private const float Tolerance = 0.5f;
+
+        [TearDown]
+        public void TearDown()
+        {
+            ClientTestContent.ClearCatalogues();
+        }
 
         private static GameObject MakeCamera(string name)
         {
@@ -271,6 +279,162 @@ namespace Client
             rig.Destroy();
             ClientTestContent.ClearCatalogues();
             Directory.Delete(root, true);
+        }
+
+        /// <summary>P2.1: every piece of the line is the shipped art, not a coloured rectangle.</summary>
+        [UnityTest]
+        [Timeout(30000)]
+        public IEnumerator rhythm_line_drawn_from_catalogue()
+        {
+            var catalogue = ClientTestContent.ShippedVisuals();
+            var rig = ClientTestContent.ScheduledRig("presenter-line-art", Beats.ToQuarterBeats(4));
+            var hud = BattleHud.Build(rig.Driver, null, null, null);
+            var line = hud.RhythmLine;
+
+            // Two beats of the fixture track at 120 BPM.
+            yield return WaitUntilRenderedAt(line, 1000);
+
+            var background = catalogue.Sprite(RhythmLineView.UiKind, RhythmLineView.BackgroundId);
+            var beatTick = catalogue.Sprite(RhythmLineView.UiKind, RhythmLineView.BeatTickId);
+            var quarterTick = catalogue.Sprite(RhythmLineView.UiKind, RhythmLineView.QuarterTickId);
+            var playhead = catalogue.Sprite(RhythmLineView.UiKind, RhythmLineView.PlayheadId);
+            var window = catalogue.Sprite(RhythmLineView.UiKind, RhythmLineView.WindowId);
+
+            Assert.That(line.Background.sprite, Is.SameAs(background), "the line's background is not the catalogue's");
+            Assert.That(line.Playhead.sprite, Is.SameAs(playhead), "the playhead is not the catalogue's");
+            Assert.That(line.Window.gameObject.activeInHierarchy, Is.True, "the Judgment Window band is not shown");
+            Assert.That(line.Window.sprite, Is.SameAs(window), "the window band is not the catalogue's");
+
+            var visible = line.BeatMarkers.Where(m => m.Visible).ToList();
+            Assert.That(visible, Is.Not.Empty, "no beat marker is visible");
+            foreach (var marker in visible)
+            {
+                Assert.That(marker.Line.sprite, Is.SameAs(beatTick), "beat " + marker.Beat + "'s tick is not the catalogue's");
+                foreach (var quarter in marker.Quarters)
+                {
+                    Assert.That(quarter.sprite, Is.SameAs(quarterTick), "a quarter tick of beat " + marker.Beat + " is not the catalogue's");
+                }
+            }
+
+            Assert.That(catalogue.Missing, Is.Empty, "the line fell back for: " + string.Join(", ", catalogue.Missing));
+
+            Object.Destroy(hud.gameObject);
+            rig.Destroy();
+        }
+
+        /// <summary>P2.2: a marker carries its kind's icon, and a Charge its wind-up bar.</summary>
+        [UnityTest]
+        [Timeout(30000)]
+        public IEnumerator telegraph_shows_kind_icon()
+        {
+            var catalogue = ClientTestContent.ShippedVisuals();
+            var track = ClientTestContent.FixtureTrack();
+            var chart = ClientTestContent.Chart(
+                track,
+                new EnemyAction(EnemyActionKind.AttackLeft, Beats.ToQuarterBeats(4)),
+                new EnemyAction(EnemyActionKind.Charge, Beats.ToQuarterBeats(5), windUpBeats: 3));
+            var rig = ClientTestContent.ScheduledRig("presenter-icons", chart, ClientTestContent.EnemyWith(chart));
+            var hud = BattleHud.Build(rig.Driver, null, null, null);
+            var line = hud.RhythmLine;
+
+            // The line is read during beat 1, whose first quarter runs 500-625 ms.
+            yield return WaitUntilRenderedAt(line, 500);
+            Assert.That(line.RenderedAtMs, Is.LessThan(625), "the frame after beat 1 came too late to read the first quarter");
+
+            Assert.That(line.ActionMarkers, Has.Count.EqualTo(2), "both telegraphs are not on the line");
+            var attack = line.ActionMarkers[0];
+            var charge = line.ActionMarkers[1];
+
+            Assert.That(attack.Beat, Is.EqualTo(4f));
+            Assert.That(attack.Icon.sprite, Is.SameAs(catalogue.Sprite(ActionMarker.ActionKindName, ChartLoader.KindToId(EnemyActionKind.AttackLeft))), "the beat-4 marker does not show the attack-left icon");
+            Assert.That(attack.CountdownText, Is.EqualTo("3"));
+            Assert.That(attack.WindUpShown, Is.False, "an attack shows a wind-up bar");
+
+            Assert.That(charge.Beat, Is.EqualTo(8f), "the Charge does not land on beat 8");
+            Assert.That(charge.Icon.sprite, Is.SameAs(catalogue.Sprite(ActionMarker.ActionKindName, ChartLoader.KindToId(EnemyActionKind.Charge))), "the beat-8 marker does not show the charge icon");
+            Assert.That(charge.WindUpShown, Is.True, "the Charge shows no wind-up bar");
+            Assert.That(charge.WindUp.sprite, Is.SameAs(catalogue.Sprite(RhythmLineView.UiKind, ActionMarker.WindUpBarId)), "the wind-up bar is not the catalogue's");
+
+            float barRight = charge.Rect.anchoredPosition.x - ActionMarker.IconSize / 2f;
+            float barLeft = barRight - charge.WindUp.rectTransform.sizeDelta.x;
+            Assert.That(barLeft, Is.EqualTo(5f * line.BeatWidth).Within(Tolerance), "the wind-up bar does not start at beat 5");
+            Assert.That(barRight, Is.LessThan(8f * line.BeatWidth), "the wind-up bar does not run into beat 8");
+
+            Object.Destroy(hud.gameObject);
+            rig.Destroy();
+        }
+
+        /// <summary>P2.3: the open window puts the catalogue's glow behind the marker's icon.</summary>
+        [UnityTest]
+        [Timeout(30000)]
+        public IEnumerator open_window_glows_telegraph()
+        {
+            var catalogue = ClientTestContent.ShippedVisuals();
+            var rig = ClientTestContent.ScheduledRig("presenter-telegraph-glow", Beats.ToQuarterBeats(4));
+            var hud = BattleHud.Build(rig.Driver, null, null, null);
+            var line = hud.RhythmLine;
+            var pending = rig.Driver.Battle!.PendingAction;
+
+            yield return rig.WaitUntilAudioMs(pending.OpenMs - 200);
+            yield return null;
+            var marker = line.ActionMarkers.Single();
+            Assert.That(marker.GlowShown, Is.False, "the marker glowed before its window opened");
+
+            yield return rig.WaitUntilAudioMs(pending.OpenMs + 20);
+            yield return null;
+            Assert.That(rig.Clock.NowMs, Is.LessThan(pending.CloseMs), "the window had already closed when checked");
+            Assert.That(marker.GlowShown, Is.True, "the marker does not glow inside its window");
+            Assert.That(marker.Glow.sprite, Is.SameAs(catalogue.Sprite(RhythmLineView.UiKind, ActionMarker.GlowId)), "the glow is not the catalogue's");
+
+            yield return rig.WaitUntilAudioMs(pending.CloseMs + 60);
+            yield return null;
+            Assert.That(marker.GlowShown, Is.False, "the glow stayed on after the window closed");
+
+            Object.Destroy(hud.gameObject);
+            rig.Destroy();
+        }
+
+        /// <summary>P2.4: Iron Veil darkens the line and badges the enemy bar for as long as it stands.</summary>
+        [UnityTest]
+        [Timeout(30000)]
+        public IEnumerator iron_veil_darkens_line_for_five_beats()
+        {
+            var catalogue = ClientTestContent.ShippedVisuals();
+            var track = ClientTestContent.FixtureTrack();
+            var chart = ClientTestContent.Chart(track, new EnemyAction(EnemyActionKind.Buff, Beats.ToQuarterBeats(2)));
+            var rig = ClientTestContent.ScheduledRig("presenter-veil", chart, ClientTestContent.EnemyWith(chart, EnemyAbility.IronVeil));
+            var hud = BattleHud.Build(rig.Driver, null, null, null);
+            var line = hud.RhythmLine;
+            var battle = rig.Driver.Battle!;
+            var enemyBar = hud.Statuses.Enemy;
+
+            Assert.That(line.Veiled, Is.False, "the line was dark before the Buff landed");
+
+            yield return rig.WaitUntilAudioMs(track.BeatMap.TimeAtBeat(3));
+            yield return null;
+            Assert.That(battle.IronVeilActive, Is.True, "the Buff on beat 2 did not raise the veil");
+            Assert.That(line.Veiled, Is.True, "the line did not go dark under the veil");
+            Assert.That(line.Background.sprite, Is.SameAs(catalogue.Sprite(RhythmLineView.UiKind, RhythmLineView.DarkBackgroundId)), "the line is not showing the dark background");
+            Assert.That(enemyBar.AbilityShown, Is.EqualTo(EnemyLoader.AbilityToId(EnemyAbility.IronVeil)), "the enemy bar does not show the Iron Veil icon");
+            Assert.That(enemyBar.AbilityBadge.sprite, Is.SameAs(catalogue.Sprite(SideBarView.AbilityKind, EnemyLoader.AbilityToId(EnemyAbility.IronVeil))), "the badge is not the catalogue's Iron Veil icon");
+
+            yield return rig.WaitUntilAudioMs(track.BeatMap.TimeAtBeat(6));
+            yield return null;
+            Assert.That(line.Veiled, Is.True, "the line lightened before the veil's five beats were up");
+
+            yield return rig.WaitUntilAudioMs(track.BeatMap.TimeAtBeat(8));
+            yield return null;
+            Assert.That(battle.IronVeilActive, Is.False, "the veil outlasted its five beats");
+            Assert.That(line.Veiled, Is.False, "the line stayed dark after the veil expired");
+            Assert.That(line.Background.sprite, Is.SameAs(catalogue.Sprite(RhythmLineView.UiKind, RhythmLineView.BackgroundId)), "the line did not return to the normal background");
+            Assert.That(enemyBar.AbilityShown, Is.Null, "the Iron Veil icon stayed after the veil expired");
+            Assert.That(enemyBar.AbilityBadge.gameObject.activeInHierarchy, Is.False, "the badge is still on screen");
+
+            var activated = battle.Events.OfType<ModifierActivated>().Single(e => e.Value == EffectValue.EnemyDamageTaken);
+            Assert.That(activated.Beats, Is.EqualTo(Tuning.IronVeilBeats), "the veil that darkened the line does not last five beats");
+
+            Object.Destroy(hud.gameObject);
+            rig.Destroy();
         }
     }
 }

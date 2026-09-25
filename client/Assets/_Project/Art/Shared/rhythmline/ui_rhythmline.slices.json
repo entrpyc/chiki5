@@ -1,0 +1,8 @@
+{
+  "borders": {
+    "bg": { "left": 32, "right": 32 },
+    "bg-dark": { "left": 32, "right": 32 },
+    "window": { "left": 16, "right": 16 },
+    "window-open": { "left": 16, "right": 16 }
+  }
+}

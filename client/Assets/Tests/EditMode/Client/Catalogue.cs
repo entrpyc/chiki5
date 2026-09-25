@@ -1,6 +1,11 @@
 #nullable enable
+using System.Collections.Generic;
+using System.IO;
 using Chiki.Client.Editor;
+using Chiki.Client.Presenter;
 using Chiki.Client.Visuals;
+using Chiki.Sim;
+using Chiki.Sim.Data;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
@@ -58,6 +63,85 @@ namespace Client
             Assert.That(catalogue.Missing, Is.Empty, "a shipped id was recorded as missing");
 
             Object.DestroyImmediate(catalogue);
+        }
+
+        /// <summary>P2.1: the six sprites the Rhythm Line is drawn from, at the sizes the plan states, sliced where they stretch.</summary>
+        [Test]
+        public void rhythm_line_kit_complete()
+        {
+            var catalogue = Shipped();
+            var kit = new (string Id, int Width, int Height)[]
+            {
+                (RhythmLineView.BackgroundId, 400, 180),
+                (RhythmLineView.BeatTickId, 4, 126),
+                (RhythmLineView.QuarterTickId, 2, 54),
+                (RhythmLineView.PlayheadId, 8, 180),
+                (RhythmLineView.WindowId, 64, 144),
+                (RhythmLineView.WindowOpenId, 64, 144),
+            };
+
+            foreach (var piece in kit)
+            {
+                Assert.That(catalogue.Has(RhythmLineView.UiKind, piece.Id), Is.True, piece.Id + " is not in the shipped catalogue");
+                var sprite = catalogue.Sprite(RhythmLineView.UiKind, piece.Id);
+                Assert.That(sprite.rect.size, Is.EqualTo(new Vector2(piece.Width, piece.Height)), piece.Id + " is not drawn at its stated size");
+            }
+
+            foreach (string id in new[] { RhythmLineView.BackgroundId, RhythmLineView.WindowId, RhythmLineView.WindowOpenId })
+            {
+                var border = catalogue.Sprite(RhythmLineView.UiKind, id).border;
+                Assert.That(border.x, Is.GreaterThan(0f), id + " has no left 9-slice border");
+                Assert.That(border.z, Is.GreaterThan(0f), id + " has no right 9-slice border");
+            }
+
+            Assert.That(catalogue.Missing, Is.Empty, "a Rhythm Line sprite fell back: " + string.Join(", ", catalogue.Missing));
+        }
+
+        /// <summary>P2.2: one icon per action kind, each at 80 by 80 and each a different image.</summary>
+        [Test]
+        public void telegraph_icons_complete()
+        {
+            var catalogue = Shipped();
+            var kinds = new[]
+            {
+                EnemyActionKind.AttackLeft,
+                EnemyActionKind.AttackRight,
+                EnemyActionKind.Defend,
+                EnemyActionKind.Buff,
+                EnemyActionKind.Charge,
+            };
+
+            var images = new Dictionary<string, byte[]>();
+            foreach (var kind in kinds)
+            {
+                string id = ChartLoader.KindToId(kind);
+                Assert.That(catalogue.Has(ActionMarker.ActionKindName, id), Is.True, id + " has no icon in the shipped catalogue");
+                var sprite = catalogue.Sprite(ActionMarker.ActionKindName, id);
+                Assert.That(sprite.rect.size, Is.EqualTo(new Vector2(80f, 80f)), id + " is not an 80 by 80 icon");
+                images[id] = File.ReadAllBytes(AssetDatabase.GetAssetPath(sprite));
+            }
+
+            foreach (var one in images)
+            {
+                foreach (var other in images)
+                {
+                    if (one.Key != other.Key)
+                    {
+                        Assert.That(one.Value, Is.Not.EqualTo(other.Value), one.Key + " and " + other.Key + " are the same image");
+                    }
+                }
+            }
+
+            Assert.That(catalogue.Missing, Is.Empty, "a telegraph icon fell back: " + string.Join(", ", catalogue.Missing));
+        }
+
+        /// <summary>The catalogue the game ships with, with nothing recorded as missing yet.</summary>
+        private static VisualCatalogue Shipped()
+        {
+            var catalogue = AssetDatabase.LoadAssetAtPath<VisualCatalogue>(VisualCatalogue.AssetPath);
+            Assert.That(catalogue, Is.Not.Null, "no catalogue at " + VisualCatalogue.AssetPath + "; run Chiki > Rebuild Visual Catalogue");
+            catalogue.ClearMissing();
+            return catalogue;
         }
 
         private static Sprite TestSprite(string name)

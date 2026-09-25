@@ -2,15 +2,17 @@
 
 | PRD       | docs/project/prd.md |
 | :-------- | :------------------ |
-| Requested | Replace every placeholder graphic and sound in the client with real assets, and list in every phase and item the assets the operator must supply (operator, 2026-09-11) |
+| Requested | Replace every placeholder graphic and sound in the client with real assets, and list in every phase and item the assets the operator must supply (operator, 2026-09-11). The implementer draws and renders every one of those assets itself, to the spec its item states, so no item waits on the operator; the operator overwrites the generated files in place later (operator, 2026-09-25) |
 | Scope     | 25 requirements and 6 groundwork pieces in 11 phases, 50 items |
 | Tests run | `dotnet test sim/Chiki.sln` for the simulation; `powershell -File tools/run-client-tests.ps1` for the client, EditMode then PlayMode once P1.1 is done |
 
 **Completion rule.** An item is done when every test it lists is green in the suite. A requirement is done when every item that cites it is done. A phase is done when every item in it is done and the whole suite is green. Nothing is marked done on any other evidence.
 
-**Operator assets gate items.** Every item with an *Assets* line cannot go green until the operator has put those files in the repository; its tests read the shipped catalogue, not generated stand-ins. Phase 1 needs nothing from the operator.
+**Nothing waits on the operator.** Every item with an *Assets* line ships those files itself: a committed generator draws or renders them at the size, name and border the item states, and the item's tests read the shipped catalogue, which cannot tell a generated file from a drawn one. The operator supplies nothing anywhere in this plan. Replacing the art and sound later means overwriting the files at the same paths, with the same names and sizes, and rebuilding the catalogues — no code change, no test change, no plan change.
 
 **Asset conventions.** Sprites are PNG, 8-bit RGBA, straight alpha, drawn at 1080p reference size and imported at 100 pixels per unit with bilinear filtering (docs/project/unity-setup.md). Names follow `spr_<kind>_<subject>_<variant>_<nn>.png`: *kind* is one of enemy, player, vfx, bg, card, portrait, status, node, action, category, ability, trait, role, charm, imprint, ui, logo; *subject* is the content id without its kind prefix (`ren` for `enemy-ren`, `keen-edge` for `imprint-keen-edge`); *variant* is the clip or state (`idle`, `attack-left`, `static`, `pressed`); *nn* counts frames from 01. Files go under `client/Assets/_Project/Art/Shared/<subject>/` or `Art/World1/<subject>/`. Character and effect clips come with a `<kind>_<subject>.clips.json` beside the frames giving each clip's length in beats, whether it loops, and its strike frame. Each 9-slice sprite states its border in its item. Sound effects are WAV, 48 kHz, 16-bit, mono, named `sfx_<subject>_<variant>.wav`, under `client/Assets/_Project/Audio/`; music is OGG Vorbis, 48 kHz, stereo, named `mus_w<world>_<subject>.ogg`, with its sidecar under `data/tracks/`. No asset contains player-facing lettering; all text comes from the string table. Git LFS already tracks png, psd, wav, ogg and aseprite.
+
+**Generators.** Every asset in this plan is made by a committed Node script under `tools/`, run with plain `node` and no external dependency: `tools/gen-phase<n>-art.mjs` draws a phase's sprites, writing PNG bytes straight through `node:zlib`; `tools/gen-phase<n>-audio.mjs` renders its sound effects and music as WAV; `tools/gen-font.mjs` builds the placeholder font. A generator is deterministic — the same script writes the same bytes — and its output is committed, so a clean checkout builds and tests without running it, and a phase preamble names the generator that draws that phase. Where an item says *recorded*, it means a clip that ships in the repository and resolves through the audio catalogue: generated now, re-recorded later. A generated music stand-in is WAV under the music name (`mus_w1_ren.wav`); the catalogue takes either extension for a track and prefers the OGG when both exist, so a real recording wins by being added beside it.
 
 ## Scope
 
@@ -94,7 +96,7 @@
 
 Nothing can be drawn until the client can load it, so Phase 1 is pure groundwork: the runner learns EditMode (import settings and catalogue completeness need `UnityEditor`), then the sprite importer, the visual and audio catalogues that sit on it, the BeatAnimator that plays imported clips, and the recorded-track loader that 4.14 needs. Every later phase needs the visual catalogue; the stage and heavy-hit effect also need the BeatAnimator.
 
-After that the order follows what the player reads first in a fight. The Rhythm Line (3.3.1.1, 3.6.3, 3.6.9) comes before the slots (3.4.2, 3.3.5.4, 3.3.5.3) because the telegraph is what a press answers; feedback and the bars (3.3.8.1, 3.3.7.1, 3.8.1) come after both because they react to presses on slots. Characters (3.14.1) follow the HUD, split so Lulu and Ren, the tutorial enemy, land first and the rest of the cast second. Cards (3.4.7, 3.5.5, 3.7.2) come before the enemy card (3.6.26, 3.5.8) because the enemy card sits beside the Binder's faces while editing, and the map (3.2.16) comes after both because its read-only Binder (3.5.11, which needs 4.11) reuses those faces. The UI skin sweep of 3.14.1 comes after every screen exists, since its test asks every screen to be free of fallbacks. Music (3.6.28, 3.6.32, 3.3.1.6) is last but one only because nothing else waits on it; the frame-rate measurement (6.2) closes the plan because it must run with every shipped asset. Ties within a phase were broken behaviour before content: the component that draws a thing precedes the item that fills it with the operator's art.
+After that the order follows what the player reads first in a fight. The Rhythm Line (3.3.1.1, 3.6.3, 3.6.9) comes before the slots (3.4.2, 3.3.5.4, 3.3.5.3) because the telegraph is what a press answers; feedback and the bars (3.3.8.1, 3.3.7.1, 3.8.1) come after both because they react to presses on slots. Characters (3.14.1) follow the HUD, split so Lulu and Ren, the tutorial enemy, land first and the rest of the cast second. Cards (3.4.7, 3.5.5, 3.7.2) come before the enemy card (3.6.26, 3.5.8) because the enemy card sits beside the Binder's faces while editing, and the map (3.2.16) comes after both because its read-only Binder (3.5.11, which needs 4.11) reuses those faces. The UI skin sweep of 3.14.1 comes after every screen exists, since its test asks every screen to be free of fallbacks. Music (3.6.28, 3.6.32, 3.3.1.6) is last but one only because nothing else waits on it; the frame-rate measurement (6.2) closes the plan because it must run with every shipped asset. Ties within a phase were broken behaviour before content: the component that draws a thing precedes the item that fills it with drawn art.
 
 ## Phases
 
@@ -102,7 +104,7 @@ After that the order follows what the player reads first in a fight. The Rhythm 
 
 *The client imports sprites and sprite clips by name, looks up art and sound by content id with placeholders as the fallback, animates clips from the beat clock, and plays a recorded track when one exists. Done when every P1 test is green and the suite passes.*
 
-**Operator supplies:** nothing. Every Phase 1 test generates its own sprites and clips.
+**Generated assets:** none. Every Phase 1 test generates its own sprites and clips.
 
 #### ✅ P1.1 Client runner runs EditMode and PlayMode
 - PRD: — (groundwork for every item from P1.2 to P11.4)
@@ -153,15 +155,15 @@ After that the order follows what the player reads first in a fight. The Rhythm 
 - Test (integration): `Client.Audio › recorded_clip_preferred_over_click_track` — given a catalogue holding a test clip for `track-fixture-ren`, when a Ren battle starts, then the clip scheduled on the beat clock is that clip and not a generated click track.
 - Test (measurement): `Client.Audio › sidecar_offset_places_beat_zero` — given a test clip with one click at 37 ms and a sidecar offset of 37, when an action charted at beat 0 is answered at the click's audio time, then it is judged Perfect with a timing error under 2 ms.
 
-### Phase 2 — The Rhythm Line reads at a glance
+### ✅ Phase 2 — The Rhythm Line reads at a glance
 
 *The strip the player reads the whole fight from is drawn art: background, ticks, playhead, Judgment Window, five telegraph icons, their open-window glow, and Iron Veil's darker line. Done when every P2 test is green and the suite passes.*
 
-**Operator supplies:** the Rhythm Line kit of seven sprites, five telegraph icons, a wind-up bar, a telegraph glow, a dark line background and the Iron Veil icon. Fourteen sprites in all, every one listed in the items below.
+**Generated assets:** `tools/gen-phase2-art.mjs` draws the Rhythm Line kit of six sprites, the five telegraph icons, the wind-up bar, the telegraph glow, the dark line background and the Iron Veil icon — fifteen sprites in all, every one listed in the items below, each shape built from signed distance fields so it is antialiased at the size its item states, with the 9-slice borders written into `ui_rhythmline.slices.json` and `ui_windup-bar.slices.json` beside the frames.
 
-#### P2.1 Rhythm Line art
+#### ✅ P2.1 Rhythm Line art
 - PRD: 3.3.1.1
-- Does: `RhythmLineView` draws its background, beat ticks, quarter ticks, playhead and Judgment Window band, idle and open, from the catalogue. Geometry stays as built: a 1600 × 180 strip, 120 px per beat, 8 beats ahead and 3 behind, playhead at 30% from the left. Beat numbers stay text.
+- Does: `RhythmLineView` draws its background, beat ticks, quarter ticks, playhead and Judgment Window band, idle and open, from the catalogue. Geometry stays as built: a 1600 × 180 strip, 120 px per beat, 8 beats ahead and 3 behind, playhead at 30% from the left. Beat numbers stay text. Assumption: a 9-slice border is an import setting and not anything the PNG can carry, so each subject's borders sit beside its art in a `<kind>_<subject>.slices.json` sidecar keyed by variant, read by the importer in the shape the clip sidecar already uses; editing a sidecar reslices the art it governs.
 - Assets, in `Art/Shared/rhythmline/`:
   - `spr_ui_rhythmline_bg_01.png`, 9-slice, drawn at 400 × 180, 32 px left and right borders
   - `spr_ui_rhythmline_beat_01.png`, 4 × 126
@@ -172,7 +174,7 @@ After that the order follows what the player reads first in a fight. The Rhythm 
 - Test (integration): `Client.Catalogue › rhythm_line_kit_complete` — given the shipped catalogue, when the six Rhythm Line sprites are read, then each exists at its stated size and the three 9-slice sprites have left and right borders set.
 - Test (integration): `Client.Presenter › rhythm_line_drawn_from_catalogue` — given a running battle with the shipped catalogue, when two beats render, then the background, every visible tick, the playhead and the window band carry catalogue sprites and `Missing` is empty.
 
-#### P2.2 Telegraph icons
+#### ✅ P2.2 Telegraph icons
 - PRD: 3.6.3
 - Does: each action marker shows its kind's icon instead of a coloured square, at 80 × 80, with the kind label and beats-remaining count as text; the Charge wind-up bar uses the wind-up sprite sliced along its length. Imminent and highlighted markers keep today's scale changes.
 - Assets, in `Art/Shared/telegraph/`:
@@ -183,14 +185,14 @@ After that the order follows what the player reads first in a fight. The Rhythm 
 - Test (integration): `Client.Catalogue › telegraph_icons_complete` — given the shipped catalogue, when the five action kinds are looked up, then each has an 80 × 80 icon and no two icons are the same image.
 - Test (integration): `Client.Presenter › telegraph_shows_kind_icon` — given AttackLeft at beat 4 and a Charge at beat 8 with a 3-beat wind-up, when the battle is at beat 1, then the beat-4 marker shows the attack-left icon with count 3, and the beat-8 marker shows the charge icon with a wind-up bar spanning beats 5 to 8.
 
-#### P2.3 Telegraph highlight
+#### ✅ P2.3 Telegraph highlight
 - PRD: 3.3.8.1
 - Does: while an action's Judgment Window is open, its marker shows the glow sprite behind the icon, tinted by kind in code; the glow leaves when the window closes.
 - Assets: `spr_ui_telegraph-glow_static_01.png`, 120 × 120, soft white glow on transparent.
 - Needs: P2.2
 - Test (integration): `Client.Presenter › open_window_glows_telegraph` — given AttackLeft at beat 4 and the shipped catalogue, when audio time enters and then leaves beat 4's window, then the marker shows the catalogue glow inside the window and hides it after.
 
-#### P2.4 Iron Veil darkens the line
+#### ✅ P2.4 Iron Veil darkens the line
 - PRD: 3.6.9
 - Does: a `ModifierActivated` event from Iron Veil swaps the Rhythm Line to the dark background and shows the Iron Veil icon at the enemy bar; the matching `ModifierExpired` restores both. Later abilities that darken the line reuse the same dark background.
 - Assets: `spr_ui_rhythmline_bg-dark_01.png`, same size and borders as the background in P2.1; `spr_ability_iron-veil_static_01.png`, 64 × 64.
@@ -201,7 +203,7 @@ After that the order follows what the player reads first in a fight. The Rhythm 
 
 *The sixteen slots carry their category's frame and icon, a radial cooldown sweep, a drawn glow and flash, and a distinct disabled flash and sound. Done when every P3 test is green and the suite passes.*
 
-**Operator supplies:** three category slot frames, three category icons, a cooldown sweep sprite, a glow, a press flash, a disabled flash, and one disabled-press sound. Ten sprites and one WAV.
+**Generated assets:** `tools/gen-phase3-art.mjs` draws the three category slot frames, the three category icons, the cooldown sweep, the glow, the press flash and the disabled flash, the three icons as silhouettes that stay apart in greyscale; `tools/gen-phase3-audio.mjs` renders the disabled-press sound as a short muted thud unlike any judgment cue. Ten sprites and one WAV.
 
 #### P3.1 Category frames and icons
 - PRD: 3.4.2
@@ -238,7 +240,7 @@ After that the order follows what the player reads first in a fight. The Rhythm 
 
 *Judgments sound like the game, heavy hits burst, and statuses, bars, Block and CRP are drawn. Done when every P4 test is green and the suite passes.*
 
-**Operator supplies:** three judgment cue recordings, a four-frame heavy-hit burst with its clip sidecar, six status icons, a tooltip panel, a bar frame, two bar fills, a Block icon and a CRP icon. Sixteen sprites, one sidecar and three WAVs.
+**Generated assets:** `tools/gen-phase4-art.mjs` draws the four-frame heavy-hit burst with its clip sidecar, the six status icons, the tooltip panel, the bar frame, the two bar fills, the Block icon and the CRP icon; `tools/gen-phase4-audio.mjs` renders the three judgment cues as short shaped tones, each struck in its first millisecond and each unmistakable against the other two. Sixteen sprites, one sidecar and three WAVs.
 
 #### P4.1 Recorded judgment cues
 - PRD: 3.3.8.1
@@ -281,7 +283,7 @@ After that the order follows what the player reads first in a fight. The Rhythm 
 
 *Lulu and Ren stand on a drawn arena and move on the beat, each strike landing on its action's beat. Done when every P5 test is green and the suite passes.*
 
-**Operator supplies:** the arena background, Lulu's seven clips with sidecar, and Ren's seven clips with sidecar. About 80 frames, one background and two sidecars.
+**Generated assets:** `tools/gen-phase5-art.mjs` draws the arena background and both characters' seven clips with their sidecars. A character is a posed puppet: a skeleton of head, torso, two arms and two legs, keyframed once per clip and filled as outlined rounded limbs on a 512 × 512 canvas, so every frame lands at the height, facing and bottom-centre pivot its item states and a strike frame reads as the pose it names. Lulu and Ren differ in silhouette, proportion and palette. About 80 frames, one background and two sidecars.
 
 #### P5.1 Enemy on stage
 - PRD: 3.14.1
@@ -332,7 +334,7 @@ After that the order follows what the player reads first in a fight. The Rhythm 
 
 *Every enemy the game can roll is drawn and animated. Done when every P6 test is green and the suite passes.*
 
-**Operator supplies:** Kess, Vey, Orm and Malk, seven clips each with a sidecar, on the same spec as Ren. About 160 frames and four sidecars.
+**Generated assets:** `tools/gen-phase6-art.mjs` draws Kess, Vey, Orm and Malk, seven clips each with a sidecar, from the same puppet as Phase 5 and on the same spec as Ren; each one's proportions, palette and headpiece are seeded from its enemy id, so no two of the five share a silhouette. About 160 frames and four sidecars.
 
 #### P6.1 Kess's art
 - PRD: 3.14.1
@@ -366,7 +368,7 @@ After that the order follows what the player reads first in a fight. The Rhythm 
 
 *A card face shows the whole anatomy over its illustration, and the Binder and the reward panel show faces instead of text. Done when every P7 test is green and the suite passes.*
 
-**Operator supplies:** three category card frames, four rarity treatments and twenty card illustrations. Twenty-seven sprites.
+**Generated assets:** `tools/gen-phase7-art.mjs` draws the three category card frames with their illustration windows and plain text areas, the four rarity treatments as border and gem overlays, and the twenty card illustrations, each an emblem composed of shapes seeded by the card id inside the central band the item names, so no two cards share an illustration and a renamed card gets a new one. Twenty-seven sprites.
 
 #### P7.1 Card face
 - PRD: 3.4.7
@@ -384,7 +386,7 @@ After that the order follows what the player reads first in a fight. The Rhythm 
 - Assets, in `Art/Shared/cards/`:
   - twenty `spr_card_<name>_static_01.png` at 512 × 720 for jab, cleave, rend, cross, hook, fang, guard, brace, ember-mark, hollow-cut, dull-edge, spark and starter-1 to starter-8
   - keep the subject inside the central 512 × 400 so the compact face still reads
-  - the eight Starter N cards carry placeholder names and numbers; rename and redesign them in `data/sets/starter.json` before commissioning their art
+  - the eight Starter N cards carry placeholder names and numbers; each illustration is seeded from its card id, so renaming them in `data/sets/starter.json` and re-running the generator redraws them
 - Needs: P7.1
 - Test (integration): `Client.Catalogue › starter_card_art_complete` — given the shipped catalogue and `data/sets/starter.json`, when every card id is looked up, then each has a 512 × 720 illustration and `Missing` stays empty.
 
@@ -406,7 +408,7 @@ After that the order follows what the player reads first in a fight. The Rhythm 
 
 *Before a fight, and while the loadout is edited, the player sees who they face: portrait, name, BPM, powers, quote and a New or role badge. Done when every P8 test is green and the suite passes.*
 
-**Operator supplies:** five enemy portraits, a badge plate, four power icons and three role icons. Thirteen sprites.
+**Generated assets:** `tools/gen-phase8-art.mjs` draws the five enemy portraits — each the puppet head of Phase 5 and 6 at portrait scale, head and shoulders on transparency, so a portrait and its fighter are the same character — the badge plate, the four power icons and the three role icons. Thirteen sprites.
 
 #### P8.1 Fought enemies on the profile
 - PRD: — (groundwork for P8.2)
@@ -447,7 +449,7 @@ After that the order follows what the player reads first in a fight. The Rhythm 
 
 *The map is drawn: node icons, marker, paths and ground, a full header with the continent name, the equipped Charms and Imprints, and a Binder to review without editing. Done when every P9 test is green and the suite passes.*
 
-**Operator supplies:** seven node icons, a player marker, two path sprites, a map backdrop, two Charm icons, six Imprint icons, and three continent names in the string table. Nineteen sprites and three strings.
+**Generated assets:** `tools/gen-phase9-art.mjs` draws the seven node icons, the player marker, the two tileable path sprites, the map backdrop, the two Charm icons and the six Imprint icons; the implementer writes three placeholder continent names into `data/strings/en.json`, which the operator renames later. Nineteen sprites and three strings.
 
 #### P9.1 Trait definition
 - PRD: 4.11
@@ -477,7 +479,7 @@ After that the order follows what the player reads first in a fight. The Rhythm 
 
 #### P9.4 Map header
 - PRD: 3.2.16
-- Does: the header shows the current World's continent name from the string table, ARD, CRP with its badge, Base DMG, Essence, the seed, a Binder button and Settings. Assumption: continent names are the strings `world.1.name` to `world.3.name`, written by the operator; the PRD names no continents.
+- Does: the header shows the current World's continent name from the string table, ARD, CRP with its badge, Base DMG, Essence, the seed, a Binder button and Settings. Assumption: continent names are the strings `world.1.name` to `world.3.name`, written by the implementer as placeholders and renamed by the operator later; the PRD names no continents.
 - Assets: three continent names in `data/strings/en.json` under `world.1.name`, `world.2.name` and `world.3.name`.
 - Needs: P9.3, P9.2, P4.5
 - Test (integration): `Client.Map › header_shows_every_stat` — given World 1 with ARD 250 of 300, CRP 7, Base DMG 2, Essence 40 and seed "chiki-1", when the map renders, then the header shows the World 1 continent name and each value, and the Binder and Settings buttons are present.
@@ -494,13 +496,13 @@ After that the order follows what the player reads first in a fight. The Rhythm 
 
 *Every screen wears the game's skin and font, the title has a logo, the run-end screen has banners and icons, and calibration uses a drawn marker and recorded clicks. Done when every P10 test is green and the suite passes.*
 
-**Operator supplies:** a licensed font family, four button states, a panel, a backdrop, a toggle box and check, the logo, a title background, three outcome plates, a calibration marker and two click samples. Fourteen sprites, one font family and two WAVs.
+**Generated assets:** `tools/gen-phase10-art.mjs` draws the four button states, the panel, the backdrop, the toggle box and check, the logo, the title background, the three outcome plates and the calibration marker; `tools/gen-font.mjs` builds the placeholder font family; `tools/gen-phase10-audio.mjs` renders the two click samples. Fourteen sprites, one font family and two WAVs.
 
 #### P10.1 UI skin and font
 - PRD: 3.14.1
 - Does: `ScreenFactory` and `HudFactory` build every button, panel, toggle and backdrop from the skin sprites and every text in the shipped font. Buttons use Sprite Swap with normal, highlighted, pressed and disabled sprites. Plain colour fills such as scrims use the built-in white sprite.
 - Assets:
-  - a font family in `client/Assets/_Project/UI/Fonts/`, regular and bold, TTF or OTF, covering Latin-1 and Latin Extended-A (the ö in Björn, the en dash), licensed for embedding in a commercial game
+  - a generated font family in `client/Assets/_Project/UI/Fonts/`, regular and bold, TTF, covering Latin-1 and Latin Extended-A (the ö in Björn, the en dash): `tools/gen-font.mjs` builds a geometric sans, every letter, digit and mark drawn from a stroke skeleton widened to an outline, the bold weight the same skeleton at a heavier stroke, and every accented character a composite glyph of a base and a diacritic, so the family is the implementer's own work and carries no licence. The operator drops a licensed family over the same two files later; nothing but the files changes
   - `spr_ui_button_normal_01.png`, `_highlighted_01`, `_pressed_01`, `_disabled_01`, 9-slice, 420 × 96, 24 px borders
   - `spr_ui_panel_static_01.png`, 9-slice, 512 × 512, 32 px borders
   - `spr_ui_backdrop_static_01.png`, 2560 × 1080
@@ -533,15 +535,15 @@ After that the order follows what the player reads first in a fight. The Rhythm 
 
 *Every enemy fights to its own recording, the recordings loop without a seam and are never interrupted, and the fully dressed game still holds 60 fps. Done when every P11 test is green and the suite passes.*
 
-**Operator supplies:** five recorded tracks, five rewritten sidecars and five charts re-authored for the recordings.
+**Generated assets:** `tools/gen-phase11-audio.mjs` renders each enemy's track from that enemy's own sidecar — a looping bed of drum, bass and lead following its tempo map, cut to exactly its offset plus its length in beats — so the five stand-in tracks fit the charts already under `data/` and neither a sidecar nor a chart is re-authored. Five WAVs.
 
 #### P11.1 Recorded tracks for the cast
 - PRD: 3.6.28
 - Does: each enemy in `data/enemies/fixtures.json` fights to its own recorded track. Before any shipped chart or sidecar changes, the simulation tests that load fixture enemies, charts and tracks through `TestContent` switch to frozen copies under `sim/Chiki.Sim.Tests/fixtures/`, so recorded music never changes a rules test. Track and chart ids stay as they are, and chart validation (3.6.31) keeps rejecting an action outside the new length.
 - Assets, for each of Ren, Kess, Vey, Orm and Malk:
-  - `client/Assets/_Project/Audio/mus_w1_<name>.ogg`, OGG Vorbis, 48 kHz, stereo, cut to loop from its first sample
-  - its sidecar `data/tracks/fixture-<name>.json` rewritten for the recording: offset in ms to the first beat, length in beats, starting BPM and every BPM change at its beat
-  - its chart `data/charts/chart-enemy-<name>.json` re-authored for the recording, every action on a beat or quarter beat inside the new length; chart density sets enemy HP through 3.7.15, so a busier chart makes a longer fight
+  - `client/Assets/_Project/Audio/mus_w1_<name>.wav`, 48 kHz, stereo, rendered from that enemy's sidecar and cut to loop from its first sample; a later `mus_w1_<name>.ogg` beside it wins in the catalogue, so a real recording replaces the stand-in by being added
+  - its sidecar `data/tracks/fixture-<name>.json` and its chart `data/charts/chart-enemy-<name>.json` stay exactly as they are, because the stand-in is rendered to them
+  - when a recording does replace a stand-in, its sidecar is rewritten for it — offset in ms to the first beat, length in beats, starting BPM and every BPM change at its beat — and its chart re-authored inside the new length, every action on a beat or quarter beat; chart density sets enemy HP through 3.7.15, so a busier chart makes a longer fight
 - Needs: P1.6
 - Test (unit): `Sim.Fixtures › rules_tests_use_frozen_fixtures` — given the frozen copies, when `TestContent` loads the fixture enemies, then it reads them from `sim/Chiki.Sim.Tests/fixtures/` and not from `data/`.
 - Test (integration): `Client.Catalogue › cast_tracks_complete` — given the shipped audio catalogue, when every enemy's track id is looked up, then each has a recorded clip whose length matches its sidecar's offset plus its length in beats at its tempo map, within 10 ms.

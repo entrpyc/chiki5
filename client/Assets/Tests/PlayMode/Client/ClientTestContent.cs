@@ -208,10 +208,22 @@ namespace Client
             return new Chart("chart-client-test", "enemy-client-test", track, positionsQb.Select(p => new EnemyAction(EnemyActionKind.AttackLeft, p)).ToArray());
         }
 
+        /// <summary>A chart of the given actions, for the kinds a position alone cannot express.</summary>
+        public static Chart Chart(Track track, params EnemyAction[] actions)
+        {
+            return new Chart("chart-client-test", "enemy-client-test", track, actions);
+        }
+
         /// <summary>A Normal Fast Aggressor whose one ability registers nothing, so only the chart acts.</summary>
         public static EnemyDefinition Enemy(Chart chart, int damagePerHit = 10)
         {
             return new EnemyDefinition(chart.EnemyId, "Client Test Enemy", EncounterTier.Normal, EnemyRole.Aggressor, RhythmProfile.Fast, 45, chart, damagePerHit, new[] { EnemyAbility.ChargeBuff });
+        }
+
+        /// <summary>The same enemy carrying the given abilities, for the powers a presenter has to show.</summary>
+        public static EnemyDefinition EnemyWith(Chart chart, params EnemyAbility[] abilities)
+        {
+            return new EnemyDefinition(chart.EnemyId, "Client Test Enemy", EncounterTier.Normal, EnemyRole.Aggressor, RhythmProfile.Fast, 45, chart, 10, abilities);
         }
 
         public static SimBattle Battle(Chart chart, int enemyHp = DefaultEnemyHp)
@@ -228,6 +240,36 @@ namespace Client
             rig.Driver.Bind(rig.Clock, Battle(Chart(track, positionsQb)));
             return rig;
         }
+
+        /// <summary>A rig with the chart's track scheduled and a battle between the player and the given enemy bound to it.</summary>
+        public static Rig ScheduledRig(string name, Chart chart, EnemyDefinition enemy, int enemyHp = DefaultEnemyHp)
+        {
+            var rig = new Rig(name);
+            rig.Clock.Schedule(chart.Track, SilentClip(chart.Track));
+            rig.Driver.Bind(rig.Clock, new SimBattle(new RunStats(), enemy, enemyHp, new Rng(1)));
+            return rig;
+        }
+
+#if UNITY_EDITOR
+        /// <summary>
+        /// The catalogue the game ships with, handed to the presenters as Boot hands it over
+        /// (P1.3), with nothing recorded as missing yet. The art items read the shipped catalogue
+        /// rather than a stand-in, so a missing or stale entry fails the test that needs it.
+        /// </summary>
+        public static VisualCatalogue ShippedVisuals()
+        {
+            var catalogue = UnityEditor.AssetDatabase.LoadAssetAtPath<VisualCatalogue>(VisualCatalogue.AssetPath);
+            if (catalogue == null)
+            {
+                throw new System.InvalidOperationException(
+                    "No visual catalogue at " + VisualCatalogue.AssetPath + "; run Chiki > Rebuild Visual Catalogue.");
+            }
+
+            catalogue.ClearMissing();
+            VisualCatalogue.Use(catalogue);
+            return catalogue;
+        }
+#endif
 
         /// <summary>A named 4 by 4 sprite the catalogue tests can tell apart by reference (P1.3).</summary>
         public static Sprite TestSprite(string name)

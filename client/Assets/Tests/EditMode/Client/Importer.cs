@@ -72,11 +72,19 @@ namespace Client
 
             Assert.That(AssetDatabase.FindAssets("t:" + nameof(SpriteClip), new[] { ArtFixture.Folder }), Is.Empty, "a clip was built from the misnamed file");
 
+            // The catalogue holds the art the game ships with, so what this asserts is that
+            // nothing from the fixture folder is among it, not that it is empty.
             var catalogue = ScriptableObject.CreateInstance<VisualCatalogue>();
             CatalogueRebuild.FillVisuals(catalogue);
-            Assert.That(catalogue.Sprites, Is.Empty, "the misnamed file reached the catalogue");
-            Assert.That(catalogue.Clips, Is.Empty, "the misnamed file reached the catalogue as a clip");
+            Assert.That(catalogue.Sprites.Any(e => FromFixture(e.sprite)), Is.False, "the misnamed file reached the catalogue");
+            Assert.That(catalogue.Clips.Any(e => FromFixture(e.clip)), Is.False, "the misnamed file reached the catalogue as a clip");
             Object.DestroyImmediate(catalogue);
+        }
+
+        /// <summary>Whether a catalogue entry's asset was written by the fixture rather than shipped.</summary>
+        private static bool FromFixture(Object? asset)
+        {
+            return asset != null && AssetDatabase.GetAssetPath(asset).StartsWith(ArtFixture.Folder, System.StringComparison.Ordinal);
         }
     }
 }

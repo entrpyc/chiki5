@@ -72,6 +72,12 @@ namespace Chiki.Client.Visuals
             return kind + "_" + subject + ".clips.json";
         }
 
+        /// <summary>The sidecar beside a subject's sprites, naming the 9-slice border of each variant that has one (P2.1).</summary>
+        public static string SliceSidecarFileName(string kind, string subject)
+        {
+            return kind + "_" + subject + ".slices.json";
+        }
+
         /// <summary>
         /// Takes a file name apart, with or without its extension. Returns false with a reason
         /// naming what is wrong when the name does not follow the convention.

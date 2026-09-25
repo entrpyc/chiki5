@@ -69,6 +69,7 @@ namespace Chiki.Client.Editor
             settings.spriteMeshType = SpriteMeshType.FullRect;
             settings.spritePixelsPerUnit = SpriteNames.PixelsPerUnit;
             settings.spriteAlignment = (int)(SpriteNames.IsClipKind(name!.Kind) ? SpriteAlignment.BottomCenter : SpriteAlignment.Center);
+            settings.spriteBorder = BorderOf(Path.GetDirectoryName(assetPath)!.Replace('\\', '/'), name);
             settings.alphaIsTransparency = true;
             settings.mipmapEnabled = false;
             settings.filterMode = FilterMode.Bilinear;
@@ -110,10 +111,15 @@ namespace Chiki.Client.Editor
                 if (IsArtSprite(path) && SpriteNames.TryParse(fileName, out var name, out _))
                 {
                     subjects.Add(folder + "|" + name!.Subject);
+                    continue;
                 }
-                else if (fileName.EndsWith(SidecarSuffix, StringComparison.Ordinal))
+
+                string? suffix = fileName.EndsWith(SidecarSuffix, StringComparison.Ordinal) ? SidecarSuffix
+                    : fileName.EndsWith(SliceSidecar.Suffix, StringComparison.Ordinal) ? SliceSidecar.Suffix
+                    : null;
+                if (suffix != null)
                 {
-                    string stem = fileName.Substring(0, fileName.Length - SidecarSuffix.Length);
+                    string stem = fileName.Substring(0, fileName.Length - suffix.Length);
                     int underscore = stem.IndexOf('_');
                     if (underscore > 0)
                     {
@@ -163,6 +169,7 @@ namespace Chiki.Client.Editor
             }
 
             all.Sort(StringComparer.Ordinal);
+            ApplyBorders(folder, all);
             var wanted = new HashSet<string>(StringComparer.Ordinal);
             foreach (string kind in kinds)
             {
@@ -257,6 +264,54 @@ namespace Chiki.Client.Editor
                 {
                     AssetDatabase.DeleteAsset(assetPath);
                 }
+            }
+        }
+
+        /// <summary>
+        /// The 9-slice border a sprite carries, from its subject's slice sidecar (P2.1). A
+        /// subject with no sidecar, or a variant the sidecar does not name, has no border; a
+        /// sidecar that cannot be read fails the import of the sprite that asked for it.
+        /// </summary>
+        private static Vector4 BorderOf(string folder, SpriteName name)
+        {
+            string sidecarName = SpriteNames.SliceSidecarFileName(name.Kind, name.Subject);
+            string fullPath = Path.GetFullPath(Path.Combine(Application.dataPath, "..", folder, sidecarName));
+            if (!SliceSidecar.TryRead(fullPath, out var borders, out string reason))
+            {
+                Fail(folder + "/" + sidecarName, reason);
+                return Vector4.zero;
+            }
+
+            return borders.TryGetValue(name.Variant, out var spec)
+                ? new Vector4(spec.Left, spec.Bottom, spec.Right, spec.Top)
+                : Vector4.zero;
+        }
+
+        /// <summary>
+        /// Reimports every sprite of a subject whose border no longer matches its sidecar, so
+        /// editing a sidecar reslices the art it governs. Only a sprite that differs is touched,
+        /// which is what stops the reimport it triggers from starting another one.
+        /// </summary>
+        private static void ApplyBorders(string folder, IReadOnlyList<string> spritePaths)
+        {
+            foreach (string assetPath in spritePaths)
+            {
+                if (!SpriteNames.TryParse(Path.GetFileName(assetPath), out var name, out _))
+                {
+                    continue;
+                }
+
+                if (!(AssetImporter.GetAtPath(assetPath) is TextureImporter importer))
+                {
+                    continue;
+                }
+
+                if (importer.spriteBorder == BorderOf(folder, name!))
+                {
+                    continue;
+                }
+
+                AssetDatabase.ImportAsset(assetPath, ImportAssetOptions.ForceUpdate);
             }
         }
 

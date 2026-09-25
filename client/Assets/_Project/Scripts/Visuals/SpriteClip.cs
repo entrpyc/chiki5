@@ -74,6 +74,34 @@ namespace Chiki.Client.Visuals
             return index >= 0 && index < frames.Length ? frames[index] : null;
         }
 
+        /// <summary>
+        /// The frame, counting from 0, that is on screen <paramref name="ordinal"/> quarter beats
+        /// after the clip started (docs/project/unity-setup.md: one frame per quarter beat). A
+        /// looping clip wraps on its authored length; a one-shot holds its last frame.
+        /// </summary>
+        public int FrameIndexAt(int ordinal)
+        {
+            if (frames.Length == 0)
+            {
+                return -1;
+            }
+
+            int elapsed = Math.Max(0, ordinal);
+            if (!loop)
+            {
+                return Math.Min(elapsed, frames.Length - 1);
+            }
+
+            int period = Math.Max(frames.Length, lengthBeats * Chiki.Sim.Beats.QuarterBeatsPerBeat);
+            return Math.Min(elapsed % period, frames.Length - 1);
+        }
+
+        /// <summary>Whether a one-shot clip has shown its last frame by that many quarter beats after it started.</summary>
+        public bool FinishedAt(int ordinal)
+        {
+            return !loop && ordinal >= frames.Length;
+        }
+
         /// <summary>The opaque part of a frame, counting frames from 0; empty when it was not recorded.</summary>
         public OpaqueRect Bounds(int index)
         {

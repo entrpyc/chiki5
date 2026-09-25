@@ -329,7 +329,10 @@ namespace Client
                 }
             }
 
-            Assert.That(catalogue.Missing, Is.Empty, "the line fell back for: " + string.Join(", ", catalogue.Missing));
+            // Only the line's own pieces: the whole HUD is up, and art the later phases owe — the
+            // fighters' clips of P5.4 and P5.5 among it — is legitimately still missing here.
+            var lineArt = catalogue.Missing.Where(id => id.StartsWith(RhythmLineView.UiKind + "/rhythmline-")).ToList();
+            Assert.That(lineArt, Is.Empty, "the line fell back for: " + string.Join(", ", lineArt));
 
             Object.Destroy(hud.gameObject);
             rig.Destroy();

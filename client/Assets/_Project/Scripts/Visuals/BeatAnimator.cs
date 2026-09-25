@@ -80,6 +80,14 @@ namespace Chiki.Client.Visuals
 
         public bool HasRendered { get; private set; }
 
+        /// <summary>
+        /// Set when another presenter renders this animator itself, such as the stage rendering
+        /// both fighters from one audio time (P5.1). The animator then stops rendering from its
+        /// own <c>LateUpdate</c>, so a frame has exactly one owner and a test can ask for any
+        /// audio time without the next frame overwriting the answer.
+        /// </summary>
+        public bool Driven { get; set; }
+
         /// <summary>Attaches the animator to a renderer and a clock.</summary>
         public static BeatAnimator On(GameObject host, BeatClock? clock)
         {
@@ -147,27 +155,14 @@ namespace Chiki.Client.Visuals
         public int FrameIndexAt(int audioTimeMs)
         {
             var clip = _playing;
-            if (clip == null || clip.FrameCount == 0)
-            {
-                return -1;
-            }
-
-            int ordinal = FrameOrdinalAt(audioTimeMs);
-            if (!clip.Loop)
-            {
-                return Math.Min(ordinal, clip.FrameCount - 1);
-            }
-
-            int period = Math.Max(clip.FrameCount, clip.LengthBeats * FramesPerBeat);
-            int inPeriod = ordinal % period;
-            return Math.Min(inPeriod, clip.FrameCount - 1);
+            return clip == null ? -1 : clip.FrameIndexAt(FrameOrdinalAt(audioTimeMs));
         }
 
         /// <summary>Whether a one-shot clip has shown its last frame at an audio time.</summary>
         public bool FinishedAt(int audioTimeMs)
         {
             var clip = _playing;
-            return clip != null && !clip.Loop && FrameOrdinalAt(audioTimeMs) >= clip.FrameCount;
+            return clip != null && clip.FinishedAt(FrameOrdinalAt(audioTimeMs));
         }
 
         /// <summary>Shows the frame an audio time falls on; the only place a sprite is assigned.</summary>
@@ -208,7 +203,7 @@ namespace Chiki.Client.Visuals
             _startQb = startQb;
             _frameIndex = -1;
             FrameChanges = 0;
-            if (_clock != null && _clock.IsScheduled)
+            if (!Driven && _clock != null && _clock.IsScheduled)
             {
                 Render(_clock.NowMs);
             }
@@ -245,7 +240,7 @@ namespace Chiki.Client.Visuals
 
         private void LateUpdate()
         {
-            if (_clock == null || !_clock.IsScheduled)
+            if (Driven || _clock == null || !_clock.IsScheduled)
             {
                 return;
             }

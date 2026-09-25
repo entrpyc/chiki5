@@ -279,34 +279,34 @@ After that the order follows what the player reads first in a fight. The Rhythm 
 - Needs: P1.3
 - Test (integration): `Client.Crp › crp_badge_on_map_and_battle` — given CRP 7 and the shipped catalogue, when the map and then a battle render, then both show the CRP icon beside 7.
 
-### Phase 5 — Fighters on the stage
+### ✅ Phase 5 — Fighters on the stage
 
 *Lulu and Ren stand on a drawn arena and move on the beat, each strike landing on its action's beat. Done when every P5 test is green and the suite passes.*
 
 **Generated assets:** `tools/gen-phase5-art.mjs` draws the arena background and both characters' seven clips with their sidecars. A character is a posed puppet: a skeleton of head, torso, two arms and two legs, keyframed once per clip and filled as outlined rounded limbs on a 512 × 512 canvas, so every frame lands at the height, facing and bottom-centre pivot its item states and a strike frame reads as the pose it names. Lulu and Ren differ in silhouette, proportion and palette. About 80 frames, one background and two sidecars.
 
-#### P5.1 Enemy on stage
+#### ✅ P5.1 Enemy on stage
 - PRD: 3.14.1
-- Does: the battle scene places the enemy on the right of the stage, facing left, feet on the floor line, behind the HUD. `BeatAnimator` loops idle; each charted action plays its clip with the strike frame on the action's beat: attack left, attack right, defend, and for a Charge the wind-up loop through its wind-up beats, then the attack-left clip on the Charge's beat. `DamageDealt` to the enemy plays hit; a won battle plays death and holds its last frame. Assumption: a Charge resolves on the attack-left clip, because the seven-clip set in unity-setup has no release clip.
+- Does: the battle scene places the enemy on the right of the stage, facing left, feet on the floor line, behind the HUD. `BeatAnimator` loops idle; each charted action plays its clip with the strike frame on the action's beat: attack left, attack right, defend, and for a Charge the wind-up loop through its wind-up beats, then the attack-left clip on the Charge's beat. `DamageDealt` to the enemy plays hit; a won battle plays death and holds its last frame. Assumption: a Charge resolves on the attack-left clip, because the seven-clip set in unity-setup has no release clip. Assumption: a Buff plays no clip and the idle loop continues, for the same reason.
 - Assets: none; the test generates its clips.
 - Needs: P1.5, P1.3
 - Test (integration): `Client.Stage › enemy_clips_follow_chart` — given a test enemy with all seven clips and a chart of AttackLeft at beat 4, Defend at beat 6 and a Charge at beat 10 with a 3-beat wind-up, when the battle runs, then idle shows at beat 1, the attack-left strike frame at beat 4 within one frame, defend at beat 6, the charge loop during beats 7 to 10, the attack-left strike at beat 10, hit after the player's damage, and the held death frame when HP reaches 0.
 
-#### P5.2 Player on stage
+#### ✅ P5.2 Player on stage
 - PRD: 3.14.1
 - Does: Lulu stands on the left, facing right, on the same floor line. An attack press plays attack-left or attack-right by the slot's side, a Defense press plays defend, an Ability press plays ability, each with its strike frame on the answered action's beat; `DamageTaken` plays hit; a lost battle plays death. Assumption: the player's clips are idle, attack-left, attack-right, defend, ability, hit and death, the enemy set with ability in place of charge; unity-setup names only the enemy set.
 - Assets: none; the test generates its clips.
 - Needs: P1.5, P1.3
 - Test (integration): `Client.Stage › player_clips_follow_presses` — given presses on E, O and Q answering actions at beats 4, 6 and 8, when they land, then attack-left, defend and ability play with their strike frames on beats 4, 6 and 8, and a DamageTaken plays hit.
 
-#### P5.3 Arena background
+#### ✅ P5.3 Arena background
 - PRD: 3.14.1
 - Does: one arena background sits behind the stage in every World; the camera shows its central 1920 × 1080 at 16:9 and more of its sides on ultrawide, never the clear colour.
 - Assets: `spr_bg_arena_static_01.png`, 2560 × 1080; the central 1920 × 1080 is the 16:9 frame, the floor line sits 200 px above the bottom edge, and the outer 320 px on each side holds nothing essential, no characters and no lettering.
 - Needs: P1.3
 - Test (integration): `Client.Stage › arena_fills_16_9_and_ultrawide` — given the shipped background, when a battle renders at 1920 × 1080 and at 2560 × 1080, then the background covers every pixel of the frame both times.
 
-#### P5.4 Lulu's art
+#### ✅ P5.4 Lulu's art
 - PRD: 3.14.1
 - Does: Lulu's seven clips are imported and catalogued as player `lulu`, and the battle uses them.
 - Assets, in `Art/Shared/lulu/`:
@@ -318,7 +318,7 @@ After that the order follows what the player reads first in a fight. The Rhythm 
 - Needs: P5.2
 - Test (integration): `Client.Catalogue › lulu_art_complete` — given the shipped catalogue, when Lulu's clips are read, then all seven exist, idle has 8 frames looping over 2 beats, every other clip has 3 to 8 frames, the three striking clips have a strike frame, and the first idle frame's opaque height is 360 to 440 px.
 
-#### P5.5 Ren's art
+#### ✅ P5.5 Ren's art
 - PRD: 3.14.1
 - Does: Ren's seven clips are imported and catalogued as enemy `ren`, and Ren's battles use them. Ren is the tutorial enemy: Normal tier, Tank, slow rhythm, Iron Veil and Guard, "Count with me. One... two... and hold."
 - Assets, in `Art/World1/ren/`:

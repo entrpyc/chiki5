@@ -1,0 +1,62 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 087105096b754cb4aaf6b6bf7eaf6cd6, type: 3}
+  m_Name: clip_player_lulu_death
+  m_EditorClassIdentifier: Chiki.Client::Chiki.Client.Visuals.SpriteClip
+  kind: player
+  subject: lulu
+  variant: death
+  frames:
+  - {fileID: 21300000, guid: 6a86fe43a21825742a6a6e1d4ea76493, type: 3}
+  - {fileID: 21300000, guid: cb0e93f17f3976f4e810054aad0c4a57, type: 3}
+  - {fileID: 21300000, guid: 9113486fe067cb3409a346c14f3f4241, type: 3}
+  - {fileID: 21300000, guid: 6d4a2d86a994b8146ab80df4205ef677, type: 3}
+  - {fileID: 21300000, guid: ddc661fcca3df424d930677092d69496, type: 3}
+  - {fileID: 21300000, guid: bd01b81311a5ff24d8cfdbb6d82a3443, type: 3}
+  - {fileID: 21300000, guid: ff0550dfbd6358443ad0e2f448c02bf9, type: 3}
+  - {fileID: 21300000, guid: 37cdca644830ed247bdd0350853a094a, type: 3}
+  lengthBeats: 2
+  loop: 0
+  strikeFrame: 0
+  frameBounds:
+  - X: 158
+    Y: 0
+    Width: 158
+    Height: 403
+  - X: 187
+    Y: 0
+    Width: 149
+    Height: 388
+  - X: 183
+    Y: 0
+    Width: 182
+    Height: 366
+  - X: 166
+    Y: 0
+    Width: 224
+    Height: 335
+  - X: 150
+    Y: 0
+    Width: 262
+    Height: 298
+  - X: 135
+    Y: 0
+    Width: 293
+    Height: 255
+  - X: 121
+    Y: 0
+    Width: 316
+    Height: 207
+  - X: 108
+    Y: 0
+    Width: 331
+    Height: 157

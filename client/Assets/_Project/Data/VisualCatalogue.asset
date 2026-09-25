@@ -53,6 +53,16 @@ MonoBehaviour:
       Y: 2
       Width: 60
       Height: 60
+  - kind: bg
+    id: arena
+    subject: arena
+    variant: static
+    sprite: {fileID: 21300000, guid: ceac7aa476f657b44ab01ea43ca03991, type: 3}
+    opaque:
+      X: 0
+      Y: 0
+      Width: 2560
+      Height: 1080
   - kind: ui
     id: crp
     subject: crp
@@ -384,8 +394,78 @@ MonoBehaviour:
       Width: 64
       Height: 6
   clips:
+  - kind: player
+    id: lulu-ability
+    subject: lulu
+    variant: ability
+    clip: {fileID: 11400000, guid: 6087d407ecc05094784250eecbd2e2f1, type: 2}
+  - kind: player
+    id: lulu-attack-left
+    subject: lulu
+    variant: attack-left
+    clip: {fileID: 11400000, guid: ec1d5e9eb4f8e4f49843e81e1b2256ee, type: 2}
+  - kind: player
+    id: lulu-attack-right
+    subject: lulu
+    variant: attack-right
+    clip: {fileID: 11400000, guid: 42df0e8898371804d8bfef1b4135abdb, type: 2}
+  - kind: player
+    id: lulu-death
+    subject: lulu
+    variant: death
+    clip: {fileID: 11400000, guid: d22adba69d6632540b298192745f10ce, type: 2}
+  - kind: player
+    id: lulu-defend
+    subject: lulu
+    variant: defend
+    clip: {fileID: 11400000, guid: 453d54d5d74944045a3938f2d889a69e, type: 2}
+  - kind: player
+    id: lulu-hit
+    subject: lulu
+    variant: hit
+    clip: {fileID: 11400000, guid: 98a33c7ff7d1f5841bea8f6016e6627f, type: 2}
+  - kind: player
+    id: lulu-idle
+    subject: lulu
+    variant: idle
+    clip: {fileID: 11400000, guid: eb14a149a6bedc04f9616bd47bcbb08d, type: 2}
   - kind: vfx
     id: hit-heavy-burst
     subject: hit-heavy
     variant: burst
     clip: {fileID: 11400000, guid: 7e03b35b5db73ba448fb3b2d83d499ab, type: 2}
+  - kind: enemy
+    id: ren-attack-left
+    subject: ren
+    variant: attack-left
+    clip: {fileID: 11400000, guid: cc1b2e046b19d28498b4140e93299969, type: 2}
+  - kind: enemy
+    id: ren-attack-right
+    subject: ren
+    variant: attack-right
+    clip: {fileID: 11400000, guid: b885832647655574a9fd91962c374a53, type: 2}
+  - kind: enemy
+    id: ren-charge
+    subject: ren
+    variant: charge
+    clip: {fileID: 11400000, guid: 2cebf5ea50cfd5045a129f05390053cf, type: 2}
+  - kind: enemy
+    id: ren-death
+    subject: ren
+    variant: death
+    clip: {fileID: 11400000, guid: dee9543746ce43c43a3bc37a42da956c, type: 2}
+  - kind: enemy
+    id: ren-defend
+    subject: ren
+    variant: defend
+    clip: {fileID: 11400000, guid: 4c321e14d7e34da4b84c0a94626d7e87, type: 2}
+  - kind: enemy
+    id: ren-hit
+    subject: ren
+    variant: hit
+    clip: {fileID: 11400000, guid: 39063a8abc28fe145b105583bdec64be, type: 2}
+  - kind: enemy
+    id: ren-idle
+    subject: ren
+    variant: idle
+    clip: {fileID: 11400000, guid: 21c7b4cffeafb6c42aec64484e722b72, type: 2}

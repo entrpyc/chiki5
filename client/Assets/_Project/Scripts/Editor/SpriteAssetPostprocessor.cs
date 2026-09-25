@@ -47,6 +47,16 @@ namespace Chiki.Client.Editor
                 && assetPath.EndsWith(".png", StringComparison.OrdinalIgnoreCase);
         }
 
+        /// <summary>
+        /// Bumped whenever the import settings this postprocessor applies change, so Unity
+        /// reimports the art already in the project rather than leaving it on the old settings.
+        /// Version 2 caps a background at 8192 px instead of the 2048 default (P5.3).
+        /// </summary>
+        public override uint GetVersion()
+        {
+            return 2;
+        }
+
         private void OnPreprocessTexture()
         {
             if (!IsArtSprite(assetPath))
@@ -75,6 +85,7 @@ namespace Chiki.Client.Editor
             settings.filterMode = FilterMode.Bilinear;
             settings.wrapMode = TextureWrapMode.Clamp;
             importer.SetTextureSettings(settings);
+            importer.maxTextureSize = SpriteNames.MaxTextureSize(name.Kind);
         }
 
         private static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)

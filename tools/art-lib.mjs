@@ -41,12 +41,18 @@ export function cover(d) {
 /**
  * Paints one distance field. `fill` is a colour or a function of (x, y); `alpha` likewise.
  * `stroke` draws a band of `width` centred on the field's zero, `grow` swells the field first,
- * and `clip` keeps only what another field contains.
+ * and `clip` keeps only what another field contains. `box` is an optional `[x0, y0, x1, y1]`
+ * the caller knows the field's coverage to lie inside; a small shape on a large canvas is then
+ * paid for by its own area, which is what makes a puppet of a dozen limbs cheap to redraw.
  */
 export function paint(c, sdf, opts) {
-  const { fill, alpha = 1, stroke = null, width = 2, grow = 0, clip = null } = opts
-  for (let y = 0; y < c.h; y++) {
-    for (let x = 0; x < c.w; x++) {
+  const { fill, alpha = 1, stroke = null, width = 2, grow = 0, clip = null, box = null } = opts
+  const x0 = box ? Math.max(0, Math.floor(box[0])) : 0
+  const y0 = box ? Math.max(0, Math.floor(box[1])) : 0
+  const x1 = box ? Math.min(c.w, Math.ceil(box[2])) : c.w
+  const y1 = box ? Math.min(c.h, Math.ceil(box[3])) : c.h
+  for (let y = y0; y < y1; y++) {
+    for (let x = x0; x < x1; x++) {
       const px = x + 0.5
       const py = y + 0.5
       const d = sdf(px, py) - grow

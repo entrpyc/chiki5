@@ -1,0 +1,52 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 087105096b754cb4aaf6b6bf7eaf6cd6, type: 3}
+  m_Name: clip_enemy_ren_attack-left
+  m_EditorClassIdentifier: Chiki.Client::Chiki.Client.Visuals.SpriteClip
+  kind: enemy
+  subject: ren
+  variant: attack-left
+  frames:
+  - {fileID: 21300000, guid: 716f188fc8c09ff46bdb47f4d9b29ce7, type: 3}
+  - {fileID: 21300000, guid: 73b97df76b7881b40a6272fea67da08a, type: 3}
+  - {fileID: 21300000, guid: 02e805085a8133a43b2e463cb8f93b30, type: 3}
+  - {fileID: 21300000, guid: 6cf952dba30854e4c89ded2de2fbff3f, type: 3}
+  - {fileID: 21300000, guid: 674b1919d3e7bf946adeadd245d8dede, type: 3}
+  - {fileID: 21300000, guid: abd934c7eb73905479858dc36e57b30a, type: 3}
+  lengthBeats: 2
+  loop: 0
+  strikeFrame: 3
+  frameBounds:
+  - X: 209
+    Y: 0
+    Width: 268
+    Height: 391
+  - X: 174
+    Y: 0
+    Width: 210
+    Height: 392
+  - X: 0
+    Y: 0
+    Width: 339
+    Height: 379
+  - X: 0
+    Y: 0
+    Width: 340
+    Height: 390
+  - X: 39
+    Y: 0
+    Width: 298
+    Height: 395
+  - X: 113
+    Y: 0
+    Width: 221
+    Height: 398

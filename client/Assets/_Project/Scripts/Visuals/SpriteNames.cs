@@ -50,6 +50,19 @@ namespace Chiki.Client.Visuals
         /// <summary>The kinds whose frames become a <see cref="SpriteClip"/>: characters and effects.</summary>
         public static readonly IReadOnlyList<string> ClipKinds = new[] { "enemy", "player", "vfx" };
 
+        /// <summary>
+        /// The kinds drawn wider than one screen, which the importer must not downscale: a
+        /// background is 2560 px across so an ultrawide window still sees art rather than the
+        /// clear colour (P5.3), and Unity's default cap of 2048 would halve it.
+        /// </summary>
+        public static readonly IReadOnlyList<string> FullFrameKinds = new[] { "bg" };
+
+        /// <summary>The import size cap a kind carries: Unity's default for art that fits one screen, room for the rest.</summary>
+        public static int MaxTextureSize(string kind)
+        {
+            return IndexOf(FullFrameKinds, kind) >= 0 ? 8192 : 2048;
+        }
+
         public static bool IsKind(string kind)
         {
             return IndexOf(Kinds, kind) >= 0;

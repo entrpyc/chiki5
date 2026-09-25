@@ -1,0 +1,42 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 087105096b754cb4aaf6b6bf7eaf6cd6, type: 3}
+  m_Name: clip_enemy_ren_hit
+  m_EditorClassIdentifier: Chiki.Client::Chiki.Client.Visuals.SpriteClip
+  kind: enemy
+  subject: ren
+  variant: hit
+  frames:
+  - {fileID: 21300000, guid: d7a85665027c00142bbeec32b90ae19a, type: 3}
+  - {fileID: 21300000, guid: 449e7fe1b0a2129478381c975f80e488, type: 3}
+  - {fileID: 21300000, guid: 6a3befa0468eafd4eb93246b95f32950, type: 3}
+  - {fileID: 21300000, guid: dca51baf312b0b14fbd61e4ef8ce1fed, type: 3}
+  lengthBeats: 1
+  loop: 0
+  strikeFrame: 0
+  frameBounds:
+  - X: 192
+    Y: 0
+    Width: 292
+    Height: 377
+  - X: 220
+    Y: 0
+    Width: 292
+    Height: 361
+  - X: 188
+    Y: 0
+    Width: 227
+    Height: 387
+  - X: 174
+    Y: 0
+    Width: 165
+    Height: 397

@@ -1,0 +1,62 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 087105096b754cb4aaf6b6bf7eaf6cd6, type: 3}
+  m_Name: clip_player_lulu_idle
+  m_EditorClassIdentifier: Chiki.Client::Chiki.Client.Visuals.SpriteClip
+  kind: player
+  subject: lulu
+  variant: idle
+  frames:
+  - {fileID: 21300000, guid: e10be661a68cba241913ef926149eae2, type: 3}
+  - {fileID: 21300000, guid: da274490561bf4547ada59c51feb40b1, type: 3}
+  - {fileID: 21300000, guid: f611e2c2652e5434dbe0aa22668ec514, type: 3}
+  - {fileID: 21300000, guid: 04e0b4d2094a6d74b8e863af2e1a0a52, type: 3}
+  - {fileID: 21300000, guid: df5304f74dd970e42a3c39721d9311aa, type: 3}
+  - {fileID: 21300000, guid: 653653e194472d248b52b717100622ec, type: 3}
+  - {fileID: 21300000, guid: c13940da893d64a459de3840ebe9e41f, type: 3}
+  - {fileID: 21300000, guid: bddfc99606d01414485bec269a2397a6, type: 3}
+  lengthBeats: 2
+  loop: 1
+  strikeFrame: 0
+  frameBounds:
+  - X: 180
+    Y: 0
+    Width: 183
+    Height: 405
+  - X: 181
+    Y: 0
+    Width: 198
+    Height: 406
+  - X: 182
+    Y: 0
+    Width: 203
+    Height: 406
+  - X: 181
+    Y: 0
+    Width: 198
+    Height: 406
+  - X: 180
+    Y: 0
+    Width: 183
+    Height: 405
+  - X: 179
+    Y: 0
+    Width: 168
+    Height: 405
+  - X: 178
+    Y: 0
+    Width: 163
+    Height: 404
+  - X: 179
+    Y: 0
+    Width: 168
+    Height: 405

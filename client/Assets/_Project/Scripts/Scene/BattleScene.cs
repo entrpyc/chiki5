@@ -135,6 +135,7 @@ namespace Chiki.Client.Scene
 
             Hud = BattleHud.Build(Driver, Camera, Input, CardInSlot);
             Hud.transform.SetParent(transform, true);
+            Hud.Stage.transform.SetParent(transform, true);
             Composed = true;
         }
 

@@ -1,6 +1,7 @@
 #nullable enable
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Chiki.Client.Editor;
 using Chiki.Client.Presenter;
 using Chiki.Client.Visuals;
@@ -254,6 +255,60 @@ namespace Client
             }
 
             Assert.That(catalogue.Missing, Is.Empty, "a status icon fell back: " + string.Join(", ", catalogue.Missing));
+        }
+
+        /// <summary>P5.4: Lulu's seven clips, at the frame counts, loops and heights the plan states.</summary>
+        [Test]
+        public void lulu_art_complete()
+        {
+            AssertFighterArtComplete(StageView.PlayerKind, StageView.PlayerSubject, FighterClips.Player);
+        }
+
+        /// <summary>P5.5: Ren's seven clips, with the four-frame charge wind-up looping over one beat.</summary>
+        [Test]
+        public void enemy_ren_art_complete()
+        {
+            AssertFighterArtComplete(StageView.EnemyKind, "ren", FighterClips.Enemy);
+            var charge = Shipped().Clip(StageView.EnemyKind, "ren", FighterClips.Charge);
+            Assert.That(charge.FrameCount, Is.EqualTo(4), "Ren's charge wind-up is not four frames");
+            Assert.That(charge.Loop, Is.True, "Ren's charge wind-up does not loop");
+            Assert.That(charge.LengthBeats, Is.EqualTo(1), "Ren's charge wind-up does not last one beat");
+        }
+
+        /// <summary>
+        /// One fighter's clip set as the plan specifies it (P5.4, P5.5): all seven catalogued,
+        /// an eight-frame idle looping over two beats, every other clip three to eight frames,
+        /// a strike frame on each clip that lands on a beat, and a drawn height of 360 to 440 px.
+        /// </summary>
+        private static void AssertFighterArtComplete(string kind, string subject, IReadOnlyList<string> variants)
+        {
+            var catalogue = Shipped();
+            foreach (string variant in variants)
+            {
+                string id = subject + "-" + variant;
+                Assert.That(catalogue.HasClip(kind, id), Is.True, id + " is not in the shipped catalogue");
+                var clip = catalogue.Clip(kind, subject, variant);
+                Assert.That(clip.FrameCount, Is.InRange(3, 8), id + " has " + clip.FrameCount + " frames, outside the 3 to 8 the plan allows");
+                if (FighterClips.Striking.Contains(variant))
+                {
+                    Assert.That(clip.StrikeFrame, Is.Not.Null, id + " has no strike frame");
+                    Assert.That(clip.StrikeFrame!.Value, Is.InRange(1, clip.FrameCount), id + "'s strike frame is not one of its frames");
+                }
+            }
+
+            var idle = catalogue.Clip(kind, subject, FighterClips.Idle);
+            Assert.That(idle.FrameCount, Is.EqualTo(8), subject + "'s idle is not eight frames");
+            Assert.That(idle.Loop, Is.True, subject + "'s idle does not loop");
+            Assert.That(idle.LengthBeats, Is.EqualTo(2), subject + "'s idle does not last two beats");
+            Assert.That(
+                idle.Bounds(0).Height,
+                Is.InRange(360, 440),
+                subject + " stands " + idle.Bounds(0).Height + " px tall in the first idle frame, outside the 360 to 440 the plan states");
+
+            Assert.That(
+                catalogue.Missing.Where(id => id.StartsWith(kind + "/" + subject)),
+                Is.Empty,
+                subject + "'s art fell back: " + string.Join(", ", catalogue.Missing));
         }
 
         /// <summary>The catalogue the game ships with, with nothing recorded as missing yet.</summary>

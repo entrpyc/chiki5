@@ -323,15 +323,40 @@ namespace Client
         }
 
         /// <summary>A sprite clip of the given frame count, each frame a sprite of its own (P1.5).</summary>
-        public static SpriteClip SpriteClip(string subject, string variant, int frames, int lengthBeats, bool loop, int? strikeFrame = null)
+        public static SpriteClip SpriteClip(string subject, string variant, int frames, int lengthBeats, bool loop, int? strikeFrame = null, string kind = "enemy")
         {
             var sprites = new List<Sprite>(frames);
             for (int i = 1; i <= frames; i++)
             {
-                sprites.Add(TestSprite("spr_enemy_" + subject + "_" + variant + "_" + i.ToString("00")));
+                sprites.Add(TestSprite("spr_" + kind + "_" + subject + "_" + variant + "_" + i.ToString("00")));
             }
 
-            return Chiki.Client.Visuals.SpriteClip.Create("enemy", subject, variant, sprites, lengthBeats, loop, strikeFrame);
+            return Chiki.Client.Visuals.SpriteClip.Create(kind, subject, variant, sprites, lengthBeats, loop, strikeFrame);
+        }
+
+        /// <summary>
+        /// The seven clips of one fighter put into a catalogue under its kind and subject (P5.1,
+        /// P5.2), with the frame counts and strike frames the shipped art carries, so a stage
+        /// test can ask which clip and which frame were on screen on a beat.
+        /// </summary>
+        public static void PutFighterClips(VisualCatalogue catalogue, string kind, string subject)
+        {
+            var clips = new (string Variant, int Frames, int Beats, bool Loop, int? Strike)[]
+            {
+                ("idle", 8, 2, true, null),
+                ("attack-left", 6, 2, false, 3),
+                ("attack-right", 6, 2, false, 3),
+                ("defend", 5, 2, false, null),
+                (kind == "player" ? "ability" : "charge", kind == "player" ? 6 : 4, kind == "player" ? 2 : 1, kind != "player", kind == "player" ? 3 : (int?)null),
+                ("hit", 4, 1, false, null),
+                ("death", 8, 2, false, null),
+            };
+
+            foreach (var clip in clips)
+            {
+                var built = SpriteClip(subject, clip.Variant, clip.Frames, clip.Beats, clip.Loop, clip.Strike, kind);
+                catalogue.PutClip(kind, subject + "-" + clip.Variant, built, subject, clip.Variant);
+            }
         }
 
         /// <summary>Puts the catalogues back to empty between tests, since both are static handovers from Boot.</summary>

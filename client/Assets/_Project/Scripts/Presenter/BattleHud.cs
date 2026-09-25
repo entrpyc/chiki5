@@ -29,6 +29,9 @@ namespace Chiki.Client.Presenter
 
         public Canvas Canvas { get; private set; } = null!;
 
+        /// <summary>The arena and the two fighters, behind everything the canvas draws (P5.1 to P5.3).</summary>
+        public StageView Stage { get; private set; } = null!;
+
         public RhythmLineView RhythmLine { get; private set; } = null!;
 
         public SlotRowsView Slots { get; private set; } = null!;
@@ -67,6 +70,11 @@ namespace Chiki.Client.Presenter
             rect.position = Vector3.zero;
             hud.Canvas = canvas;
 
+            // The stage is world geometry, not canvas geometry: it stands beside the HUD rather
+            // than inside it, because the canvas is scaled to pixels and sprites are not. The HUD
+            // still owns it, and takes it down with itself.
+            hud.Stage = StageView.Build(driver);
+
             hud.RhythmLine = RhythmLineView.Build(driver, rect, new Vector2(0f, 330f), new Vector2(1600f, 180f));
             hud.Statuses = StatusIconsView.Build(driver, rect, EnemyPoint, PlayerPoint);
             hud.HitEffect = HitEffectView.Build(rect, PlayerPoint, driver.Clock);
@@ -87,6 +95,14 @@ namespace Chiki.Client.Presenter
             hud.Cues = root.AddComponent<JudgmentCues>();
             hud.Feedback = FeedbackPresenter.Build(driver, root, hud.Cues, hud.Slots, hud.Shake, cardInSlot, hud.HitEffect);
             return hud;
+        }
+
+        private void OnDestroy()
+        {
+            if (Stage != null)
+            {
+                Destroy(Stage.gameObject);
+            }
         }
     }
 }

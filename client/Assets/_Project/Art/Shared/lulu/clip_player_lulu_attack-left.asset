@@ -1,0 +1,52 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 087105096b754cb4aaf6b6bf7eaf6cd6, type: 3}
+  m_Name: clip_player_lulu_attack-left
+  m_EditorClassIdentifier: Chiki.Client::Chiki.Client.Visuals.SpriteClip
+  kind: player
+  subject: lulu
+  variant: attack-left
+  frames:
+  - {fileID: 21300000, guid: 03fe70a4d0f980a4ca1761a77e31e61a, type: 3}
+  - {fileID: 21300000, guid: 29c5a41a0191d9d4f98893173cc9f3d5, type: 3}
+  - {fileID: 21300000, guid: 52dd08b34fe75de4cabf7cf90a1c7b09, type: 3}
+  - {fileID: 21300000, guid: 7273b7a33e6c295408ec18b814e52602, type: 3}
+  - {fileID: 21300000, guid: c595ebb422ca03e42914db84f412e0db, type: 3}
+  - {fileID: 21300000, guid: c772f2531b21e4f41b8a94c399395b21, type: 3}
+  lengthBeats: 2
+  loop: 0
+  strikeFrame: 3
+  frameBounds:
+  - X: 63
+    Y: 0
+    Width: 223
+    Height: 398
+  - X: 153
+    Y: 0
+    Width: 178
+    Height: 399
+  - X: 191
+    Y: 0
+    Width: 315
+    Height: 387
+  - X: 191
+    Y: 0
+    Width: 302
+    Height: 397
+  - X: 194
+    Y: 0
+    Width: 233
+    Height: 402
+  - X: 183
+    Y: 0
+    Width: 180
+    Height: 405

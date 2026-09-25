@@ -47,6 +47,40 @@ export function writeWav(path, { data, gain, samples }) {
   writeFileSync(path, bytes)
 }
 
+/** Normalises a stereo pair to a peak amplitude over both channels, with one gain for both. */
+export function normaliseStereo(left, right, peak) {
+  let loudest = 0
+  for (let i = 0; i < left.length; i++) loudest = Math.max(loudest, Math.abs(left[i]), Math.abs(right[i]))
+  return { left, right, gain: loudest > 0 ? peak / loudest : 0, samples: left.length }
+}
+
+/** Writes a stereo 16-bit PCM WAV at RATE, the music format (docs/plan.md, Asset conventions). */
+export function writeStereoWav(path, { left, right, gain, samples }) {
+  const bytes = Buffer.alloc(44 + samples * 4)
+  bytes.write('RIFF', 0, 'ascii')
+  bytes.writeUInt32LE(36 + samples * 4, 4)
+  bytes.write('WAVE', 8, 'ascii')
+  bytes.write('fmt ', 12, 'ascii')
+  bytes.writeUInt32LE(16, 16) // PCM header length
+  bytes.writeUInt16LE(1, 20) // PCM
+  bytes.writeUInt16LE(2, 22) // stereo
+  bytes.writeUInt32LE(RATE, 24)
+  bytes.writeUInt32LE(RATE * 4, 28) // bytes per second
+  bytes.writeUInt16LE(4, 32) // bytes per frame
+  bytes.writeUInt16LE(16, 34) // bits per sample
+  bytes.write('data', 36, 'ascii')
+  bytes.writeUInt32LE(samples * 4, 40)
+  for (let i = 0; i < samples; i++) {
+    const l = Math.max(-1, Math.min(1, left[i] * gain))
+    const r = Math.max(-1, Math.min(1, right[i] * gain))
+    bytes.writeInt16LE(Math.round(l * 32767), 44 + i * 4)
+    bytes.writeInt16LE(Math.round(r * 32767), 46 + i * 4)
+  }
+
+  mkdirSync(dirname(path), { recursive: true })
+  writeFileSync(path, bytes)
+}
+
 /**
  * How soon a rendered sound lands, in milliseconds: the first sample at or above half the peak.
  * The judgment cues are measured on this (P4.1), so the generator states what the suite checks.

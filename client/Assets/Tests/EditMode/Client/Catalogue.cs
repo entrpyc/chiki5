@@ -226,6 +226,31 @@ namespace Client
             Assert.That(catalogue.Missing, Is.Empty, "a judgment cue fell back: " + string.Join(", ", catalogue.Missing));
         }
 
+        /// <summary>P11.1: every fixture enemy's track has a recording as long as its sidecar's offset plus one lap of its beat map.</summary>
+        [Test]
+        public void cast_tracks_complete()
+        {
+            var catalogue = ShippedAudio();
+            var enemies = Chiki.Client.Scene.BattleContent.LoadFixtures().Enemies.Values.ToList();
+            Assert.That(enemies, Has.Count.EqualTo(5), "the fixture cast is not the five enemies");
+
+            foreach (var enemy in enemies)
+            {
+                var track = enemy.Track;
+                var clip = catalogue.Track(track.Id);
+                Assert.That(clip, Is.Not.Null, enemy.Id + "'s track " + track.Id + " has no recording in the shipped audio catalogue");
+
+                double expectedMs = track.OffsetMs + track.BeatMap.LengthMs;
+                double actualMs = clip!.samples * 1000.0 / clip.frequency;
+                Assert.That(
+                    actualMs,
+                    Is.EqualTo(expectedMs).Within(10.0),
+                    track.Id + " lasts " + actualMs + " ms, but its sidecar gives " + track.OffsetMs + " ms offset plus " + track.BeatMap.LengthMs + " ms of beats");
+            }
+
+            Assert.That(catalogue.Missing, Is.Empty, "a cast track fell back: " + string.Join(", ", catalogue.Missing));
+        }
+
         /// <summary>P4.3: one icon per status, each at 64 by 64 and each a different image.</summary>
         [Test]
         public void status_icons_complete()

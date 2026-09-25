@@ -170,18 +170,32 @@ internal static class TestContent
         return File.ReadAllText(Path.Combine(RepoRoot, "data", relativePath));
     }
 
-    /// <summary>Every track under data/tracks by id.</summary>
+    /// <summary>
+    /// The frozen copies of the fixture enemies, their charts and their tracks (P11.1). Rules
+    /// tests read these rather than data/, so recording a track and re-authoring its sidecar or
+    /// chart under data/ never changes a rules test. The shipped files under data/ are still
+    /// validated by <c>Fixtures.shipped_charts_and_enemies_validate</c>.
+    /// </summary>
+    public static string FrozenFixturesRoot => Path.Combine(RepoRoot, "sim", "Chiki.Sim.Tests", "fixtures");
+
+    /// <summary>Every file <see cref="LoadFixtureEnemies"/> reads: the frozen tracks, charts and enemy set.</summary>
+    public static IReadOnlyList<string> FixtureFiles()
+    {
+        return FrozenFiles("tracks").Concat(FrozenFiles("charts")).Append(FrozenEnemySet).ToList();
+    }
+
+    /// <summary>Every frozen fixture track by id.</summary>
     public static Dictionary<string, SimTrack> LoadTracks()
     {
-        return Directory.GetFiles(Path.Combine(RepoRoot, "data", "tracks"), "*.json")
+        return FrozenFiles("tracks")
             .Select(f => Chiki.Sim.Data.TrackLoader.FromJson(File.ReadAllText(f)))
             .ToDictionary(t => t.Id);
     }
 
-    /// <summary>Every chart under data/charts by id, built on its track.</summary>
+    /// <summary>Every frozen fixture chart by id, built on its track.</summary>
     public static Dictionary<string, SimChart> LoadCharts(IReadOnlyDictionary<string, SimTrack> tracks)
     {
-        return Directory.GetFiles(Path.Combine(RepoRoot, "data", "charts"), "*.json")
+        return FrozenFiles("charts")
             .Select(f =>
             {
                 var document = Chiki.Sim.Data.ChartLoader.Read(File.ReadAllText(f));
@@ -190,11 +204,18 @@ internal static class TestContent
             .ToDictionary(c => c.Id);
     }
 
-    /// <summary>The fixture enemies of data/enemies/fixtures.json (P10.4), with their charts and tracks loaded.</summary>
+    /// <summary>The fixture enemies (P10.4) from their frozen copy (P11.1), with their charts and tracks loaded.</summary>
     public static EnemySet LoadFixtureEnemies()
     {
         var charts = LoadCharts(LoadTracks());
-        return Chiki.Sim.Data.EnemyLoader.SetFromJson(ReadData("enemies/fixtures.json"), charts);
+        return Chiki.Sim.Data.EnemyLoader.SetFromJson(File.ReadAllText(FrozenEnemySet), charts);
+    }
+
+    private static string FrozenEnemySet => Path.Combine(FrozenFixturesRoot, "enemies", "fixtures.json");
+
+    private static IEnumerable<string> FrozenFiles(string folder)
+    {
+        return Directory.GetFiles(Path.Combine(FrozenFixturesRoot, folder), "*.json").OrderBy(f => f, StringComparer.Ordinal);
     }
 
     /// <summary>The starter set, the fixture Charms and the fixture Imprints as one run content (P17.1).</summary>

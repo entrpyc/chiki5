@@ -537,7 +537,7 @@ After that the order follows what the player reads first in a fight. The Rhythm 
 
 **Generated assets:** `tools/gen-phase11-audio.mjs` renders each enemy's track from that enemy's own sidecar — a looping bed of drum, bass and lead following its tempo map, cut to exactly its offset plus its length in beats — so the five stand-in tracks fit the charts already under `data/` and neither a sidecar nor a chart is re-authored. Five WAVs.
 
-#### P11.1 Recorded tracks for the cast
+#### ✅ P11.1 Recorded tracks for the cast
 - PRD: 3.6.28
 - Does: each enemy in `data/enemies/fixtures.json` fights to its own recorded track. Before any shipped chart or sidecar changes, the simulation tests that load fixture enemies, charts and tracks through `TestContent` switch to frozen copies under `sim/Chiki.Sim.Tests/fixtures/`, so recorded music never changes a rules test. Track and chart ids stay as they are, and chart validation (3.6.31) keeps rejecting an action outside the new length.
 - Assets, for each of Ren, Kess, Vey, Orm and Malk:
@@ -548,14 +548,14 @@ After that the order follows what the player reads first in a fight. The Rhythm 
 - Test (unit): `Sim.Fixtures › rules_tests_use_frozen_fixtures` — given the frozen copies, when `TestContent` loads the fixture enemies, then it reads them from `sim/Chiki.Sim.Tests/fixtures/` and not from `data/`.
 - Test (integration): `Client.Catalogue › cast_tracks_complete` — given the shipped audio catalogue, when every enemy's track id is looked up, then each has a recorded clip whose length matches its sidecar's offset plus its length in beats at its tempo map, within 10 ms.
 
-#### P11.2 Recorded tracks loop seamlessly
+#### ✅ P11.2 Recorded tracks loop seamlessly
 - PRD: 3.6.32
 - Does: every recording's length in samples equals its sidecar's offset plus its beat-map length, so the chart and the music wrap together at `TrackLooped` with no gap and no overlap.
 - Assets: none beyond P11.1.
 - Needs: P11.1
 - Test (measurement): `Client.Audio › recorded_tracks_loop_seamlessly` — given each shipped track, when its sample count is compared with its beat map, then they agree within one sample; and when Ren's battle plays past the loop point, then the first action of the second lap is judged against its second-lap time within 2 ms.
 
-#### P11.3 Recorded music never interrupted
+#### ✅ P11.3 Recorded music never interrupted
 - PRD: 3.3.1.6
 - Does: a battle on a recorded track keeps the audio source advancing without a pause, seek or pitch change through a Stun, a Signature and a loop.
 - Assets: none beyond P11.1.

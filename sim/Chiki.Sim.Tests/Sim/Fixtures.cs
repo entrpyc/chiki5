@@ -51,6 +51,25 @@ public class Fixtures
         });
     }
 
+    /// <summary>P11.1: the fixture enemies, charts and tracks rules tests fight come from frozen copies, not from data/.</summary>
+    [Test]
+    public void rules_tests_use_frozen_fixtures()
+    {
+        string frozen = Path.GetFullPath(TestContent.FrozenFixturesRoot) + Path.DirectorySeparatorChar;
+        string data = Path.GetFullPath(Path.Combine(TestContent.RepoRoot, "data")) + Path.DirectorySeparatorChar;
+
+        var files = TestContent.FixtureFiles().Select(Path.GetFullPath).ToList();
+        var set = TestContent.LoadFixtureEnemies();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(files, Is.Not.Empty);
+            Assert.That(files, Has.All.StartWith(frozen), "a fixture file is read from outside " + frozen);
+            Assert.That(files.Where(f => f.StartsWith(data, StringComparison.OrdinalIgnoreCase)), Is.Empty, "a fixture file is read from data/");
+            Assert.That(set.Enemies.Select(e => e.Id), Is.EquivalentTo(new[] { "enemy-kess", "enemy-ren", "enemy-vey", "enemy-orm", "enemy-malk" }));
+        });
+    }
+
     /// <summary>Every shipped chart and enemy set under data/ obeys its rules (PRD 3.6.31, 3.6).</summary>
     [Test]
     public void shipped_charts_and_enemies_validate()

@@ -705,6 +705,111 @@ MonoBehaviour:
     variant: burst
     clip: {fileID: 11400000, guid: 7e03b35b5db73ba448fb3b2d83d499ab, type: 2}
   - kind: enemy
+    id: kess-attack-left
+    subject: kess
+    variant: attack-left
+    clip: {fileID: 11400000, guid: 08369ab3929a636478dc451712941e08, type: 2}
+  - kind: enemy
+    id: kess-attack-right
+    subject: kess
+    variant: attack-right
+    clip: {fileID: 11400000, guid: f8c69ddb5076f204197af7e0680be25f, type: 2}
+  - kind: enemy
+    id: kess-charge
+    subject: kess
+    variant: charge
+    clip: {fileID: 11400000, guid: 5a3ac99001acd8e4fb4094a739d21236, type: 2}
+  - kind: enemy
+    id: kess-death
+    subject: kess
+    variant: death
+    clip: {fileID: 11400000, guid: cd57b068fc2bbfb4cbf03e7a82add83e, type: 2}
+  - kind: enemy
+    id: kess-defend
+    subject: kess
+    variant: defend
+    clip: {fileID: 11400000, guid: 4d8d7e420dc28504083c2e88fa742bff, type: 2}
+  - kind: enemy
+    id: kess-hit
+    subject: kess
+    variant: hit
+    clip: {fileID: 11400000, guid: 18f4a823503f8ee429e66dba162ed972, type: 2}
+  - kind: enemy
+    id: kess-idle
+    subject: kess
+    variant: idle
+    clip: {fileID: 11400000, guid: 33daeb8bd8ed6ee40bfbe952cbd25fde, type: 2}
+  - kind: enemy
+    id: malk-attack-left
+    subject: malk
+    variant: attack-left
+    clip: {fileID: 11400000, guid: d7fbfc9412d0a084989188f6763d94a5, type: 2}
+  - kind: enemy
+    id: malk-attack-right
+    subject: malk
+    variant: attack-right
+    clip: {fileID: 11400000, guid: f73392af61d6fe5458617d8cd1a80d45, type: 2}
+  - kind: enemy
+    id: malk-charge
+    subject: malk
+    variant: charge
+    clip: {fileID: 11400000, guid: 5b815a1f37ce7234e9fc454e1d38d5ca, type: 2}
+  - kind: enemy
+    id: malk-death
+    subject: malk
+    variant: death
+    clip: {fileID: 11400000, guid: 75673a44f570793499c7162ce2d741a8, type: 2}
+  - kind: enemy
+    id: malk-defend
+    subject: malk
+    variant: defend
+    clip: {fileID: 11400000, guid: 4bce5d81c8efda14aae99d7f90f2c1c2, type: 2}
+  - kind: enemy
+    id: malk-hit
+    subject: malk
+    variant: hit
+    clip: {fileID: 11400000, guid: 50939ca1a86b0ce4fb29fe5cd21a8be7, type: 2}
+  - kind: enemy
+    id: malk-idle
+    subject: malk
+    variant: idle
+    clip: {fileID: 11400000, guid: db1c949293f608448858e484c2680d17, type: 2}
+  - kind: enemy
+    id: orm-attack-left
+    subject: orm
+    variant: attack-left
+    clip: {fileID: 11400000, guid: 25db89bbfc9e673409554cacff515619, type: 2}
+  - kind: enemy
+    id: orm-attack-right
+    subject: orm
+    variant: attack-right
+    clip: {fileID: 11400000, guid: a1b2f4d29aec77b498d889edcc4c0648, type: 2}
+  - kind: enemy
+    id: orm-charge
+    subject: orm
+    variant: charge
+    clip: {fileID: 11400000, guid: 0dd79b872e9193a4fa3b4ee9e64a3116, type: 2}
+  - kind: enemy
+    id: orm-death
+    subject: orm
+    variant: death
+    clip: {fileID: 11400000, guid: 66cb70a9391a1a341a93416164091f23, type: 2}
+  - kind: enemy
+    id: orm-defend
+    subject: orm
+    variant: defend
+    clip: {fileID: 11400000, guid: a89a97ce9ba899a498a9ee1be1d7aa6a, type: 2}
+  - kind: enemy
+    id: orm-hit
+    subject: orm
+    variant: hit
+    clip: {fileID: 11400000, guid: 24d5c98e7e2fedc41b3f023228a60060, type: 2}
+  - kind: enemy
+    id: orm-idle
+    subject: orm
+    variant: idle
+    clip: {fileID: 11400000, guid: 6b8949c2284bffa46b143d1740cb47e0, type: 2}
+  - kind: enemy
     id: ren-attack-left
     subject: ren
     variant: attack-left
@@ -739,3 +844,38 @@ MonoBehaviour:
     subject: ren
     variant: idle
     clip: {fileID: 11400000, guid: 21c7b4cffeafb6c42aec64484e722b72, type: 2}
+  - kind: enemy
+    id: vey-attack-left
+    subject: vey
+    variant: attack-left
+    clip: {fileID: 11400000, guid: d39d53218218e5441b19a1fe34d55df1, type: 2}
+  - kind: enemy
+    id: vey-attack-right
+    subject: vey
+    variant: attack-right
+    clip: {fileID: 11400000, guid: 4e3a76b29f2e46d458e0f41aeadfca5e, type: 2}
+  - kind: enemy
+    id: vey-charge
+    subject: vey
+    variant: charge
+    clip: {fileID: 11400000, guid: c1a03aa306d70bc42b0db4f336229134, type: 2}
+  - kind: enemy
+    id: vey-death
+    subject: vey
+    variant: death
+    clip: {fileID: 11400000, guid: 138efa99860ee114c8af4922284c79a7, type: 2}
+  - kind: enemy
+    id: vey-defend
+    subject: vey
+    variant: defend
+    clip: {fileID: 11400000, guid: 0645bde45d0cbd3498d36ea6175df97f, type: 2}
+  - kind: enemy
+    id: vey-hit
+    subject: vey
+    variant: hit
+    clip: {fileID: 11400000, guid: ae86e62f5773bf248ba04722fb2a07f5, type: 2}
+  - kind: enemy
+    id: vey-idle
+    subject: vey
+    variant: idle
+    clip: {fileID: 11400000, guid: 0f9705b42f612b74d9ac9cda98f12dcf, type: 2}

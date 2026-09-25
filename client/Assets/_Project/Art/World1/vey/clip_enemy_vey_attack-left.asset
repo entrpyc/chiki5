@@ -1,0 +1,52 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 087105096b754cb4aaf6b6bf7eaf6cd6, type: 3}
+  m_Name: clip_enemy_vey_attack-left
+  m_EditorClassIdentifier: Chiki.Client::Chiki.Client.Visuals.SpriteClip
+  kind: enemy
+  subject: vey
+  variant: attack-left
+  frames:
+  - {fileID: 21300000, guid: fce67ab71fd0e8d4fba5cb36f6317c47, type: 3}
+  - {fileID: 21300000, guid: ec13cb3c5641590459e1db60c3b977c1, type: 3}
+  - {fileID: 21300000, guid: 1ffc0551b5b79f94692dae50683af6e2, type: 3}
+  - {fileID: 21300000, guid: dd718afcf021a404489e66a084f9783a, type: 3}
+  - {fileID: 21300000, guid: a77e5ab6be2de714ba72d5f8c595c9c4, type: 3}
+  - {fileID: 21300000, guid: a533f71c698930244bca657537a2881a, type: 3}
+  lengthBeats: 2
+  loop: 0
+  strikeFrame: 3
+  frameBounds:
+  - X: 205
+    Y: 0
+    Width: 222
+    Height: 373
+  - X: 180
+    Y: 0
+    Width: 186
+    Height: 373
+  - X: 4
+    Y: 0
+    Width: 324
+    Height: 361
+  - X: 35
+    Y: 0
+    Width: 290
+    Height: 371
+  - X: 104
+    Y: 0
+    Width: 217
+    Height: 377
+  - X: 163
+    Y: 0
+    Width: 155
+    Height: 380

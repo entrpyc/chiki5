@@ -330,34 +330,34 @@ After that the order follows what the player reads first in a fight. The Rhythm 
 - Needs: P5.1
 - Test (integration): `Client.Catalogue › enemy_ren_art_complete` — given the shipped catalogue, when Ren's clips are read, then all seven exist, idle has 8 frames looping over 2 beats, charge has 4 frames looping over 1 beat, the others have 3 to 8 frames, both attacks have a strike frame, and the first idle frame's opaque height is 360 to 440 px.
 
-### Phase 6 — The whole cast
+### ✅ Phase 6 — The whole cast
 
 *Every enemy the game can roll is drawn and animated. Done when every P6 test is green and the suite passes.*
 
 **Generated assets:** `tools/gen-phase6-art.mjs` draws Kess, Vey, Orm and Malk, seven clips each with a sidecar, from the same puppet as Phase 5 and on the same spec as Ren; each one's proportions, palette and headpiece are seeded from its enemy id, so no two of the five share a silhouette. About 160 frames and four sidecars.
 
-#### P6.1 Kess's art
+#### ✅ P6.1 Kess's art
 - PRD: 3.14.1
 - Does: Kess's seven clips are catalogued as enemy `kess`. Kess: Normal tier, Aggressor, fast rhythm, Rising Tempo, "Every hit I land is the next one's warm-up."
 - Assets: in `Art/World1/kess/`, `spr_enemy_kess_<clip>_<nn>.png` for idle (8 frames), attack-left, attack-right, defend, charge (4 frames), hit and death, on the canvas, height and facing rules of P5.5; `enemy_kess.clips.json`.
 - Needs: P5.1
 - Test (integration): `Client.Catalogue › enemy_kess_art_complete` — given the shipped catalogue, when Kess's clips are read, then they meet every condition of `enemy_ren_art_complete`.
 
-#### P6.2 Vey's art
+#### ✅ P6.2 Vey's art
 - PRD: 3.14.1
 - Does: Vey's seven clips are catalogued as enemy `vey`. Vey: Normal tier, Mentalist, fast rhythm, Charge / Buff, applies Bleed, "Small cuts. Many beats. Do the sum."
 - Assets: in `Art/World1/vey/`, `spr_enemy_vey_<clip>_<nn>.png` for the seven clips on the rules of P5.5; `enemy_vey.clips.json`.
 - Needs: P5.1
 - Test (integration): `Client.Catalogue › enemy_vey_art_complete` — given the shipped catalogue, when Vey's clips are read, then they meet every condition of `enemy_ren_art_complete`.
 
-#### P6.3 Orm's art
+#### ✅ P6.3 Orm's art
 - PRD: 3.14.1
 - Does: Orm's seven clips are catalogued as enemy `orm`. Orm: Elite tier, Tank, slow rhythm, Iron Veil, Stoneform and Guard, applies Weak, "Stone does not hurry. Stone does not miss."
 - Assets: in `Art/World1/orm/`, `spr_enemy_orm_<clip>_<nn>.png` for the seven clips on the rules of P5.5; `enemy_orm.clips.json`.
 - Needs: P5.1
 - Test (integration): `Client.Catalogue › enemy_orm_art_complete` — given the shipped catalogue, when Orm's clips are read, then they meet every condition of `enemy_ren_art_complete`.
 
-#### P6.4 Malk's art
+#### ✅ P6.4 Malk's art
 - PRD: 3.14.1
 - Does: Malk's seven clips are catalogued as enemy `malk`. Malk: Boss tier, Aggressor, fast rhythm, Rising Tempo and Charge / Buff, Stoneform and Guard, applies Bleed and Weak. Boss phase clips wait for multi-phase bosses, which are not built.
 - Assets: in `Art/World1/malk/`, `spr_enemy_malk_<clip>_<nn>.png` for the seven clips on the rules of P5.5; `enemy_malk.clips.json`.

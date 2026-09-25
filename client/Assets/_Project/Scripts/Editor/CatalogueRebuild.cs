@@ -17,7 +17,8 @@ namespace Chiki.Client.Editor
     /// that animate are reached through the <see cref="SpriteClip"/> the importer wrote beside
     /// them. Every sound under <c>Assets/_Project/Audio/</c> becomes a sound-effect entry, and
     /// every music file the entry of the track whose sidecar under <c>data/tracks/</c> names the
-    /// same World and subject.
+    /// same World and subject. The font family under <c>Assets/_Project/UI/Fonts/</c> rides on the
+    /// visual catalogue (P10.1).
     /// </summary>
     public static class CatalogueRebuild
     {
@@ -46,6 +47,10 @@ namespace Chiki.Client.Editor
 
             catalogue.RemoveAll();
             int count = 0;
+            var regular = AssetDatabase.LoadAssetAtPath<Font>(VisualCatalogue.FontFolder + "/" + VisualCatalogue.RegularFontFile);
+            var bold = AssetDatabase.LoadAssetAtPath<Font>(VisualCatalogue.FontFolder + "/" + VisualCatalogue.BoldFontFile);
+            catalogue.PutFonts(regular, bold);
+            count += (regular != null ? 1 : 0) + (bold != null ? 1 : 0);
             foreach (string assetPath in ArtFiles("*.png"))
             {
                 if (!SpriteNames.TryParse(Path.GetFileName(assetPath), out var name, out _))
@@ -93,6 +98,7 @@ namespace Chiki.Client.Editor
 
             catalogue.RemoveAll();
             var trackIds = TrackIds();
+            var oggTracks = new HashSet<string>(StringComparer.Ordinal);
             int count = 0;
             foreach (string assetPath in Files(AudioAssetPostprocessor.AudioRoot, "*.*"))
             {
@@ -123,8 +129,25 @@ namespace Chiki.Client.Editor
                     continue;
                 }
 
+                // A recording (OGG) wins over a generated stand-in (WAV) of the same name, so a
+                // real track replaces the stand-in by being added beside it (docs/plan.md, Generators).
+                bool isOgg = fileName.EndsWith(".ogg", StringComparison.OrdinalIgnoreCase);
+                if (oggTracks.Contains(trackId) && !isOgg)
+                {
+                    continue;
+                }
+
+                if (isOgg)
+                {
+                    oggTracks.Add(trackId);
+                }
+
+                if (!catalogue.HasTrack(trackId))
+                {
+                    count++;
+                }
+
                 catalogue.PutTrack(trackId, clip);
-                count++;
             }
 
             return count;

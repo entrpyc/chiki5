@@ -219,6 +219,51 @@ namespace Client
             }
         }
 
+        /// <summary>
+        /// A seed whose run can reach a battle against the given enemy in one step: the entry node
+        /// when it is that battle and still to be fought, otherwise a forward neighbour of the entry, whose id is given
+        /// out. Seeds are tried in order from <c>chiki-1</c>; the maps depend on the seed alone.
+        /// </summary>
+        public static string SeedFacing(string enemyId, out string? nodeId)
+        {
+            var content = GameFlow.LoadContent();
+            for (int i = 1; i <= 500; i++)
+            {
+                string seed = "chiki-" + i;
+                var run = new RunSetup(new string[0]).Start(content, seed);
+                if (run.CurrentNode.IsBattle && !run.CurrentNodeCompleted)
+                {
+                    if (run.CurrentNode.EnemyId == enemyId)
+                    {
+                        nodeId = null;
+                        return seed;
+                    }
+
+                    continue;
+                }
+
+                var node = run.ForwardNodes.FirstOrDefault(n => n.IsBattle && n.EnemyId == enemyId);
+                if (node != null)
+                {
+                    nodeId = node.Id;
+                    return seed;
+                }
+            }
+
+            throw new System.InvalidOperationException("No seed from chiki-1 to chiki-500 reaches " + enemyId + " in one step.");
+        }
+
+        /// <summary>Opens the pre-battle panel of the node <see cref="SeedFacing"/> found: the entry opens on its own, a neighbour is chosen on the map.</summary>
+        public static IEnumerator OpenBattleAgainst(GameFlow flow, string? nodeId)
+        {
+            if (nodeId != null && flow.PreBattle == null)
+            {
+                flow.ChooseNeighbour(nodeId);
+            }
+
+            yield return null;
+        }
+
         public static Track FixtureTrack()
         {
             return TrackLoader.FromJson(ContentFiles.ReadText("tracks/fixture-120.json"));

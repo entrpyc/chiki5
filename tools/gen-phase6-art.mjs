@@ -77,7 +77,7 @@ function proportioned(id, archetype) {
  * swept crest over a slit mask and a knife along the near forearm — the only silhouette on the
  * stage that is taller than Lulu and thinner than her.
  */
-const kess = proportioned('kess', {
+export const kess = proportioned('kess', {
   kind: 'enemy',
   subject: 'kess',
   folder: join(WORLD1, 'kess'),
@@ -153,7 +153,7 @@ const kess = proportioned('kess', {
  * face under it over a robe that widens to the floor, and a sickle — short legs and a bell of a
  * body, read from across the stage as the one that never shows its head.
  */
-const vey = proportioned('vey', {
+export const vey = proportioned('vey', {
   kind: 'enemy',
   subject: 'vey',
   folder: join(WORLD1, 'vey'),
@@ -228,7 +228,7 @@ const vey = proportioned('vey', {
  * than it is graceful — short thick legs, a barrel of a torso, a horned head sunk in with no
  * neck at all, and a slab shield instead of a weapon. The widest thing on the stage.
  */
-const orm = proportioned('orm', {
+export const orm = proportioned('orm', {
   kind: 'enemy',
   subject: 'orm',
   folder: join(WORLD1, 'orm'),
@@ -321,7 +321,7 @@ const orm = proportioned('orm', {
  * long legs and a scythe half again as long as Ren's bar. Boss phase clips wait for multi-phase
  * bosses, which are not built.
  */
-const malk = proportioned('malk', {
+export const malk = proportioned('malk', {
   kind: 'enemy',
   subject: 'malk',
   folder: join(WORLD1, 'malk'),
@@ -398,39 +398,46 @@ const malk = proportioned('malk', {
 
 // ------------------------------------------------------------------ run ---
 
-// Lulu's and Ren's measurements, from the last line gen-phase5-art.mjs prints, so the check below
-// covers the whole stage rather than only the four this generator draws.
-const PHASE5 = [
-  { subject: 'lulu', height: 405, width: 183 },
-  { subject: 'ren', height: 398, width: 221 },
-]
+// Run as a script it writes the art; imported, it only lends its characters (the portraits of
+// gen-phase8-art.mjs draw the cast from here, so each portrait is its fighter).
+const isMain = process.argv[1] !== undefined && resolve(process.argv[1]) === fileURLToPath(import.meta.url)
 
-const cast = [kess, vey, orm, malk]
-const silhouettes = [...PHASE5]
-for (const character of cast) {
-  const first = drawCharacter(character, written)
-  silhouettes.push({ subject: character.subject, height: first.height, width: first.width })
-  // The idle pose is the one an enemy holds between actions, and it is the frame the plan's own
-  // test measures, so nothing in it may reach an edge of the canvas. A strike that throws an
-  // implement past the frame is the house style Ren set in Phase 5; drawCharacter prints those.
-  const idleCropped = first.cropped.filter((frame) => frame.startsWith('idle'))
-  if (idleCropped.length > 0) {
-    throw new Error(`${character.subject} is cropped standing still, on ${idleCropped.join(', ')}; shorten the headpiece or the implement`)
-  }
-}
+if (isMain) {
 
-// No two of the five share a silhouette (Phase 6 assets): a pair whose idle frame is within four
-// pixels both ways would read as the same fighter at the size the stage draws them.
-for (const one of silhouettes) {
-  for (const other of silhouettes) {
-    if (one.subject < other.subject && Math.abs(one.height - other.height) < 4 && Math.abs(one.width - other.width) < 4) {
-      throw new Error(
-        `${one.subject} and ${other.subject} stand the same: ${one.height} x ${one.width} against ${other.height} x ${other.width}`,
-      )
+  // Lulu's and Ren's measurements, from the last line gen-phase5-art.mjs prints, so the check below
+  // covers the whole stage rather than only the four this generator draws.
+  const PHASE5 = [
+    { subject: 'lulu', height: 405, width: 183 },
+    { subject: 'ren', height: 398, width: 221 },
+  ]
+
+  const cast = [kess, vey, orm, malk]
+  const silhouettes = [...PHASE5]
+  for (const character of cast) {
+    const first = drawCharacter(character, written)
+    silhouettes.push({ subject: character.subject, height: first.height, width: first.width })
+    // The idle pose is the one an enemy holds between actions, and it is the frame the plan's own
+    // test measures, so nothing in it may reach an edge of the canvas. A strike that throws an
+    // implement past the frame is the house style Ren set in Phase 5; drawCharacter prints those.
+    const idleCropped = first.cropped.filter((frame) => frame.startsWith('idle'))
+    if (idleCropped.length > 0) {
+      throw new Error(`${character.subject} is cropped standing still, on ${idleCropped.join(', ')}; shorten the headpiece or the implement`)
     }
   }
-}
 
-const sprites = written.filter((f) => f.name.endsWith('.png')).length
-console.log(`\n${sprites} sprites and ${written.length - sprites} sidecars written under Art/World1/`)
-console.log(`frame canvas ${FRAME} x ${FRAME}, soles on y = ${SOLE}`)
+  // No two of the five share a silhouette (Phase 6 assets): a pair whose idle frame is within four
+  // pixels both ways would read as the same fighter at the size the stage draws them.
+  for (const one of silhouettes) {
+    for (const other of silhouettes) {
+      if (one.subject < other.subject && Math.abs(one.height - other.height) < 4 && Math.abs(one.width - other.width) < 4) {
+        throw new Error(
+          `${one.subject} and ${other.subject} stand the same: ${one.height} x ${one.width} against ${other.height} x ${other.width}`,
+        )
+      }
+    }
+  }
+
+  const sprites = written.filter((f) => f.name.endsWith('.png')).length
+  console.log(`\n${sprites} sprites and ${written.length - sprites} sidecars written under Art/World1/`)
+  console.log(`frame canvas ${FRAME} x ${FRAME}, soles on y = ${SOLE}`)
+}

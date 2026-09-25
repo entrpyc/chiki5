@@ -40,6 +40,7 @@ namespace Client
 
             _hosts.Clear();
             ActiveProfile.Clear();
+            ClientTestContent.ClearCatalogues();
             if (Directory.Exists(_root))
             {
                 Directory.Delete(_root, true);
@@ -229,6 +230,33 @@ namespace Client
             Assert.That(flow.Map, Is.Not.Null, "Back did not return to the map");
             Assert.That(run.CurrentNodeId, Is.EqualTo(node), "the run left its node");
             Assert.That(flow.Map!.Covered, Is.False, "the map's keys stayed resting after Back");
+        }
+
+        [UnityTest]
+        [Timeout(60000)]
+        public IEnumerator enemy_card_visible_while_editing()
+        {
+            var catalogue = ClientTestContent.ShippedVisuals();
+            string seed = ClientTestContent.SeedFacing("enemy-kess", out var nodeId);
+            var flow = ClientTestContent.FlowWithRun(_root, "A", seed, _hosts, out _);
+            yield return ClientTestContent.OpenBattleAgainst(flow, nodeId);
+            Assume.That(flow.PreBattle, Is.Not.Null, "Kess's battle node did not open");
+            Assume.That(flow.Run!.CurrentNodeEnemy.Id, Is.EqualTo("enemy-kess"));
+
+            Assume.That(flow.PreBattle!.ChooseEdit(), Is.True, "Edit did not open the Binder");
+            yield return null;
+            var binder = flow.Binder;
+            Assume.That(binder, Is.Not.Null, "the Binder screen did not open");
+
+            var card = binder!.Enemy;
+            Assert.That(card, Is.Not.Null, "the Binder shows no enemy card");
+            Assert.That(card!.gameObject.activeInHierarchy, Is.True, "the enemy card is not visible");
+            Assert.That(card.Compact, Is.True, "the Binder's enemy card is not the compact one");
+            Assert.That(card.NameText.text, Is.EqualTo("Kess"));
+            Assert.That(card.Portrait.sprite, Is.Not.Null.And.SameAs(catalogue.Find(Chiki.Client.Screens.EnemyCard.PortraitKind, "kess")), "the card does not show Kess's portrait");
+            Assert.That(card.Powers.Select(p => p.Name.text), Does.Contain("Rising Tempo"), "the card does not show Rising Tempo");
+            var risingTempo = card.Powers.First(p => p.Id == "rising-tempo");
+            Assert.That(risingTempo.Icon.sprite, Is.Not.Null.And.SameAs(catalogue.Find("ability", "rising-tempo")), "Rising Tempo does not carry its icon");
         }
     }
 }

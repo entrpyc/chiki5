@@ -270,7 +270,7 @@ namespace Chiki.Client.Flow
             OpenedNodeId = node.Id;
             if (node.IsBattle && !run.CurrentNodeCompleted)
             {
-                PreBattle = PreBattlePanel.Build(transform, run);
+                PreBattle = PreBattlePanel.Build(transform, run, Profile!.HasFought(run.CurrentNodeEnemy.Id));
                 PreBattle.EnterChosen += () => EnterBattle();
                 PreBattle.EditChosen += OpenBinder;
             }
@@ -291,7 +291,7 @@ namespace Chiki.Client.Flow
             }
         }
 
-        /// <summary>Opens the Binder over the pre-battle panel (PRD 3.5.5); Confirm proceeds to the battle, Back returns to the panel.</summary>
+        /// <summary>Opens the Binder over the pre-battle panel (PRD 3.5.5) with the upcoming enemy's card beside the slots (PRD 3.5.8); Confirm proceeds to the battle, Back returns to the panel.</summary>
         public void OpenBinder()
         {
             var run = RequireRun();
@@ -300,7 +300,8 @@ namespace Chiki.Client.Flow
                 return;
             }
 
-            Binder = BinderScreen.Build(transform, run.Binder, Content);
+            var enemy = run.CurrentNode.IsBattle && !run.CurrentNodeCompleted ? run.CurrentNodeEnemy : null;
+            Binder = BinderScreen.Build(transform, run.Binder, Content, upcoming: enemy, fought: enemy != null && Profile!.HasFought(enemy.Id));
             Binder.Confirmed += () => EnterBattle();
             Binder.BackChosen += CloseBinder;
         }
@@ -397,8 +398,8 @@ namespace Chiki.Client.Flow
         }
 
         /// <summary>
-        /// Settles a battle the run started: a Boss defeat reaches the profile at once
-        /// (PRD 3.9.10, 3.1.8), the run is saved, and the map with its reward offer or the
+        /// Settles a battle the run started: a Boss defeat and the enemy fought reach the profile
+        /// at once (PRD 3.9.10, 3.1.8, P8.1), the run is saved, and the map with its reward offer or the
         /// run-end screen follows (PRD 3.9.11, 3.15.1). Returns the cards the Binder destroyed.
         /// </summary>
         public IReadOnlyList<CardInstance> SettleBattle(Battle battle)
@@ -411,6 +412,9 @@ namespace Chiki.Client.Flow
             }
 
             var destroyed = run.SettleBattle(battle);
+            // Won or lost, the enemy joins the profile (P8.1); the map or the run end below saves
+            // the profile before this returns, so it is written the moment the battle ends (PRD 3.1.8).
+            Profile!.RecordEnemyFought(battle.Enemy.Id);
             if (battle.Events.OfType<BattleEnded>().Any(e => e.PerfectDefense))
             {
                 _perfectDefensesThisRun++;
@@ -478,13 +482,16 @@ namespace Chiki.Client.Flow
             RunEnd.Continued += EnterPreRun;
         }
 
-        /// <summary>The run-end figures (PRD 3.9.11): battles from the run's records, Perfect Defenses, Essence earned and the CRP peak from this session's events, and the unlocks by name.</summary>
+        /// <summary>The catalogue kind of a Charm's icon; the only unlocks a run grants today are Charms (PRD 3.9.11, P10.3).</summary>
+        private const string CharmKind = "charm";
+
+        /// <summary>The run-end figures (PRD 3.9.11): battles from the run's records, Perfect Defenses, Essence earned and the CRP peak from this session's events, and the unlocks by icon and name.</summary>
         private RunEndSummary Summarise(Run run)
         {
             int essenceEarned = run.Events.OfType<EssenceChanged>().Where(e => e.Amount > 0).Sum(e => e.Amount);
             int crpPeak = run.Events.OfType<CrpChanged>().Select(e => e.Total).DefaultIfEmpty(0).Max();
             crpPeak = Math.Max(crpPeak, run.Stats.Crp);
-            var unlocks = _unlocksThisRun.Select(id => Content?.FindCharm(id)?.Name ?? id).ToList();
+            var unlocks = _unlocksThisRun.Select(id => new RunEndUnlock(CharmKind, id, Content?.FindCharm(id)?.Name ?? id)).ToList();
             return new RunEndSummary(run.Status, run.Seed, run.Battles.Count, _perfectDefensesThisRun, essenceEarned, crpPeak, unlocks);
         }
 

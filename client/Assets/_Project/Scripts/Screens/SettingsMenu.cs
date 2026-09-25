@@ -45,7 +45,7 @@ namespace Chiki.Client.Screens
             menu._store = store;
             var root = canvas.transform;
             ScreenFactory.Fill("Dim", root, new Color(0f, 0f, 0f, 0.6f));
-            var panel = Presenter.HudFactory.Image("Panel", root, ScreenFactory.Panel, Vector2.zero, new Vector2(720f, 520f));
+            var panel = ScreenFactory.PanelImage("Panel", root, Vector2.zero, new Vector2(720f, 520f));
             panel.raycastTarget = true;
             ScreenFactory.Label("Title", panel.transform, Strings.Get("settings.title"), 56, new Vector2(0f, 190f), new Vector2(640f, 80f), TextAnchor.MiddleCenter);
             menu._metronome = ScreenFactory.Toggle("Metronome", panel.transform, Strings.Get("settings.metronome"), profile.Settings.MetronomeOn, new Vector2(0f, 70f), new Vector2(560f, 60f), menu.OnMetronomeChanged);

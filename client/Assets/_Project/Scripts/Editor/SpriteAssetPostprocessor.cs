@@ -50,7 +50,9 @@ namespace Chiki.Client.Editor
         /// <summary>
         /// Bumped whenever the import settings this postprocessor applies change, so Unity
         /// reimports the art already in the project rather than leaving it on the old settings.
-        /// Version 2 caps a background at 8192 px instead of the 2048 default (P5.3).
+        /// Version 2 caps a background at 8192 px instead of the 2048 default (P5.3). Any other
+        /// sprite drawn wider than 2048, such as the menu backdrop (P10.1), gets the same cap from
+        /// its source size; no art shipped before it was that wide, so no bump was needed.
         /// </summary>
         public override uint GetVersion()
         {
@@ -85,7 +87,8 @@ namespace Chiki.Client.Editor
             settings.filterMode = FilterMode.Bilinear;
             settings.wrapMode = TextureWrapMode.Clamp;
             importer.SetTextureSettings(settings);
-            importer.maxTextureSize = SpriteNames.MaxTextureSize(name.Kind);
+            importer.GetSourceTextureWidthAndHeight(out int width, out int height);
+            importer.maxTextureSize = SpriteNames.MaxTextureSize(name.Kind, width, height);
         }
 
         private static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)

@@ -404,41 +404,41 @@ After that the order follows what the player reads first in a fight. The Rhythm 
 - Needs: P7.1
 - Test (integration): `Client.Reward › three_offers_as_card_faces` — given a Normal win offering three cards, when the reward panel renders, then three full faces show those cards, and choosing the second puts it in the Binder.
 
-### Phase 8 — The enemy card before the fight
+### ✅ Phase 8 — The enemy card before the fight
 
 *Before a fight, and while the loadout is edited, the player sees who they face: portrait, name, BPM, powers, quote and a New or role badge. Done when every P8 test is green and the suite passes.*
 
 **Generated assets:** `tools/gen-phase8-art.mjs` draws the five enemy portraits — each the puppet head of Phase 5 and 6 at portrait scale, head and shoulders on transparency, so a portrait and its fighter are the same character — the badge plate, the four power icons and the three role icons. Thirteen sprites.
 
-#### P8.1 Fought enemies on the profile
+#### ✅ P8.1 Fought enemies on the profile
 - PRD: — (groundwork for P8.2)
 - Does: the profile gains `enemiesFought`, the ids of enemies it has finished a battle against, won or lost, written when the battle ends (3.1.8). The profile schema moves from 2 to 3 with a migration that adds an empty list. PRD 4.1 does not list this field; it exists only for the New badge of 3.6.26.
 - Assets: none.
 - Needs: —
 - Test (integration): `Client.Profile › fought_enemies_recorded_and_migrated` — given a schema-2 profile file, when loaded, then its version is 3 and `enemiesFought` is empty; when a battle against Ren ends and the profile is reloaded, then it holds `enemy-ren` once.
 
-#### P8.2 Enemy card
+#### ✅ P8.2 Enemy card
 - PRD: 3.6.26
-- Does: the pre-battle panel becomes the enemy card: portrait, name, BPM from the track's starting tempo, each ability and trait as icon and name, the quote line, a badge, and the Edit (Binder) and Fight buttons. The badge reads New while the enemy is absent from `enemiesFought`, otherwise the role icon and role name. Assumption: "New or Type" means New for a never-fought enemy and its role after; the PRD defines it no further. Ability, trait and role names come from the string table. A portrait id such as `portrait-enemy-ren` resolves to `spr_portrait_ren_static_01.png`.
+- Does: the pre-battle panel becomes the enemy card: portrait, name, BPM from the track's starting tempo, each ability and trait as icon and name, the quote line, a badge, and the Edit (Binder) and Fight buttons. The badge reads New while the enemy is absent from `enemiesFought`, otherwise the role icon and role name. Assumption: "New or Type" means New for a never-fought enemy and its role after; the PRD defines it no further. Ability, trait and role names come from the string table. A portrait id such as `portrait-enemy-ren` resolves to `spr_portrait_ren_static_01.png`. Assumption: the loadout text stays on the panel under the card, smaller, since 3.5.6 keeps the previous loadout and the panel is where the player sees it kept.
 - Assets: `spr_ui_badge_new_01.png`, 9-slice, 160 × 48, 16 px borders, no lettering.
 - Needs: P8.1, P1.3
 - Test (integration): `Client.EnemyCard › shows_every_field` — given Ren on a profile that has never fought Ren, when the pre-battle panel opens, then it shows Ren's portrait, "Ren", 120 BPM, Iron Veil and Guard each with its icon, the quote, the New badge, Edit and Fight; after one battle against Ren, the badge shows the Tank icon and name instead.
 
-#### P8.3 Enemy portraits
+#### ✅ P8.3 Enemy portraits
 - PRD: 3.6.26
-- Does: every enemy's portrait id resolves to a portrait in the catalogue.
+- Does: every enemy's portrait id resolves to a portrait in the catalogue. Assumption: a portrait is drawn from the very character record its fighter is drawn from — Ren's in `tools/gen-phase5-art.mjs`, the others' in `tools/gen-phase6-art.mjs` — in its first idle pose, magnified onto the canvas through a view in `paint`, so portrait and fighter stay one character and redrawing a fighter redraws its portrait. Portraits sit in each enemy's own `Art/World1/<name>/` folder.
 - Assets: `spr_portrait_ren_static_01.png`, `spr_portrait_kess_static_01.png`, `spr_portrait_vey_static_01.png`, `spr_portrait_orm_static_01.png`, `spr_portrait_malk_static_01.png`, 512 × 512, head and shoulders, facing left, transparent background.
 - Needs: P8.2
 - Test (integration): `Client.Catalogue › enemy_portraits_complete` — given the shipped catalogue and `data/enemies/fixtures.json`, when every enemy's portrait id is looked up, then each resolves to a 512 × 512 sprite.
 
-#### P8.4 Power and role icons
+#### ✅ P8.4 Power and role icons
 - PRD: 3.6.26
 - Does: every ability and trait an enemy carries, and every role, has an icon for the enemy card.
 - Assets: `spr_ability_rising-tempo_static_01.png`, `spr_ability_charge-buff_static_01.png`, `spr_trait_guard_static_01.png`, `spr_trait_stoneform_static_01.png`, `spr_role_aggressor_static_01.png`, `spr_role_tank_static_01.png`, `spr_role_mentalist_static_01.png`, 64 × 64 each. Iron Veil's icon comes from P2.4.
 - Needs: P8.2, P2.4
 - Test (integration): `Client.Catalogue › power_and_role_icons_complete` — given the shipped catalogue, when every ability and trait carried by an enemy in `data/enemies/fixtures.json` and the three roles are looked up, then each has a 64 × 64 icon.
 
-#### P8.5 Enemy card while editing
+#### ✅ P8.5 Enemy card while editing
 - PRD: 3.5.8
 - Does: opening the Binder from the pre-battle panel shows the same enemy card, compact, beside the slots: portrait, name, BPM, powers and badge.
 - Assets: none beyond P8.3 and P8.4.
@@ -492,15 +492,15 @@ After that the order follows what the player reads first in a fight. The Rhythm 
 - Test (integration): `Client.Catalogue › charm_and_imprint_icons_complete` — given the shipped catalogue, when every Charm in `data/charms/fixtures.json` and every Imprint in `data/imprints/fixtures.json` is looked up, then each has a 64 × 64 icon.
 - Test (integration): `Client.Map › charms_and_imprints_shown` — given Clean Victory equipped and Keen Edge and Thick Hide held, when the map renders, then one Charm icon and two Imprint icons show from the catalogue, each with its name in its tooltip.
 
-### Phase 10 — Menus, screens and type
+### ✅ Phase 10 — Menus, screens and type
 
 *Every screen wears the game's skin and font, the title has a logo, the run-end screen has banners and icons, and calibration uses a drawn marker and recorded clicks. Done when every P10 test is green and the suite passes.*
 
 **Generated assets:** `tools/gen-phase10-art.mjs` draws the four button states, the panel, the backdrop, the toggle box and check, the logo, the title background, the three outcome plates and the calibration marker; `tools/gen-font.mjs` builds the placeholder font family; `tools/gen-phase10-audio.mjs` renders the two click samples. Fourteen sprites, one font family and two WAVs.
 
-#### P10.1 UI skin and font
+#### ✅ P10.1 UI skin and font
 - PRD: 3.14.1
-- Does: `ScreenFactory` and `HudFactory` build every button, panel, toggle and backdrop from the skin sprites and every text in the shipped font. Buttons use Sprite Swap with normal, highlighted, pressed and disabled sprites. Plain colour fills such as scrims use the built-in white sprite.
+- Does: `ScreenFactory` and `HudFactory` build every button, panel, toggle and backdrop from the skin sprites and every text in the shipped font. Buttons use Sprite Swap with normal, highlighted, pressed and disabled sprites. Plain colour fills such as scrims use the built-in white sprite. Assumption: the two font files are `font_regular.ttf` and `font_bold.ttf`, catalogued with the sprites, and labels of 48 px and up and button labels take the bold weight; the plan names neither. Assumption: the invisible hit areas that make a reward's card faces clickable (P7.4) are not skin buttons, since the face is what the player sees.
 - Assets:
   - a generated font family in `client/Assets/_Project/UI/Fonts/`, regular and bold, TTF, covering Latin-1 and Latin Extended-A (the ö in Björn, the en dash): `tools/gen-font.mjs` builds a geometric sans, every letter, digit and mark drawn from a stroke skeleton widened to an outline, the bold weight the same skeleton at a heavier stroke, and every accented character a composite glyph of a base and a diacritic, so the family is the implementer's own work and carries no licence. The operator drops a licensed family over the same two files later; nothing but the files changes
   - `spr_ui_button_normal_01.png`, `_highlighted_01`, `_pressed_01`, `_disabled_01`, 9-slice, 420 × 96, 24 px borders
@@ -510,21 +510,21 @@ After that the order follows what the player reads first in a fight. The Rhythm 
 - Needs: P7.4, P8.5, P9.4, P9.5
 - Test (integration): `Client.Screens › every_screen_uses_skin_and_font` — given the shipped catalogue, when the pre-run, map, Binder, pre-battle, reward, stop, run-end, settings and calibration screens open in turn, then every text uses the shipped font, every button has all four state sprites, and `Missing` is empty.
 
-#### P10.2 Title logo
+#### ✅ P10.2 Title logo
 - PRD: 3.14.1
 - Does: the pre-run screen shows the logo over the title background in place of the title text.
 - Assets: `spr_logo_chiki_static_01.png`, about 1200 × 400, transparent; `spr_bg_title_static_01.png`, 2560 × 1080.
 - Needs: P10.1
 - Test (integration): `Client.Screens › prerun_shows_logo` — given the shipped catalogue, when the pre-run screen opens, then the logo and title background show from the catalogue and Start Run and Settings still work.
 
-#### P10.3 Run-end banners and unlock icons
+#### ✅ P10.3 Run-end banners and unlock icons
 - PRD: 3.9.11
-- Does: the run-end screen shows the outcome word on its plate, Won, Died or Abandoned, and each unlock as its icon or compact card face with its name, never its raw id.
+- Does: the run-end screen shows the outcome word on its plate, Won, Died or Abandoned, and each unlock as its icon or compact card face with its name, never its raw id. Assumption: a run unlocks only Charms today, so every unlock shows as its Charm icon; a compact card face joins when a card unlock exists. Assumption: until P9.5's Charm icons ship, the test lends the shipped catalogue stand-in icons for the Charms it unlocks, since it proves the screen's use of the icon, not the icon.
 - Assets: `spr_ui_outcome_won_01.png`, `spr_ui_outcome_died_01.png`, `spr_ui_outcome_abandoned_01.png`, 1200 × 240 plates with no lettering.
 - Needs: P10.1, P9.5, P7.1
 - Test (integration): `Client.RunEnd › banner_and_unlock_icons` — given a run that ends by death after unlocking Clean Victory, when the screen renders, then the Died plate shows with "Died", and Clean Victory appears with its icon and name and not as `charm-clean-victory`.
 
-#### P10.4 Calibration marker and clicks
+#### ✅ P10.4 Calibration marker and clicks
 - PRD: 3.12.1
 - Does: the calibration beat marker uses its sprite and still pulses from audio time. The calibration click track is built from the recorded click samples at the beat map's times, accenting every fourth beat, and the metronome plays the same click through P1.4.
 - Assets: `spr_ui_calibration-marker_static_01.png`, 140 × 140; `sfx_click_beat.wav` and `sfx_click_accent.wav`, under 20 ms, attack inside the first millisecond.
@@ -537,7 +537,7 @@ After that the order follows what the player reads first in a fight. The Rhythm 
 
 **Generated assets:** `tools/gen-phase11-audio.mjs` renders each enemy's track from that enemy's own sidecar — a looping bed of drum, bass and lead following its tempo map, cut to exactly its offset plus its length in beats — so the five stand-in tracks fit the charts already under `data/` and neither a sidecar nor a chart is re-authored. Five WAVs.
 
-#### P11.1 Recorded tracks for the cast
+#### ✅ P11.1 Recorded tracks for the cast
 - PRD: 3.6.28
 - Does: each enemy in `data/enemies/fixtures.json` fights to its own recorded track. Before any shipped chart or sidecar changes, the simulation tests that load fixture enemies, charts and tracks through `TestContent` switch to frozen copies under `sim/Chiki.Sim.Tests/fixtures/`, so recorded music never changes a rules test. Track and chart ids stay as they are, and chart validation (3.6.31) keeps rejecting an action outside the new length.
 - Assets, for each of Ren, Kess, Vey, Orm and Malk:
@@ -548,14 +548,14 @@ After that the order follows what the player reads first in a fight. The Rhythm 
 - Test (unit): `Sim.Fixtures › rules_tests_use_frozen_fixtures` — given the frozen copies, when `TestContent` loads the fixture enemies, then it reads them from `sim/Chiki.Sim.Tests/fixtures/` and not from `data/`.
 - Test (integration): `Client.Catalogue › cast_tracks_complete` — given the shipped audio catalogue, when every enemy's track id is looked up, then each has a recorded clip whose length matches its sidecar's offset plus its length in beats at its tempo map, within 10 ms.
 
-#### P11.2 Recorded tracks loop seamlessly
+#### ✅ P11.2 Recorded tracks loop seamlessly
 - PRD: 3.6.32
 - Does: every recording's length in samples equals its sidecar's offset plus its beat-map length, so the chart and the music wrap together at `TrackLooped` with no gap and no overlap.
 - Assets: none beyond P11.1.
 - Needs: P11.1
 - Test (measurement): `Client.Audio › recorded_tracks_loop_seamlessly` — given each shipped track, when its sample count is compared with its beat map, then they agree within one sample; and when Ren's battle plays past the loop point, then the first action of the second lap is judged against its second-lap time within 2 ms.
 
-#### P11.3 Recorded music never interrupted
+#### ✅ P11.3 Recorded music never interrupted
 - PRD: 3.3.1.6
 - Does: a battle on a recorded track keeps the audio source advancing without a pause, seek or pitch change through a Stun, a Signature and a loop.
 - Assets: none beyond P11.1.

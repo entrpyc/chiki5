@@ -16,8 +16,8 @@ namespace Chiki.Client.Profiles
     [Serializable]
     public sealed class Profile
     {
-        /// <summary>Version 2 added <c>bossesDefeated</c> (P21.5, P22.3).</summary>
-        public const int CurrentSchemaVersion = 2;
+        /// <summary>Version 2 added <c>bossesDefeated</c> (P21.5, P22.3); version 3 added <c>enemiesFought</c> (P8.1).</summary>
+        public const int CurrentSchemaVersion = 3;
 
         [SerializeField] private int schemaVersion = CurrentSchemaVersion;
         [SerializeField] private string name = "";
@@ -30,6 +30,7 @@ namespace Chiki.Client.Profiles
         [SerializeField] private bool calibrated;
         [SerializeField] private bool tutorialCompleted;
         [SerializeField] private int bossesDefeated;
+        [SerializeField] private List<string> enemiesFought = new List<string>();
         [SerializeField] private string runInProgress = "";
         [SerializeField] private List<RunHistoryEntry> runHistory = new List<RunHistoryEntry>();
         [SerializeField] private string runLogFolder = "";
@@ -130,6 +131,36 @@ namespace Chiki.Client.Profiles
 
         /// <summary>Bosses defeated across all runs on this profile (PRD 3.9.10).</summary>
         public int BossesDefeated => bossesDefeated;
+
+        /// <summary>
+        /// The ids of the enemies this profile has finished a battle against, won or lost, in the
+        /// order first fought (P8.1). PRD 4.1 does not list it; it exists only for the New badge
+        /// of the enemy card (PRD 3.6.26).
+        /// </summary>
+        public IReadOnlyList<string> EnemiesFought => enemiesFought;
+
+        /// <summary>Whether a battle against the enemy has ended on this profile before (PRD 3.6.26).</summary>
+        public bool HasFought(string enemyId)
+        {
+            return enemiesFought.Contains(enemyId);
+        }
+
+        /// <summary>A battle against the enemy ended, won or lost (P8.1); false when it was already recorded. The caller saves the profile (PRD 3.1.8).</summary>
+        public bool RecordEnemyFought(string enemyId)
+        {
+            if (string.IsNullOrWhiteSpace(enemyId))
+            {
+                throw new ArgumentException("An enemy id is required.", nameof(enemyId));
+            }
+
+            if (enemiesFought.Contains(enemyId))
+            {
+                return false;
+            }
+
+            enemiesFought.Add(enemyId);
+            return true;
+        }
 
         /// <summary>The facts Charm unlock conditions read (PRD 4.9): bosses defeated and every NPC's relationship level.</summary>
         public ProfileFacts Facts

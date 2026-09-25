@@ -44,8 +44,28 @@ export function cover(d) {
  * and `clip` keeps only what another field contains. `box` is an optional `[x0, y0, x1, y1]`
  * the caller knows the field's coverage to lie inside; a small shape on a large canvas is then
  * paid for by its own area, which is what makes a puppet of a dozen limbs cheap to redraw.
+ *
+ * A canvas may carry a `view` — `{ k, ox, oy, line }` — that magnifies the drawing space onto
+ * it: a point (x, y) lands on ((x - ox) * k, (y - oy) * k), and outlines and strokes are drawn
+ * `line` times as wide. Code written for one scale then draws, unchanged, at another, with its
+ * edges resolved at the canvas's own resolution (the portraits of P8.3 draw the fighters so).
+ * A canvas without a view draws exactly as before.
  */
 export function paint(c, sdf, opts) {
+  if (c.view) {
+    const { k, ox, oy, line = k } = c.view
+    const field = sdf
+    const within = opts.clip
+    sdf = (x, y) => field(x / k + ox, y / k + oy) * k
+    opts = {
+      ...opts,
+      grow: (opts.grow ?? 0) * line,
+      width: (opts.width ?? 2) * line,
+      clip: within ? (x, y) => within(x / k + ox, y / k + oy) * k : null,
+      box: opts.box ? [(opts.box[0] - ox) * k, (opts.box[1] - oy) * k, (opts.box[2] - ox) * k, (opts.box[3] - oy) * k] : null,
+    }
+  }
+
   const { fill, alpha = 1, stroke = null, width = 2, grow = 0, clip = null, box = null } = opts
   const x0 = box ? Math.max(0, Math.floor(box[0])) : 0
   const y0 = box ? Math.max(0, Math.floor(box[1])) : 0

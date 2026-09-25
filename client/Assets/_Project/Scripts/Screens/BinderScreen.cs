@@ -18,7 +18,8 @@ namespace Chiki.Client.Screens
     /// cycle the Binder cards the selected slot may hold, Enter places the highlighted card,
     /// Delete or Backspace clears the slot. Confirm is disabled while any slot is empty and the
     /// panel names the empty slots; Confirm proceeds to the battle. Back returns to the
-    /// pre-battle panel with the loadout as edited.
+    /// pre-battle panel with the loadout as edited. Opened before a battle, the upcoming enemy's
+    /// card sits under the preview, compact (PRD 3.5.8, P8.5).
     ///
     /// Opened from the map it is read-only (PRD 3.5.11, P9.2): the same faces and keys for
     /// browsing, but placing and clearing are refused, Confirm is absent and Back returns to the
@@ -30,6 +31,9 @@ namespace Chiki.Client.Screens
     {
         /// <summary>The gap between two faces in the owned column.</summary>
         private const float ColumnGap = 12f;
+
+        /// <summary>The compact enemy card's scale beside the slots (P8.5): 576 by 180 on screen.</summary>
+        private const float EnemyCardScale = 0.72f;
 
         private Binder _binder = null!;
         private RunContent? _content;
@@ -54,6 +58,9 @@ namespace Chiki.Client.Screens
         public event Action? BackChosen;
 
         public Slot SelectedSlot => Slot.All[_cursor];
+
+        /// <summary>The upcoming enemy's compact card (PRD 3.5.8); null when the Binder was opened without a battle ahead.</summary>
+        public EnemyCard? Enemy { get; private set; }
 
         /// <summary>Whether the Binder only shows the loadout, as it does when opened from the map (PRD 3.5.11).</summary>
         public bool ReadOnly { get; private set; }
@@ -108,8 +115,9 @@ namespace Chiki.Client.Screens
         /// <summary>
         /// Builds the Binder over whatever is open. The content resolves the Trait each copy holds
         /// (PRD 4.11); without it no Trait is named. A read-only Binder refuses every edit (P9.2).
+        /// An upcoming enemy shows its compact card beside the slots (PRD 3.5.8).
         /// </summary>
-        public static BinderScreen Build(Transform? parent, Binder binder, RunContent? content = null, bool readOnly = false)
+        public static BinderScreen Build(Transform? parent, Binder binder, RunContent? content = null, bool readOnly = false, EnemyDefinition? upcoming = null, bool fought = false)
         {
             if (binder is null)
             {
@@ -122,7 +130,7 @@ namespace Chiki.Client.Screens
             screen._content = content;
             screen.ReadOnly = readOnly;
             var root = canvas.transform;
-            ScreenFactory.Fill("Backdrop", root, ScreenFactory.Backdrop);
+            ScreenFactory.BackdropImage(root);
             ScreenFactory.Label("Title", root, Strings.Get(readOnly ? "binder.review_title" : "binder.title"), 56, new Vector2(0f, 470f), new Vector2(800f, 80f), TextAnchor.MiddleCenter);
             ScreenFactory.Label("Hint", root, Strings.Get(readOnly ? "binder.review_hint" : "binder.hint"), 24, new Vector2(0f, 410f), new Vector2(1600f, 50f), TextAnchor.MiddleCenter, ScreenFactory.MutedText);
 
@@ -144,6 +152,14 @@ namespace Chiki.Client.Screens
             screen._preview = CardFace.Create("Preview", root, CardFaceSize.Full, new Vector2(250f, 40f));
             screen._preview.Rect.localScale = new Vector3(1.5f, 1.5f, 1f);
             screen.BuildOwnedColumn(root);
+            if (upcoming != null)
+            {
+                // Under the preview, scaled to the room the slots, the preview and the owned
+                // column leave (P7.3), so it stays beside the slots while they are edited.
+                screen.Enemy = EnemyCard.Build(root, upcoming, fought, compact: true, new Vector2(315f, -335f));
+                screen.Enemy.transform.localScale = new Vector3(EnemyCardScale, EnemyCardScale, 1f);
+            }
+
             screen._empty = ScreenFactory.Label("Empty", root, "", 30, new Vector2(-440f, -260f), new Vector2(900f, 60f), TextAnchor.MiddleCenter, ScreenFactory.Accent);
             if (!readOnly)
             {
@@ -264,7 +280,7 @@ namespace Chiki.Client.Screens
         /// </summary>
         private void BuildOwnedColumn(Transform root)
         {
-            var viewport = HudFactory.Image("Owned", root, ScreenFactory.Panel, new Vector2(700f, -20f), new Vector2(172f, 800f));
+            var viewport = ScreenFactory.PanelImage("Owned", root, new Vector2(700f, -20f), new Vector2(172f, 800f));
             viewport.raycastTarget = true;
             viewport.gameObject.AddComponent<RectMask2D>();
             _column = HudFactory.Rect("Column", viewport.transform);

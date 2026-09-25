@@ -71,10 +71,8 @@ namespace Chiki.Client.Screens
         public const string PathId = "map-path";
         public const string WalkedPathId = "map-path-walked";
         public const string BackdropKind = "bg";
+        /// <summary>The map's own backdrop (P9.3), drawn at 2560 by 1080 like the menus' (P10.1) and kept covering the screen at any aspect.</summary>
         public const string BackdropId = "map";
-
-        /// <summary>The backdrop's drawn size: its central 1920 by 1080 is the 16:9 frame, like the arena's (P5.3).</summary>
-        public static readonly Vector2 BackdropSize = new Vector2(2560f, 1080f);
 
         /// <summary>A path sprite's height on the board, the art's own (P9.3).</summary>
         public const float PathHeight = 8f;
@@ -196,7 +194,7 @@ namespace Chiki.Client.Screens
             screen._run = run;
             screen._content = content ?? run?.Content;
             var root = canvas.transform;
-            screen.BuildBackdrop(root);
+            screen._backdrop = ScreenFactory.FullScreen("Backdrop", root, BackdropKind, BackdropId, ScreenFactory.Backdrop);
 
             screen._continent = ScreenFactory.Label("Continent", root, "", 46, new Vector2(-520f, 470f), new Vector2(820f, 80f), TextAnchor.MiddleLeft);
             screen._continent.fontStyle = FontStyle.Bold;
@@ -420,21 +418,6 @@ namespace Chiki.Client.Screens
                     ChooseSelected();
                     break;
             }
-        }
-
-        /// <summary>
-        /// The backdrop fills the canvas and keeps its 2560 by 1080 proportions, growing until it
-        /// covers the screen at any aspect: the 16:9 frame shows its centre, an ultrawide more of
-        /// its sides, never the clear colour (P5.3, P9.3).
-        /// </summary>
-        private void BuildBackdrop(Transform root)
-        {
-            var art = new LinePiece(BackdropKind, BackdropId, ScreenFactory.Backdrop);
-            _backdrop = ScreenFactory.Fill("Backdrop", root, art.Tint);
-            HudFactory.SetSprite(_backdrop, art.Sprite);
-            var fitter = _backdrop.gameObject.AddComponent<AspectRatioFitter>();
-            fitter.aspectMode = AspectRatioFitter.AspectMode.EnvelopeParent;
-            fitter.aspectRatio = BackdropSize.x / BackdropSize.y;
         }
 
         /// <summary>

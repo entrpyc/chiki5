@@ -7,13 +7,13 @@
 
 ## Implementation status
 
-Counted on 2026-09-11 from the markers in this document: every numbered requirement in sections 3, 5 and 6, plus the section 4 entities. Withdrawn requirements (3.3.1.2, 3.3.2.4) and section 7 are not counted.
+Counted on 2026-09-25 from the markers in this document: every numbered requirement in sections 3, 5 and 6, plus the section 4 entities. Withdrawn requirements (3.3.1.2, 3.3.2.4) and section 7 are not counted.
 
 | Status | Count | Share |
 | :-- | --: | --: |
-| ✅ Done | 130 | 50.8% |
-| 🔨 Partly done | 47 | 18.4% |
-| Not started | 79 | 30.9% |
+| ✅ Done | 137 | 53.5% |
+| 🔨 Partly done | 46 | 18.0% |
+| Not started | 73 | 28.5% |
 | Total | 256 | 100% |
 
 ## 1. Executive summary
@@ -49,11 +49,9 @@ There is no second audience inside the product: no admin, no operator, no server
 
 **Functional requirements**
 
-- 🔨 **3.1.1** The game holds any number of named profiles on one install and shows a profile picker at launch; the last used profile is preselected so a returning player continues with one input.
-  - *Remaining:* no profile picker at launch; Boot always loads one fixed profile named `default`, so the player never names a profile, and there is no last-used preselection or one-input continue.
+- 🔨 **3.1.1** The game holds any number of named profiles on one install and shows a profile picker at launch; the last used profile is preselected so a returning player continues with one input. *(remaining: no profile picker at launch; Boot always loads one fixed profile named default, so the player never names a profile, and there is no last-used preselection or one-input continue)*
 - ✅ **3.1.2** Each profile owns its own meta progression (3.9.2), NPC relationship levels (3.10.3), settings and calibration offset (3.12.1), tutorial completion (3.13.3), run history and run logs (3.15.1); nothing is shared between profiles.
-- 🔨 **3.1.3** A player can create, rename and delete a profile; deletion requires a typed confirmation of the profile name and destroys that profile's meta progression irreversibly.
-  - *Remaining:* rename, delete, the typed-name confirmation and the irreversible deletion of meta progression; creation exists only in code, with no create screen.
+- 🔨 **3.1.3** A player can create, rename and delete a profile; deletion requires a typed confirmation of the profile name and destroys that profile's meta progression irreversibly. *(remaining: rename, delete, the typed-name confirmation and the irreversible destruction of meta progression; creation exists only in code, with no create screen)*
 - **3.1.4** All profiles on the install are synced through the store's cloud save (5.2.2); when the local and cloud copies conflict, the player is shown both with their last-played time and chooses which to keep.
 - ✅ **3.1.5** A profile holds at most one run in progress; the run is saved automatically at every node transition (3.2.7) and whenever the player returns to the map, and resuming returns the player to the map at the last saved node.
 - ✅ **3.1.6** A battle is never saved partway: quitting during a battle restarts that battle from its first beat on resume, with ARD, Essence and CRP as they were when the battle began.
@@ -92,23 +90,16 @@ Node catalogue — each row is a node type the map can generate, and the feature
 | ✅ 3.2.8 | Normal battle | A Normal-tier battle (3.3.9.1) against one enemy from the World's pool; on victory, Normal rewards (3.7.2). |
 | ✅ 3.2.9 | Elite | An Elite-tier battle (3.3.9.1); on victory, Elite rewards (3.7.3). |
 | ✅ 3.2.10 | Boss | A Boss-tier battle (3.3.9.1); on victory, Boss rewards (3.7.4) and the next World unlocks, or the run is won after World 3 (3.2.1). |
-| 🔨 3.2.11 | Shop | Gero's shop (3.7.6). |
-| 🔨 3.2.12 | Event | A non-combat choice encounter (3.10.1); NPC events may open a minigame (3.11.1). |
-| 🔨 3.2.13 | Blacksmith | Björn's blacksmith: repair or upgrade armor (3.7.11). |
-| 🔨 3.2.14 | Forge | Resolves randomly on entry into Upgrade, Trait or Sacrifice (3.4.17). |
+| 🔨 3.2.11 | Shop | Gero's shop (3.7.6). *(remaining: the node is generated and can be entered but resolves as an empty stop; Gero's shop (3.7.6) is not built)* |
+| 🔨 3.2.12 | Event | A non-combat choice encounter (3.10.1); NPC events may open a minigame (3.11.1). *(remaining: the node resolves as an empty stop; no choice encounter (3.10.1) and no minigame (3.11.1))* |
+| 🔨 3.2.13 | Blacksmith | Björn's blacksmith: repair or upgrade armor (3.7.11). *(remaining: the node resolves as an empty stop; no repair or armor upgrade (3.7.11))* |
+| 🔨 3.2.14 | Forge | Resolves randomly on entry into Upgrade, Trait or Sacrifice (3.4.17). *(remaining: the node resolves as an empty stop; no random Upgrade, Trait or Sacrifice outcome (3.4.17))* |
 
-- *Remaining, 3.2.11:* the node is generated and can be entered but resolves as an empty stop; Gero's shop (3.7.6) is not built.
-- *Remaining, 3.2.12:* the node resolves as an empty stop; no choice encounter (3.10.1) and no minigame (3.11.1).
-- *Remaining, 3.2.13:* the node resolves as an empty stop; no repair or armor upgrade (3.7.11).
-- *Remaining, 3.2.14:* the node resolves as an empty stop; no random Upgrade, Trait or Sacrifice outcome (3.4.17).
 
 - **3.2.15** Each World has a unique biome art set, node decorations, palette, soundtrack and BPM theme, enemy pool (3.6.1) and environmental storytelling (3.14.2); atmospheric props are placed procedurally relative to the branching shape, so forks fill the wedge between routes and straights densify their sides.
-- 🔨 **3.2.16** The map screen shows the player icon, node connections, node type icons with labels, the continent name, the player's ARD, CRP, Base DMG, equipped Charms and Imprints, Essence, the seed (3.2.4), a Binder button (3.5.11) and settings (3.12.1).
-  - *Remaining:* the continent name (the header shows "World N"), Base DMG, equipped Charms, Imprints, the Binder button (3.5.11) and node type icons (types are flat colours with labels); no test checks ARD, Essence or the seed on the map. Built: player icon, connections, typed node labels, ARD, CRP, Essence, seed, settings.
-- 🔨 **3.2.17** Difficulty scales per World through the enemy pool, reward quality, event difficulty, shop pricing (3.7.7), elite and boss HP scaling, and enemy damage (3.7.16); the enemy HP formula assumes an expected average card damage of 12, 14 and 16 in Worlds 1, 2 and 3 respectively (3.7.15).
-  - *Remaining:* per-World enemy pools (every World draws from one pool), reward quality, event difficulty and shop pricing (3.7.7); Elite and Boss HP scale only through AvgCardDMG. Built: AvgCardDMG 12/14/16 and the per-World enemy damage rise.
-- 🔨 **3.2.18** The session targets are a Normal battle of 30–60 s, an Elite of 60–90 s, a Boss of 90–180 s (3.3.9.1) and a full run of about one hour across three Worlds including map and menu time.
-  - *Remaining:* actual battle length and the one-hour run are never measured; only the authored intended duration per tier is validated.
+- ✅ **3.2.16** The map screen shows the player icon, node connections, node type icons with labels, the continent name, the player's ARD, CRP, Base DMG, equipped Charms and Imprints, Essence, the seed (3.2.4), a Binder button (3.5.11) and settings (3.12.1).
+- 🔨 **3.2.17** Difficulty scales per World through the enemy pool, reward quality, event difficulty, shop pricing (3.7.7), elite and boss HP scaling, and enemy damage (3.7.16); the enemy HP formula assumes an expected average card damage of 12, 14 and 16 in Worlds 1, 2 and 3 respectively (3.7.15). *(remaining: per-World enemy pools (every World draws from one pool), reward quality, event difficulty and shop pricing (3.7.7); Elite and Boss HP scale only through AvgCardDMG)*
+- 🔨 **3.2.18** The session targets are a Normal battle of 30–60 s, an Elite of 60–90 s, a Boss of 90–180 s (3.3.9.1) and a full run of about one hour across three Worlds including map and menu time. *(remaining: actual battle length and the one-hour run are never measured; only the authored intended duration per tier is validated)*
 
 ### 🔨 3.3 Combat
 
@@ -221,9 +212,8 @@ Node catalogue — each row is a node type the map can generate, and the feature
 **Functional requirements**
 
 - ✅ **3.4.1** Every card belongs to exactly one Category, which determines its legal slots: Ability (Q, W), Left Attack (E, R), Right Attack (U, I), Defense (O, P) (3.3.2.1).
-- **3.4.2** Categories are colour-coded and icon-coded: Attack red, Defense blue, Ability green.
-- 🔨 **3.4.3** Left and Right attacks are intentionally symmetric: they differ only by which telegraph they answer, and there are no side archetypes.
-  - *Remaining:* a test for the mirror case (tests cover only one direction of the wrong-side answer) and a validation that no card is a side archetype; efficacy already treats both sides alike.
+- ✅ **3.4.2** Categories are colour-coded and icon-coded: Attack red, Defense blue, Ability green.
+- 🔨 **3.4.3** Left and Right attacks are intentionally symmetric: they differ only by which telegraph they answer, and there are no side archetypes. *(remaining: a test for the mirror case (tests cover only one direction of the wrong-side answer) and a validation that no card is a side archetype; efficacy already treats both sides alike)*
 - ✅ **3.4.4** Every card has exactly one of four Rarities, each with a scaling band that its damage or Block must fall in:
 
 | Rarity | Damage | Block | Role |
@@ -252,10 +242,8 @@ Node catalogue — each row is a node type the map can generate, and the feature
 
 - ✅ **3.4.9** Card mechanics are of four kinds: direct damage; scaling damage that grows with player buffs or with CRP (3.8.8); status application (3.3.7.3 to 3.3.7.8); and reaction effects with a condition such as "on Perfect", "if this kills" or "if the enemy is attacking this beat".
 - ✅ **3.4.10** The damage formula is defined once (3.3.4.3); a card defines only its CardValue and modifiers and never restates the formula.
-- 🔨 **3.4.11** Cards are acquired from battle rewards (3.7.2), elite rewards (3.7.3), boss rewards (3.7.4), shops (3.7.6), events (3.10.2) and Fishing (3.11.4).
-  - *Remaining:* cards from shops (3.7.6), events (3.10.2) and Fishing (3.11.4); Normal, Elite and Boss rewards already grant cards.
-- 🔨 **3.4.12** An acquired card goes into the Run Binder (3.5.4) and is available from the next loadout selection.
-  - *Remaining:* a test that an acquired card can be slotted at the next loadout selection; entering the Run Binder is built and tested.
+- 🔨 **3.4.11** Cards are acquired from battle rewards (3.7.2), elite rewards (3.7.3), boss rewards (3.7.4), shops (3.7.6), events (3.10.2) and Fishing (3.11.4). *(remaining: cards from shops (3.7.6), events (3.10.2) and Fishing (3.11.4); Normal, Elite and Boss rewards already grant cards)*
+- 🔨 **3.4.12** An acquired card goes into the Run Binder (3.5.4) and is available from the next loadout selection. *(remaining: a test that an acquired card can be slotted at the next loadout selection; entering the Run Binder is built and tested)*
 - ✅ **3.4.13** A card is of exactly one class:
 
 | # | Class | Source | Rule |
@@ -265,9 +253,8 @@ Node catalogue — each row is a node type the map can generate, and the feature
 | ✅ 3.4.16 | Unstable | Events and Sacrifice only | has a lifespan of N battles (typically 2–3), counted down each battle it is in the Binder, then destroyed |
 
 - **3.4.17** A Forge node (3.2.14) resolves randomly on entry into one of Upgrade (3.4.18), Trait (3.4.19) or Sacrifice (3.4.20).
-- 🔨 **3.4.18** Upgrade: the player picks one Binder card and its damage or Block value is improved by that card's defined upgrade step; a card can be upgraded once per run.
-  - *Remaining:* the Forge flow that offers the upgrade, a test, and combat reading the upgraded value (battle resolves the card definition's value, so an upgraded card still deals its base value). Built: one upgrade per card, adding the card's upgrade step.
-- **3.4.19** Trait: the player is offered three Traits plus one "remove Trait" option and picks one to apply to one Binder card; a card holds at most one Trait, and the Trait lasts until the run ends. The Trait pool is content (4.11).
+- 🔨 **3.4.18** Upgrade: the player picks one Binder card and its damage or Block value is improved by that card's defined upgrade step; a card can be upgraded once per run. *(remaining: the Forge flow that offers the upgrade, a test, and combat reading the upgraded value; one upgrade per card adding the card's upgrade step is built)*
+- 🔨 **3.4.19** Trait: the player is offered three Traits plus one "remove Trait" option and picks one to apply to one Binder card; a card holds at most one Trait, and the Trait lasts until the run ends. The Trait pool is content (4.11). *(remaining: the Forge offer of three Traits plus remove Trait and applying the pick; a card already holds at most one Trait from the pool (4.11) for the run)*
 - **3.4.20** Sacrifice: the player destroys one Binder card and chooses either a CRP shift of 1 (Common), 3 (Uncommon), 5 (Rare) or 10 (Legendary) in the direction they pick (3.8.3), or one random Event Card (3.4.15).
 - ✅ **3.4.21** Every card in the data table must comply with the rules of this feature; a card that violates them is redesigned or removed before it ships.
 
@@ -284,11 +271,10 @@ Node catalogue — each row is a node type the map can generate, and the feature
 - ✅ **3.5.5** Before every battle the player may open the Binder, preview cards, and rebuild the 16-card loadout; a loadout with an empty slot cannot enter battle.
 - ✅ **3.5.6** The default before a battle is to keep the previous loadout; entering battle is then a single input.
 - **3.5.7** The game invites editing, with a highlight rather than a modal, when the Binder has changed since the last battle or when the upcoming enemy's archetype (3.6.1) differs from the last one fought.
-- **3.5.8** The upcoming enemy's card (3.6.26) is visible while the loadout is being edited.
+- ✅ **3.5.8** The upcoming enemy's card (3.6.26) is visible while the loadout is being edited.
 - **3.5.9** Cards unlocked permanently join the Global Binder (3.9.2) and can appear as rewards and shop stock in future runs.
-- 🔨 **3.5.10** Unstable cards in the loadout show their remaining battle count (3.4.16), and a card destroyed by lifespan, Sacrifice or an event leaves its slot empty until the next loadout edit (3.5.5).
-  - *Remaining:* the remaining battle count on Unstable cards in the loadout, destruction by Sacrifice or event, and refusing entry with the emptied slot (the pre-battle panel's Enter throws instead). Built and tested: lifespan destruction empties the slot.
-- **3.5.11** The Binder can be opened from the map (3.2.16) to review cards, Traits and Unstable lifespans without editing the loadout.
+- 🔨 **3.5.10** Unstable cards in the loadout show their remaining battle count (3.4.16), and a card destroyed by lifespan, Sacrifice or an event leaves its slot empty until the next loadout edit (3.5.5). *(remaining: destruction by Sacrifice or an event, and refusing entry with the emptied slot (the pre-battle panel's Enter throws instead); no test covers the battle count on a loadout slot face, which the face now draws)*
+- ✅ **3.5.11** The Binder can be opened from the map (3.2.16) to review cards, Traits and Unstable lifespans without editing the loadout.
 
 ### 🔨 3.6 Enemies
 
@@ -341,8 +327,7 @@ Trait pool — each trait is one row:
 | 3.6.24 | T06 | Thorns Shell | The attacker takes 2 damage per hit on this enemy. |
 | ✅ 3.6.25 | T07 | Guard | Starts combat with 30 Block. |
 
-- 🔨 **3.6.26** Before a fight, and while the loadout is being edited (3.5.8), the enemy card shows: portrait, name, BPM, powers (abilities and traits), a quote line, a New or Type badge, a Binder button and a Fight button.
-  - *Remaining:* portrait, BPM, powers, quote line and the New or Type badge (portrait and quote exist in data only). Built: enemy name, Fight button, Binder (Edit) button.
+- ✅ **3.6.26** Before a fight, and while the loadout is being edited (3.5.8), the enemy card shows: portrait, name, BPM, powers (abilities and traits), a quote line, a New or Type badge, a Binder button and a Fight button.
 - **3.6.27** Abilities and traits are assigned to roles: Rising Tempo, Misstep Pain, Counterblade and Pressure to Aggressors; Iron Veil, Backflash Barrier and Corruption Aegis to Tanks; Fake Move, Heavy Hand, Beat Rush and Chain Breaker to Mentalists; Double Step, Charge/Buff and Frenzy Mode to all. Accuracy Bet belongs to Aggressors; Stoneform, Absorb Shell, Pure Heart, Blood Leech and Guard to Tanks; Thorns Shell to all.
 - ✅ **3.6.28** Every enemy is bound to exactly one track of its own from its World's soundtrack (3.2.15) and to one chart authored for that track (3.6.31); no enemy fights to another enemy's music.
 - ✅ **3.6.29** Enemy HP is the formula value (3.7.15) times the role multiplier (3.6.1); enemy damage per hit follows the tier and role bands (3.7.16).
@@ -356,8 +341,7 @@ Trait pool — each trait is one row:
 
 **Functional requirements**
 
-- 🔨 **3.7.1** Essence is the single run currency. It is spent on shop cards and Imprints (3.7.6), card removal (3.7.9), event choices (3.10.2), armor repair (3.7.12) and armor upgrades (3.7.13); it is earned from battles (3.7.5), events, minigames (3.11.1) and selling cards (3.7.10). Essence never goes below zero, and an option the player cannot afford is shown but disabled with its price.
-  - *Remaining:* spending (shop, card removal, events, repair, armor upgrades), income from events, minigames and selling, options shown disabled with their price, and a test for the zero floor. Built: Essence as the single currency, floored at zero, earned from battles.
+- 🔨 **3.7.1** Essence is the single run currency. It is spent on shop cards and Imprints (3.7.6), card removal (3.7.9), event choices (3.10.2), armor repair (3.7.12) and armor upgrades (3.7.13); it is earned from battles (3.7.5), events, minigames (3.11.1) and selling cards (3.7.10). Essence never goes below zero, and an option the player cannot afford is shown but disabled with its price. *(remaining: spending (shop, card removal, events, repair, armor upgrades), income from events, minigames and selling, options shown disabled with their price, and a test for the zero floor)*
 - ✅ **3.7.2** Normal battle reward: the player chooses 1 card of 3 offered (Common or Uncommon), plus Essence per the income table (3.7.5).
 - ✅ **3.7.3** Elite reward: 1 high-rarity card plus 1 guaranteed Imprint (3.9.3), plus Essence (3.7.5).
 - ✅ **3.7.4** Boss reward: 1 Rare or Legendary card, 1 Imprint, Charm unlock progress (3.9.10), plus Essence (3.7.5).
@@ -398,8 +382,7 @@ Trait pool — each trait is one row:
 
 - ✅ **3.8.1** CRP is a run-scoped stat from 0 to 100, starting at 0, clamped at both ends, and always visible on the map (3.2.16) and during battle.
 - ✅ **3.8.2** Every node transition (3.2.7) adds +1 CRP, so moving costs time and time advances corruption.
-- 🔨 **3.8.3** CRP is also moved, in either direction, by Sacrifice (3.4.20), event outcomes (3.10.2), card effects (3.4.9) and minigame wagers (3.11.2).
-  - *Remaining:* Sacrifice (3.4.20), event outcomes (3.10.2) and minigame wagers (3.11.2), and a test or shipped content that moves CRP through a card effect; card, Imprint and Charm effects can already move CRP with a source in code.
+- 🔨 **3.8.3** CRP is also moved, in either direction, by Sacrifice (3.4.20), event outcomes (3.10.2), card effects (3.4.9) and minigame wagers (3.11.2). *(remaining: Sacrifice (3.4.20), event outcomes (3.10.2) and minigame wagers (3.11.2), and a test or shipped content that moves CRP through a card effect)*
 - **3.8.4** CRP has threshold bands at 25, 50 and 75. Crossing a threshold applies that band's effect set (power gain paired with risk escalation, corrupted card effects) and advances the player's visual transformation stage (3.14.7); the effect sets themselves are content, defined per band in the decision log.
 - **3.8.5** At CRP 100 the player transforms: a brief, uncontrollable beast rampage plays out, after which the run ends as a death (3.9.11).
 - ✅ **3.8.6** Every CRP change shows its source and amount at the moment it happens, so the player can attribute it.
@@ -416,11 +399,9 @@ Trait pool — each trait is one row:
 - ✅ **3.9.2** Meta progression persists on the profile (3.1.2): Charm unlocks, card unlocks into the Global Binder (3.5.9), Imprint-pool unlocks, difficulty modifiers (3.9.12) and, optionally, cosmetics.
 - ✅ **3.9.3** Imprints are acquired during a run from Elites (guaranteed, 3.7.3), shops (3.7.6), events (3.10.2) and rare nodes; each is rolled from a tier table (Common, Uncommon, Rare); there is no slot limit, a typical run collects 3–6, they stack where their text says so, and they are lost at run end.
 - **3.9.4** Early-tier Imprints are simple stat changes and late-tier Imprints are synergies; the equipped Imprints are visible on the map (3.2.16) and in battle.
-- 🔨 **3.9.5** Charms are unlocked permanently through boss defeats, milestones, challenges and rare post-run rewards; they are never rolled randomly into a run.
-  - *Remaining:* milestone and challenge unlocks (their facts are never recorded, so they cannot fire) and rare post-run rewards. Built and tested: boss-defeat unlocks, never rolled into a run.
+- 🔨 **3.9.5** Charms are unlocked permanently through boss defeats, milestones, challenges and rare post-run rewards; they are never rolled randomly into a run. *(remaining: milestone and challenge unlocks (their facts are never recorded, so they cannot fire) and rare post-run rewards; boss-defeat unlocks are built and tested)*
 - ✅ **3.9.6** Before a run the player equips 0–2 Charms from the unlocked set into 2 slots; the choice is final for that run unless an event deactivates a Charm (3.10.2).
-- 🔨 **3.9.7** A Charm is stronger than an Imprint and defines build identity; Charm content is a data table (4.9).
-  - *Remaining:* nothing checks that a Charm is stronger than an Imprint or defines build identity; Charm content is already a data table (4.9).
+- 🔨 **3.9.7** A Charm is stronger than an Imprint and defines build identity; Charm content is a data table (4.9). *(remaining: nothing checks that a Charm is stronger than an Imprint or defines build identity; Charm content is already a data table (4.9))*
 - ✅ **3.9.8** Charm triggers reference battle facts recorded by combat, chiefly Perfect Defense (3.3.9.4); a Charm's effect fires at the moment its trigger is satisfied and, where it says "until reset", lasts until the next run.
 - **3.9.9** Each main NPC's level-10 unlock is an exclusive Charm, one per NPC, that alters the game's ending (3.10.8, 3.14.5).
 - ✅ **3.9.10** Each boss defeat counts as progress toward Charm unlock milestones; the unlock conditions are content per Charm (4.9).
@@ -506,17 +487,12 @@ Unlock tracks — content as currently authored (blank cells are unwritten conte
 **Functional requirements**
 
 - ✅ **3.12.1** A latency calibration screen runs an audio and video offset test and stores the resulting offset on the profile; it is offered on a profile's first launch before the first battle and is reachable from settings at any time, including from the map. Bluetooth audio adds 100–300 ms and the screen says so.
-- 🔨 **3.12.2** A metronome can be toggled on and off, and its volume set independently (3.12.4).
-  - *Remaining:* a user-facing metronome volume (3.12.4) and a test of the settings-menu toggle; the toggle and its beat clicks are built and tested.
-- 🔨 **3.12.3** Assist mode widens the Perfect and Good windows (3.3.3.1) by a fixed factor; runs played with Assist mode on are marked as such on the run-end screen (3.9.11) and in the run log (3.15.1).
-  - *Remaining:* the Assist toggle, widening the Perfect and Good windows, and marking the run-end screen; runs always record Assist as off. Built: the flag on the profile and in the run log.
-- 🔨 **3.12.4** Audio volumes for music, sound effects and the metronome are set separately.
-  - *Remaining:* the volume settings screen and applying music and sound effect volumes; only the metronome volume is applied.
+- 🔨 **3.12.2** A metronome can be toggled on and off, and its volume set independently (3.12.4). *(remaining: a user-facing metronome volume (3.12.4) and a test of the settings-menu toggle; the toggle and its recorded beat clicks are built and tested)*
+- 🔨 **3.12.3** Assist mode widens the Perfect and Good windows (3.3.3.1) by a fixed factor; runs played with Assist mode on are marked as such on the run-end screen (3.9.11) and in the run log (3.15.1). *(remaining: the Assist toggle, widening the Perfect and Good windows, and marking the run-end screen; runs always record Assist as off)*
+- 🔨 **3.12.4** Audio volumes for music, sound effects and the metronome are set separately. *(remaining: the volume settings screen and applying music and sound effect volumes; only the metronome volume is applied)*
 - **3.12.5** Display settings cover fullscreen or windowed mode, resolution and vertical sync.
-- 🔨 **3.12.6** Combat keys cannot be rebound (3.3.2.1); settings show the physical layout with the characters the player's keyboard produces (3.3.2.5).
-  - *Remaining:* settings do not show the physical layout; keys are already fixed and battle labels follow the keyboard layout.
-- 🔨 **3.12.7** The game ships in English; all player-facing text is held outside code so further languages can be added without rule changes.
-  - *Remaining:* raw ids still reach the player (the reward panel's Imprint, run-end unlocks, CRP source fallbacks), and no test shows a second language added as data. Built: the string table `data/strings/en.json`.
+- 🔨 **3.12.6** Combat keys cannot be rebound (3.3.2.1); settings show the physical layout with the characters the player's keyboard produces (3.3.2.5). *(remaining: settings do not show the physical layout; keys are already fixed and battle labels follow the keyboard layout)*
+- 🔨 **3.12.7** The game ships in English; all player-facing text is held outside code so further languages can be added without rule changes. *(remaining: raw ids still reach the player (the reward panel's Imprint, CRP source fallbacks), and no test shows a second language added as data; run-end unlocks now show their names)*
 
 ### 🔨 3.13 Onboarding & tutorial
 
@@ -525,8 +501,7 @@ Unlock tracks — content as currently authored (blank cells are unwritten conte
 **Functional requirements**
 
 - **3.13.1** A tutorial battle against Ren teaches, in order: the Rhythm Line and answering enemy actions (3.3.1.8), timing judgment (3.3.3.1), the four categories and correct-side counters (3.3.4.4), switching lines (3.3.2.2), and banking a Signature (3.3.6.1).
-- 🔨 **3.13.2** The tutorial uses a fixed tutorial Binder and loadout so every player sees the same cards; Ren is tuned to the ARD baseline (3.2.3) through the standard formulas (3.7.15, 3.7.16).
-  - *Remaining:* the fixed tutorial Binder and loadout, and wiring Ren into the tutorial (3.13.1); Ren is already a Normal Tank tuned through the standard formulas.
+- 🔨 **3.13.2** The tutorial uses a fixed tutorial Binder and loadout so every player sees the same cards; Ren is tuned to the ARD baseline (3.2.3) through the standard formulas (3.7.15, 3.7.16). *(remaining: the fixed tutorial Binder and loadout, and wiring Ren into the tutorial (3.13.1); Ren is already a Normal Tank tuned through the standard formulas)*
 - **3.13.3** The tutorial runs automatically on a profile's first run and is skippable on every later run; completion is stored on the profile (3.1.2).
 
 ### 🔨 3.14 Narrative & presentation
@@ -535,13 +510,12 @@ Unlock tracks — content as currently authored (blank cells are unwritten conte
 
 **Functional requirements**
 
-- **3.14.1** The tone is energetic, tense and skill-focused, with stylised, readable combat visuals that emphasise timing and clarity; the cute exterior (Lulu) contrasts deliberately with the dark core (corruption, loss).
+- ✅ **3.14.1** The tone is energetic, tense and skill-focused, with stylised, readable combat visuals that emphasise timing and clarity; the cute exterior (Lulu) contrasts deliberately with the dark core (corruption, loss).
 - **3.14.2** Each of the three Worlds is one continent with its own fiction, biome, soundtrack and enemy pool, delivered through map art and props (3.2.15).
 - **3.14.3** The recurring cast is Aika, Björn (the Blacksmith node), Gero (the Shop node), the Fisherman, the Flower Girl, the Gambler, Daren, Griit, Vult, Zarr and Lulu; NPC scenes are events (3.10.1).
 - **3.14.4** A failed run is framed diegetically as a time loop, so the failure loop (3.9.11) reads as story, not punishment.
 - **3.14.5** The ending changes according to which level-10 relationship Charms (3.9.9) the player has equipped when the World 3 Boss falls; a true ending exists behind a specific combination.
-- 🔨 **3.14.6** Card and Imprint flavor text is written in the myth register, the voice of Griit, Vult and Zarr.
-  - *Remaining:* flavor text on Imprints (no field exists), one starter card line outside the myth voice, and showing flavor text anywhere in the client; cards carry flavor text, mostly in the myth register.
+- 🔨 **3.14.6** Card and Imprint flavor text is written in the myth register, the voice of Griit, Vult and Zarr. *(remaining: flavor text on Imprints (no field exists) and one starter card line outside the myth voice; card faces now show a card's flavor text)*
 - **3.14.7** The player's appearance shows their corruption stage, advancing at each CRP threshold (3.8.4) and culminating in the beast form at 100 (3.8.5).
 
 ### 🔨 3.15 Playtest run logs
@@ -552,16 +526,14 @@ Unlock tracks — content as currently authored (blank cells are unwritten conte
 
 - ✅ **3.15.1** At the end of every run the game writes a run log file under the profile containing: seed, difficulty modifiers and Assist flag (3.12.3), the route taken, and per battle the enemy, duration in beats and seconds, judgment counts, damage taken, Signatures fired, cards played per slot, and the outcome; the log holds no personal data and no profile name.
 - ✅ **3.15.2** The log flags every battle whose enemy is the same as the previous battle's, so repeated-enemy fights can be compared directly.
-- 🔨 **3.15.3** Run logs are kept until the player deletes them; settings offer an "open run logs folder" action so a tester can find and send them.
-  - *Remaining:* the "open run logs folder" action in settings; logs are already kept under the profile until deleted.
-- 🔨 **3.15.4** Nothing in a run log is transmitted anywhere by the game (6.5).
-  - *Remaining:* a test proving nothing is transmitted, and removing the Unity analytics and web request modules from the package manifest; no code transmits anything today.
+- 🔨 **3.15.3** Run logs are kept until the player deletes them; settings offer an "open run logs folder" action so a tester can find and send them. *(remaining: the open run logs folder action in settings; logs are already kept under the profile until deleted)*
+- 🔨 **3.15.4** Nothing in a run log is transmitted anywhere by the game (6.5). *(remaining: a test proving nothing is transmitted, and removing the Unity analytics and web request modules from the package manifest; no code transmits anything today)*
 
 ## 4. Data & metadata definitions
 
 *What data exists in the product and who owns each field. Conceptual — this describes ownership and provenance, not storage.*
 
-### 🔨 4.1 Player profile
+### 🔨 4.1 Player profile *(remaining: Global Binder card unlocks, Imprint-pool unlocks, difficulty modifiers, cosmetics and tutorial completed exist but are never filled; settings lack resolution and the player can change only the metronome toggle)*
 
 | Field | Set by | Notes |
 | :-- | :-- | :-- |
@@ -577,7 +549,6 @@ Unlock tracks — content as currently authored (blank cells are unwritten conte
 | Run in progress | Auto-retained | At most one (4.2), 3.1.5 |
 | Run history | Auto-tracked | Outcomes and seeds of past runs (3.9.11) |
 
-- *Remaining, 4.1:* Global Binder card unlocks, Imprint-pool unlocks, difficulty modifiers, cosmetics and tutorial completed exist but are never filled; settings lack resolution and the player can change only the metronome toggle. Present: name, created, last played, Charm unlocks, NPC relationships, calibration offset, run in progress, run history.
 
 ### ✅ 4.2 Run
 
@@ -596,7 +567,7 @@ Unlock tracks — content as currently authored (blank cells are unwritten conte
 | Map graphs | Auto-generated | One per World (4.3) |
 | Status | Auto-set | in progress, won, died, abandoned (3.9.11) |
 
-### 🔨 4.3 Map graph & node
+### 🔨 4.3 Map graph & node *(remaining: event, shop stock and Forge outcome rolls, and props and decoration placement)*
 
 | Field | Set by | Notes |
 | :-- | :-- | :-- |
@@ -606,7 +577,6 @@ Unlock tracks — content as currently authored (blank cells are unwritten conte
 | Visited | Auto-tracked | 3.2.7 |
 | Props and decoration placement | Auto-generated | 3.2.15 |
 
-- *Remaining, 4.3:* event, shop stock and Forge outcome rolls, and props and decoration placement. Present: nodes and connections, node type, enemy content roll, visited.
 
 ### ✅ 4.4 Card definition
 
@@ -680,7 +650,7 @@ Unlock tracks — content as currently authored (blank cells are unwritten conte
 | Stackable | Admin-set | 3.9.3 |
 | Source | Admin-set | Pool, or relationship level (3.10.6) |
 
-### 4.11 Trait
+### ✅ 4.11 Trait
 
 | Field | Set by | Notes |
 | :-- | :-- | :-- |
@@ -735,19 +705,15 @@ Unlock tracks — content as currently authored (blank cells are unwritten conte
 
 ### 🔨 5.1 Desktop application
 
-- 🔨 **5.1.1** The game runs natively on Windows 10 and later and on macOS 12 and later, as a 64-bit build for each.
-  - *Remaining:* Windows 10 minimum and 64-bit targets, build scripts and a verified build for each platform; the project already targets macOS 12.
-- 🔨 **5.1.2** Input is keyboard for all of combat and navigation (3.3.2.1) with the mouse used only where a feature says so (Fishing, 3.11.4; menus); no controller support is required at launch.
-  - *Remaining:* keyboard control of the stop, run-end, pre-run and settings screens, which need the mouse today; combat, map, pre-battle, Binder and reward screens are keyboard-driven.
-- 🔨 **5.1.3** The game runs fully offline; no feature depends on a network connection (6.3).
-  - *Remaining:* a test proving no feature needs a connection; no code uses the network today.
+- 🔨 **5.1.1** The game runs natively on Windows 10 and later and on macOS 12 and later, as a 64-bit build for each. *(remaining: Windows 10 minimum and 64-bit targets, build scripts and a verified build for each platform; the project already targets macOS 12)*
+- 🔨 **5.1.2** Input is keyboard for all of combat and navigation (3.3.2.1) with the mouse used only where a feature says so (Fishing, 3.11.4; menus); no controller support is required at launch. *(remaining: keyboard control of the stop, run-end, pre-run and settings screens, which need the mouse today; combat, map, pre-battle, Binder and reward screens are keyboard-driven)*
+- 🔨 **5.1.3** The game runs fully offline; no feature depends on a network connection (6.3). *(remaining: a test proving no feature needs a connection; no code uses the network today)*
 - ✅ **5.1.4** The game leans on the OS audio stack for a low-latency, timestamped playback clock (6.1) and lets the player compensate any remaining offset (3.12.1).
 
 ### 🔨 5.2 Steam distribution
 
 - **5.2.1** The game is distributed through Steam for both platforms; the store page uses the canonical comparison "Slay the Spire × Crypt of the NecroDancer" and the Rhythm Line and Signature Chain names (never "Pulse Line", "Combo Chart", "deck", "relic", "gold" or "HP" for the player).
-- 🔨 **5.2.2** All profiles (3.1.4) sync through Steam Cloud under the Steam account; the game works without Steam Cloud and simply stays local.
-  - *Remaining:* Steam Cloud sync; profiles already work locally without Steam.
+- 🔨 **5.2.2** All profiles (3.1.4) sync through Steam Cloud under the Steam account; the game works without Steam Cloud and simply stays local. *(remaining: Steam Cloud sync; profiles already work locally without Steam)*
 - **5.2.3** Store achievements, if used, mirror meta unlocks (3.9.5) and never gate content.
 
 ### 🔨 5.3 Demo build
@@ -769,14 +735,10 @@ A free demo ships for Steam Next Fest, Oct 19–26, 2026, with this content budg
 | Charms | 2 (chosen from 8 candidates) |
 | NPCs | Fisherman, Flower Girl, Gambler; Björn and Gero as node NPCs |
 
-- 🔨 **5.3.1** The demo is World 1 only, played with the full rule set of section 3 and the content counts above; relationship content is limited to the demo's 3 events.
-  - *Remaining:* the World-1-only demo mode and the demo content counts (6 Normal enemies, 30 cards, 10 Imprints, 2 Charms chosen from 8, 3 events) with working Shop, Event, Blacksmith and Forge nodes. Built: the full rule set runs on fixture content (3 Normal enemies, 1 Elite, 1 Boss, 20 Common cards, 6 Imprints, 2 Charms).
-- 🔨 **5.3.2** The demo includes the calibration screen (3.12.1), the keep-previous loadout flow (3.5.6), the tutorial (3.13.1), Fishing per 3.11.4 to 3.11.6 with phase two polish cut before phase one if time runs short, and run logs (3.15.1).
-  - *Remaining:* the tutorial (3.13.1) and Fishing (3.11.4 to 3.11.6); calibration, the keep-previous loadout flow and run logs are built.
-- 🔨 **5.3.3** The demo Signature deals 30 damage (3.3.6.2), and the demo's Blacksmith offers all four armor slots (3.7.13) so Legendary sacrifice can be tested.
-  - *Remaining:* the Blacksmith with all four armor slots (3.7.13); the 30-damage Signature is built.
-- 🔨 **5.3.4** The demo must let a tester fight the same enemy twice in a row so the playtest question (3.15.2) can be answered before any World 2 or 3 content is built.
-  - *Remaining:* a way to fight the same enemy twice in a row; battle nodes roll their enemy at random within the tier. The run log already flags repeated enemies.
+- 🔨 **5.3.1** The demo is World 1 only, played with the full rule set of section 3 and the content counts above; relationship content is limited to the demo's 3 events. *(remaining: the World-1-only demo mode and the demo content counts with working Shop, Event, Blacksmith and Forge nodes; the full rule set already runs on fixture content)*
+- 🔨 **5.3.2** The demo includes the calibration screen (3.12.1), the keep-previous loadout flow (3.5.6), the tutorial (3.13.1), Fishing per 3.11.4 to 3.11.6 with phase two polish cut before phase one if time runs short, and run logs (3.15.1). *(remaining: the tutorial (3.13.1) and Fishing (3.11.4 to 3.11.6); calibration, the keep-previous loadout flow and run logs are built)*
+- 🔨 **5.3.3** The demo Signature deals 30 damage (3.3.6.2), and the demo's Blacksmith offers all four armor slots (3.7.13) so Legendary sacrifice can be tested. *(remaining: the Blacksmith with all four armor slots (3.7.13); the 30-damage Signature is built)*
+- 🔨 **5.3.4** The demo must let a tester fight the same enemy twice in a row so the playtest question (3.15.2) can be answered before any World 2 or 3 content is built. *(remaining: a way to fight the same enemy twice in a row; battle nodes roll their enemy at random within the tier, though the run log already flags repeated enemies)*
 
 ## 6. Non-functional requirements
 
@@ -784,26 +746,17 @@ A free demo ships for Steam Next Fest, Oct 19–26, 2026, with this content budg
 | :-- | :-- | :-- |
 | ✅ 6.1 | Timing accuracy | Inputs are timestamped and graded against the audio playback clock, not the render frame, so judgment error is independent of framerate and stays within 2 ms of the audio clock after calibration (3.12.1). |
 | ✅ 6.2 | Performance | The game holds 60 frames per second at 1080p on a 2019 laptop with integrated graphics, and never drops a beat of audio when it drops a frame (3.3.1.6). |
-| 🔨 6.3 | Availability | Fully offline; no server of ours exists and no feature degrades without a connection (5.1.3); Steam Cloud is the only network use (5.2.2). |
-| 🔨 6.4 | Storage & retention | Profiles and runs are kept until the player deletes them (3.1.3); run logs are kept until deleted (3.15.3); a profile with its history stays under 50 MB so cloud sync remains cheap. |
-| 🔨 6.5 | Privacy | No gameplay data, log or identifier leaves the machine except through Steam Cloud save; run logs contain no personal data (3.15.1, 3.15.4). |
-| 🔨 6.6 | Cost | Zero running cost: no hosted services, no per-call APIs, no telemetry endpoint. |
+| 🔨 6.3 | Availability | Fully offline; no server of ours exists and no feature degrades without a connection (5.1.3); Steam Cloud is the only network use (5.2.2). *(remaining: Steam Cloud as the one network use (5.2.2) and a test that nothing else goes online; no online feature exists today)* |
+| 🔨 6.4 | Storage & retention | Profiles and runs are kept until the player deletes them (3.1.3); run logs are kept until deleted (3.15.3); a profile with its history stays under 50 MB so cloud sync remains cheap. *(remaining: profile deletion (3.1.3) and enforcing or measuring the 50 MB bound; profiles and run logs are already kept with no expiry)* |
+| 🔨 6.5 | Privacy | No gameplay data, log or identifier leaves the machine except through Steam Cloud save; run logs contain no personal data (3.15.1, 3.15.4). *(remaining: a test that nothing leaves the machine; run logs are already free of profile name and user identity)* |
+| 🔨 6.6 | Cost | Zero running cost: no hosted services, no per-call APIs, no telemetry endpoint. *(remaining: a test or check that no telemetry exists, and removing the Unity analytics module from the manifest; no hosted service or API is used)* |
 | ✅ 6.7 | Testability | The rules of section 3 live in a simulation layer separable from rendering and audio; every locked rule maps to at least one unit test, and every row of 3.3.4.8 is one. |
-| 🔨 6.8 | Determinism | Given the same seed and the same timestamped input sequence, a run replays identically (3.2.4), so bugs and balance cases can be reproduced from a run log (3.15.1). |
-| 🔨 6.9 | Content operability | Cards, Charms, Imprints, Traits, enemies and events are data tables edited without code changes (4.4, 4.7, 4.9, 4.10, 4.11, 4.13); a table entry that violates a section 3 rule fails validation at build time (3.4.21). |
-| 🔨 6.10 | Accessibility | Assist mode (3.12.3), metronome (3.12.2), calibration (3.12.1) and category icons alongside colours (3.4.2) are available in every build including the demo. |
-| 🔨 6.11 | Localisation | English at launch with all text externalised (3.12.7). |
-| 🔨 6.12 | Session length | A full run takes about one hour and a Normal battle 30–60 s (3.2.18); the loadout flow keeps menu time below battle time (3.5.6). |
+| 🔨 6.8 | Determinism | Given the same seed and the same timestamped input sequence, a run replays identically (3.2.4), so bugs and balance cases can be reproduced from a run log (3.15.1). *(remaining: replaying a run from its seed plus timestamped inputs, with a test; the run log stores no inputs, so a run cannot be reproduced from it)* |
+| 🔨 6.9 | Content operability | Cards, Charms, Imprints, Traits, enemies and events are data tables edited without code changes (4.4, 4.7, 4.9, 4.10, 4.11, 4.13); a table entry that violates a section 3 rule fails validation at build time (3.4.21). *(remaining: Event tables, rule validation for Charms and Imprints, and validation at build time (it runs only in dotnet test); cards, charts, enemies and Traits are validated)* |
+| 🔨 6.10 | Accessibility | Assist mode (3.12.3), metronome (3.12.2), calibration (3.12.1) and category icons alongside colours (3.4.2) are available in every build including the demo. *(remaining: Assist mode (3.12.3); calibration, the metronome and category icons alongside colours (3.4.2) are available)* |
+| 🔨 6.11 | Localisation | English at launch with all text externalised (3.12.7). *(remaining: raw ids that still reach the player (see 3.12.7); English text is externalised in the string table)* |
+| 🔨 6.12 | Session length | A full run takes about one hour and a Normal battle 30–60 s (3.2.18); the loadout flow keeps menu time below battle time (3.5.6). *(remaining: measuring the full run length and menu time against battle time; Normal intended durations are validated at 30 to 60 s and entering battle is one input)* |
 
-- *Remaining, 6.3:* Steam Cloud as the one network use (5.2.2) and a test that nothing else goes online; no online feature exists today.
-- *Remaining, 6.4:* profile deletion (3.1.3) and enforcing or measuring the 50 MB bound; profiles and run logs are already kept with no expiry.
-- *Remaining, 6.5:* a test that nothing leaves the machine; run logs are already free of profile name and user identity (tested).
-- *Remaining, 6.6:* a test or check that no telemetry exists, and removing the Unity analytics module from the manifest; no hosted service or API is used and Unity analytics is disabled.
-- *Remaining, 6.8:* replaying a run from its seed plus timestamped inputs, with a test; the run log stores no inputs, so a run cannot be reproduced from it. Seeded forks already reproduce the map and enemy rolls.
-- *Remaining, 6.9:* Trait and Event tables, rule validation for Charms and Imprints, and validation at build time (it runs only in `dotnet test`); cards, charts and enemies are validated.
-- *Remaining, 6.10:* Assist mode (3.12.3) and category icons alongside colours (3.4.2); calibration and the metronome are available.
-- *Remaining, 6.11:* raw ids that still reach the player (see 3.12.7); English text is externalised in the string table.
-- *Remaining, 6.12:* measuring the full run length and menu time against battle time; Normal intended durations are validated at 30 to 60 s and entering battle is one input.
 
 ## 7. Technical feasibility & high-level approach
 

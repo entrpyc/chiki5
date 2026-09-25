@@ -531,7 +531,7 @@ After that the order follows what the player reads first in a fight. The Rhythm 
 - Needs: P10.1, P1.4
 - Test (integration): `Client.Calibration › marker_and_clicks_recorded` — given the shipped catalogues, when calibration runs for 8 beats, then the marker carries the calibration sprite, and 8 clicks sit at the beat map's times using the recorded samples, the accent on the first and fifth.
 
-### Phase 11 — Recorded music, and the frame rate holds
+### ✅ Phase 11 — Recorded music, and the frame rate holds
 
 *Every enemy fights to its own recording, the recordings loop without a seam and are never interrupted, and the fully dressed game still holds 60 fps. Done when every P11 test is green and the suite passes.*
 
@@ -562,7 +562,7 @@ After that the order follows what the player reads first in a fight. The Rhythm 
 - Needs: P11.1
 - Test (measurement): `Client.Clock › recorded_track_continuous_through_stun_signature_and_loop` — given Ren's recorded track with a player Stun, a Signature and a loop inside 40 seconds, when the battle runs, then the source's sample position advances every frame by the audio time elapsed, within one buffer, and its pitch stays 1.
 
-#### P11.4 Frame rate with the shipped art
+#### ✅ P11.4 Frame rate with the shipped art
 - PRD: 6.2
 - Does: repeats the placeholder build's frame-rate measurement on the heaviest shipped fight, Malk's, with every shipped sprite, clip and track loaded.
 - Assets: none beyond the earlier phases.

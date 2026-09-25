@@ -74,6 +74,86 @@ MonoBehaviour:
       Width: 46
       Height: 60
   - kind: ability
+    id: charge-buff
+    subject: charge-buff
+    variant: static
+    sprite: {fileID: 21300000, guid: a58fc6eeddf4b9f48a28e6d3666feea3, type: 3}
+    opaque:
+      X: 13
+      Y: 5
+      Width: 38
+      Height: 55
+  - kind: ability
+    id: rising-tempo
+    subject: rising-tempo
+    variant: static
+    sprite: {fileID: 21300000, guid: 8fb7e1bf3b30fd347a7c6f05d4439ebb, type: 3}
+    opaque:
+      X: 6
+      Y: 7
+      Width: 47
+      Height: 53
+  - kind: role
+    id: aggressor
+    subject: aggressor
+    variant: static
+    sprite: {fileID: 21300000, guid: 2808cfbcb21812d45897c377b1e5cbd2, type: 3}
+    opaque:
+      X: 14
+      Y: 0
+      Width: 36
+      Height: 63
+  - kind: role
+    id: mentalist
+    subject: mentalist
+    variant: static
+    sprite: {fileID: 21300000, guid: 889bedf94e94648429f5becea8b260fb, type: 3}
+    opaque:
+      X: 1
+      Y: 18
+      Width: 62
+      Height: 28
+  - kind: role
+    id: tank
+    subject: tank
+    variant: static
+    sprite: {fileID: 21300000, guid: c52f02a5809aa1d4ab14504ec8edf10a, type: 3}
+    opaque:
+      X: 10
+      Y: 2
+      Width: 44
+      Height: 57
+  - kind: trait
+    id: guard
+    subject: guard
+    variant: static
+    sprite: {fileID: 21300000, guid: 883350ed24cf45f49a61ae817b0eede0, type: 3}
+    opaque:
+      X: 4
+      Y: 4
+      Width: 56
+      Height: 56
+  - kind: trait
+    id: stoneform
+    subject: stoneform
+    variant: static
+    sprite: {fileID: 21300000, guid: 8ef669d845e4dd8418a0de77ac728576, type: 3}
+    opaque:
+      X: 4
+      Y: 6
+      Width: 56
+      Height: 52
+  - kind: ui
+    id: badge-new
+    subject: badge
+    variant: new
+    sprite: {fileID: 21300000, guid: c3f8b85a23efa674db84e6d17198e1b5, type: 3}
+    opaque:
+      X: 0
+      Y: 0
+      Width: 160
+      Height: 48
+  - kind: ability
     id: iron-veil
     subject: iron-veil
     variant: static
@@ -393,6 +473,56 @@ MonoBehaviour:
       Y: 0
       Width: 64
       Height: 6
+  - kind: portrait
+    id: kess
+    subject: kess
+    variant: static
+    sprite: {fileID: 21300000, guid: 43b4b0b4f9f9b7848b698206bfcb5514, type: 3}
+    opaque:
+      X: 140
+      Y: 0
+      Width: 281
+      Height: 485
+  - kind: portrait
+    id: malk
+    subject: malk
+    variant: static
+    sprite: {fileID: 21300000, guid: b9d3adb53508e5d42805ceb86cd82507, type: 3}
+    opaque:
+      X: 129
+      Y: 0
+      Width: 278
+      Height: 492
+  - kind: portrait
+    id: orm
+    subject: orm
+    variant: static
+    sprite: {fileID: 21300000, guid: 61d9ca6e732a73e4b9e62ba660244b42, type: 3}
+    opaque:
+      X: 125
+      Y: 0
+      Width: 279
+      Height: 473
+  - kind: portrait
+    id: ren
+    subject: ren
+    variant: static
+    sprite: {fileID: 21300000, guid: 0a7024850245be24b88f89ca392d3986, type: 3}
+    opaque:
+      X: 102
+      Y: 0
+      Width: 325
+      Height: 433
+  - kind: portrait
+    id: vey
+    subject: vey
+    variant: static
+    sprite: {fileID: 21300000, guid: ea0626878c0247f4ea2163c6a9905fa0, type: 3}
+    opaque:
+      X: 125
+      Y: 0
+      Width: 285
+      Height: 490
   clips:
   - kind: player
     id: lulu-ability

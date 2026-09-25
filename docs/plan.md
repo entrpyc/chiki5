@@ -404,41 +404,41 @@ After that the order follows what the player reads first in a fight. The Rhythm 
 - Needs: P7.1
 - Test (integration): `Client.Reward › three_offers_as_card_faces` — given a Normal win offering three cards, when the reward panel renders, then three full faces show those cards, and choosing the second puts it in the Binder.
 
-### Phase 8 — The enemy card before the fight
+### ✅ Phase 8 — The enemy card before the fight
 
 *Before a fight, and while the loadout is edited, the player sees who they face: portrait, name, BPM, powers, quote and a New or role badge. Done when every P8 test is green and the suite passes.*
 
 **Generated assets:** `tools/gen-phase8-art.mjs` draws the five enemy portraits — each the puppet head of Phase 5 and 6 at portrait scale, head and shoulders on transparency, so a portrait and its fighter are the same character — the badge plate, the four power icons and the three role icons. Thirteen sprites.
 
-#### P8.1 Fought enemies on the profile
+#### ✅ P8.1 Fought enemies on the profile
 - PRD: — (groundwork for P8.2)
 - Does: the profile gains `enemiesFought`, the ids of enemies it has finished a battle against, won or lost, written when the battle ends (3.1.8). The profile schema moves from 2 to 3 with a migration that adds an empty list. PRD 4.1 does not list this field; it exists only for the New badge of 3.6.26.
 - Assets: none.
 - Needs: —
 - Test (integration): `Client.Profile › fought_enemies_recorded_and_migrated` — given a schema-2 profile file, when loaded, then its version is 3 and `enemiesFought` is empty; when a battle against Ren ends and the profile is reloaded, then it holds `enemy-ren` once.
 
-#### P8.2 Enemy card
+#### ✅ P8.2 Enemy card
 - PRD: 3.6.26
-- Does: the pre-battle panel becomes the enemy card: portrait, name, BPM from the track's starting tempo, each ability and trait as icon and name, the quote line, a badge, and the Edit (Binder) and Fight buttons. The badge reads New while the enemy is absent from `enemiesFought`, otherwise the role icon and role name. Assumption: "New or Type" means New for a never-fought enemy and its role after; the PRD defines it no further. Ability, trait and role names come from the string table. A portrait id such as `portrait-enemy-ren` resolves to `spr_portrait_ren_static_01.png`.
+- Does: the pre-battle panel becomes the enemy card: portrait, name, BPM from the track's starting tempo, each ability and trait as icon and name, the quote line, a badge, and the Edit (Binder) and Fight buttons. The badge reads New while the enemy is absent from `enemiesFought`, otherwise the role icon and role name. Assumption: "New or Type" means New for a never-fought enemy and its role after; the PRD defines it no further. Ability, trait and role names come from the string table. A portrait id such as `portrait-enemy-ren` resolves to `spr_portrait_ren_static_01.png`. Assumption: the loadout text stays on the panel under the card, smaller, since 3.5.6 keeps the previous loadout and the panel is where the player sees it kept.
 - Assets: `spr_ui_badge_new_01.png`, 9-slice, 160 × 48, 16 px borders, no lettering.
 - Needs: P8.1, P1.3
 - Test (integration): `Client.EnemyCard › shows_every_field` — given Ren on a profile that has never fought Ren, when the pre-battle panel opens, then it shows Ren's portrait, "Ren", 120 BPM, Iron Veil and Guard each with its icon, the quote, the New badge, Edit and Fight; after one battle against Ren, the badge shows the Tank icon and name instead.
 
-#### P8.3 Enemy portraits
+#### ✅ P8.3 Enemy portraits
 - PRD: 3.6.26
-- Does: every enemy's portrait id resolves to a portrait in the catalogue.
+- Does: every enemy's portrait id resolves to a portrait in the catalogue. Assumption: Kess, Vey, Orm and Malk have no fighter art until Phase 6, so `tools/gen-phase8-art.mjs` states their puppet specs — proportions seeded from the enemy id, palette and headpiece given — and Phase 6 draws the fighters from those same specs so portrait and fighter stay one character. Portraits sit in each enemy's own `Art/World1/<name>/` folder.
 - Assets: `spr_portrait_ren_static_01.png`, `spr_portrait_kess_static_01.png`, `spr_portrait_vey_static_01.png`, `spr_portrait_orm_static_01.png`, `spr_portrait_malk_static_01.png`, 512 × 512, head and shoulders, facing left, transparent background.
 - Needs: P8.2
 - Test (integration): `Client.Catalogue › enemy_portraits_complete` — given the shipped catalogue and `data/enemies/fixtures.json`, when every enemy's portrait id is looked up, then each resolves to a 512 × 512 sprite.
 
-#### P8.4 Power and role icons
+#### ✅ P8.4 Power and role icons
 - PRD: 3.6.26
 - Does: every ability and trait an enemy carries, and every role, has an icon for the enemy card.
 - Assets: `spr_ability_rising-tempo_static_01.png`, `spr_ability_charge-buff_static_01.png`, `spr_trait_guard_static_01.png`, `spr_trait_stoneform_static_01.png`, `spr_role_aggressor_static_01.png`, `spr_role_tank_static_01.png`, `spr_role_mentalist_static_01.png`, 64 × 64 each. Iron Veil's icon comes from P2.4.
 - Needs: P8.2, P2.4
 - Test (integration): `Client.Catalogue › power_and_role_icons_complete` — given the shipped catalogue, when every ability and trait carried by an enemy in `data/enemies/fixtures.json` and the three roles are looked up, then each has a 64 × 64 icon.
 
-#### P8.5 Enemy card while editing
+#### ✅ P8.5 Enemy card while editing
 - PRD: 3.5.8
 - Does: opening the Binder from the pre-battle panel shows the same enemy card, compact, beside the slots: portrait, name, BPM, powers and badge.
 - Assets: none beyond P8.3 and P8.4.

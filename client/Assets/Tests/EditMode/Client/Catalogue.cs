@@ -4,6 +4,8 @@ using System.IO;
 using System.Linq;
 using Chiki.Client.Editor;
 using Chiki.Client.Presenter;
+using Chiki.Client.Scene;
+using Chiki.Client.Screens;
 using Chiki.Client.Visuals;
 using Chiki.Sim;
 using Chiki.Sim.Data;
@@ -273,6 +275,52 @@ namespace Client
             Assert.That(charge.FrameCount, Is.EqualTo(4), "Ren's charge wind-up is not four frames");
             Assert.That(charge.Loop, Is.True, "Ren's charge wind-up does not loop");
             Assert.That(charge.LengthBeats, Is.EqualTo(1), "Ren's charge wind-up does not last one beat");
+        }
+
+        /// <summary>P8.3: every fixture enemy's portrait id resolves to a 512 by 512 portrait.</summary>
+        [Test]
+        public void enemy_portraits_complete()
+        {
+            var catalogue = Shipped();
+            var enemies = BattleContent.LoadFixtures().Enemies.Values.ToList();
+            Assume.That(enemies, Is.Not.Empty, "data/enemies/fixtures.json holds no enemy");
+
+            foreach (var enemy in enemies)
+            {
+                Assert.That(enemy.PortraitId, Is.Not.Null.And.Not.Empty, enemy.Id + " names no portrait");
+                string subject = EnemyCard.PortraitSubject(enemy);
+                Assert.That(catalogue.Has(EnemyCard.PortraitKind, subject), Is.True, enemy.PortraitId + " resolves to nothing in the shipped catalogue");
+                var sprite = catalogue.Sprite(EnemyCard.PortraitKind, subject);
+                Assert.That(sprite.rect.size, Is.EqualTo(new Vector2(512f, 512f)), enemy.PortraitId + " is not a 512 by 512 portrait");
+            }
+
+            Assert.That(catalogue.Missing, Is.Empty, "a portrait fell back: " + string.Join(", ", catalogue.Missing));
+        }
+
+        /// <summary>P8.4: every ability and trait a fixture enemy carries, and every role, has a 64 by 64 icon.</summary>
+        [Test]
+        public void power_and_role_icons_complete()
+        {
+            var catalogue = Shipped();
+            var enemies = BattleContent.LoadFixtures().Enemies.Values.ToList();
+            var icons = new List<(string Kind, string Id)>();
+            icons.AddRange(enemies.SelectMany(e => e.Abilities).Distinct().Select(a => (EnemyCard.AbilityKind, EnemyLoader.AbilityToId(a))));
+            icons.AddRange(enemies.SelectMany(e => e.Traits).Distinct().Select(t => (EnemyCard.TraitKind, EnemyLoader.TraitToId(t))));
+            foreach (EnemyRole role in System.Enum.GetValues(typeof(EnemyRole)))
+            {
+                icons.Add((EnemyCard.RoleKind, EnemyLoader.RoleToId(role)));
+            }
+
+            Assume.That(icons.Count(i => i.Kind == EnemyCard.RoleKind), Is.EqualTo(3), "the three roles of PRD 3.6.1 were not all looked up");
+
+            foreach (var (kind, id) in icons)
+            {
+                Assert.That(catalogue.Has(kind, id), Is.True, kind + "/" + id + " has no icon in the shipped catalogue");
+                var sprite = catalogue.Sprite(kind, id);
+                Assert.That(sprite.rect.size, Is.EqualTo(new Vector2(64f, 64f)), kind + "/" + id + " is not a 64 by 64 icon");
+            }
+
+            Assert.That(catalogue.Missing, Is.Empty, "an icon fell back: " + string.Join(", ", catalogue.Missing));
         }
 
         /// <summary>

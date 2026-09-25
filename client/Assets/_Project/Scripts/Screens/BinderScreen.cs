@@ -18,7 +18,8 @@ namespace Chiki.Client.Screens
     /// Binder cards the selected slot may hold, Enter places the highlighted card, Delete or
     /// Backspace clears the slot. Confirm is disabled while any slot is empty and the panel
     /// names the empty slots; Confirm proceeds to the battle. Back returns to the pre-battle
-    /// panel with the loadout as edited.
+    /// panel with the loadout as edited. Opened before a battle, the upcoming enemy's card sits
+    /// beside the slots, compact (PRD 3.5.8, P8.5).
     /// </summary>
     [DisallowMultipleComponent]
     public sealed class BinderScreen : MonoBehaviour
@@ -40,6 +41,9 @@ namespace Chiki.Client.Screens
         public event Action? BackChosen;
 
         public Slot SelectedSlot => Slot.All[_cursor];
+
+        /// <summary>The upcoming enemy's compact card (PRD 3.5.8); null when the Binder was opened without a battle ahead.</summary>
+        public EnemyCard? Enemy { get; private set; }
 
         /// <summary>Whether Confirm accepts input: only with every slot filled (PRD 3.5.5).</summary>
         public bool ConfirmEnabled => _confirm.interactable;
@@ -66,7 +70,7 @@ namespace Chiki.Client.Screens
             }
         }
 
-        public static BinderScreen Build(Transform? parent, Binder binder)
+        public static BinderScreen Build(Transform? parent, Binder binder, EnemyDefinition? upcoming = null, bool fought = false)
         {
             if (binder is null)
             {
@@ -97,7 +101,12 @@ namespace Chiki.Client.Screens
             }
 
             screen._candidate = ScreenFactory.Label("Candidate", root, "", 28, new Vector2(-440f, -160f), new Vector2(900f, 60f), TextAnchor.MiddleCenter, ScreenFactory.Accent);
-            screen._cards = ScreenFactory.Label("Cards", root, "", 22, new Vector2(500f, 40f), new Vector2(800f, 700f), TextAnchor.UpperLeft);
+            screen._cards = ScreenFactory.Label("Cards", root, "", 22, new Vector2(500f, 110f), new Vector2(800f, 560f), TextAnchor.UpperLeft);
+            if (upcoming != null)
+            {
+                screen.Enemy = EnemyCard.Build(root, upcoming, fought, compact: true, new Vector2(500f, -315f));
+            }
+
             screen._empty = ScreenFactory.Label("Empty", root, "", 30, new Vector2(-440f, -260f), new Vector2(900f, 60f), TextAnchor.MiddleCenter, ScreenFactory.Accent);
             screen._confirm = ScreenFactory.Button("Confirm", root, Strings.Get("binder.confirm"), new Vector2(-640f, -400f), new Vector2(400f, 84f), screen.Confirm);
             screen._back = ScreenFactory.Button("Back", root, Strings.Get("binder.back"), new Vector2(-200f, -400f), new Vector2(400f, 84f), () => screen.BackChosen?.Invoke());

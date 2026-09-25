@@ -90,5 +90,48 @@ namespace Client
 
             rig.Destroy();
         }
+
+#if UNITY_EDITOR
+        [UnityTest]
+        [Timeout(90000)]
+        public IEnumerator recorded_tracks_loop_seamlessly()
+        {
+            // P11.2, PRD 3.6.32: every shipped recording is exactly one lap long, so the chart and the music wrap together.
+            var catalogue = ClientTestContent.ShippedAudio();
+            var content = BattleContent.LoadFixtures();
+            foreach (var enemy in content.Enemies.Values)
+            {
+                var clip = catalogue.Track(enemy.Track.Id);
+                Assert.That(clip, Is.Not.Null, enemy.Track.Id + " has no recording in the shipped audio catalogue");
+                long expected = (long)(enemy.Track.OffsetMs + enemy.Track.BeatMap.LengthMs) * clip!.frequency / 1000;
+                Assert.That(clip.samples, Is.EqualTo(expected).Within(1), enemy.Track.Id + " is not one lap of its beat map long, in samples");
+            }
+
+            // Ren's battle on the recording, played past the loop point: the first action of the
+            // second lap is answered on its second-lap time and judged against that time.
+            var ren = content.Enemy("enemy-ren");
+            var first = ren.Chart.Actions.OrderBy(a => a.LandingQb).First();
+            int secondLapQb = ren.Track.LengthQb + first.LandingQb;
+            int secondLapMs = ren.Track.BeatMap.TimeAtQb(secondLapQb);
+            Assert.That(secondLapMs, Is.GreaterThan(ren.Track.BeatMap.LengthMs), "the second-lap time is not past the loop point");
+
+            var rig = new Rig("audio-loop");
+            rig.Clock.Schedule(ren.Track, TrackAudio.For(ren.Track));
+            Assert.That(rig.Source.clip, Is.SameAs(catalogue.Track(ren.Track.Id)), "Ren's battle is not on the shipped recording");
+            var battle = new Chiki.Sim.Battle(new RunStats(), ren, ClientTestContent.DefaultEnemyHp, new Rng(1));
+            rig.Driver.Bind(rig.Clock, battle);
+            rig.Driver.Script(new[] { new ScriptedInput(secondLapMs, ClientTestContent.SlotE, ClientTestContent.LeftAttack10) });
+
+            yield return rig.WaitUntilAudioMs(secondLapMs + 600, 40f);
+
+            Assert.That(battle.Events.OfType<TrackLooped>().Any(), Is.True, "the battle did not loop");
+            var judged = battle.Events.OfType<InputJudged>().ToList();
+            Assert.That(judged, Has.Count.EqualTo(1), "the second-lap press was not judged");
+            Assert.That(judged[0].PositionQb, Is.EqualTo(secondLapQb), "the press was judged against another action than the second lap's first");
+            Assert.That(Math.Abs(judged[0].OffsetMs), Is.LessThan(2), "the press on the second-lap time missed it by " + judged[0].OffsetMs + " ms");
+
+            rig.Destroy();
+        }
+#endif
     }
 }

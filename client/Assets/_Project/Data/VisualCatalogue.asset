@@ -93,6 +93,106 @@ MonoBehaviour:
       Y: 0
       Width: 64
       Height: 144
+  - kind: category
+    id: ability
+    subject: ability
+    variant: static
+    sprite: {fileID: 21300000, guid: 99cdc74e5b19f6b4ebc8ec6d91ed6f19, type: 3}
+    opaque:
+      X: 2
+      Y: 8
+      Width: 60
+      Height: 56
+  - kind: category
+    id: attack
+    subject: attack
+    variant: static
+    sprite: {fileID: 21300000, guid: da75cb5160974494e94e74d4dd43550e, type: 3}
+    opaque:
+      X: 11
+      Y: 0
+      Width: 42
+      Height: 62
+  - kind: category
+    id: defense
+    subject: defense
+    variant: static
+    sprite: {fileID: 21300000, guid: daaf7b94dba7eac429dde416cbf6daf0, type: 3}
+    opaque:
+      X: 6
+      Y: 2
+      Width: 52
+      Height: 61
+  - kind: ui
+    id: slot-cooldown
+    subject: slot-cooldown
+    variant: static
+    sprite: {fileID: 21300000, guid: 167e07d4a4fd64f4e961f7f85a09cd66, type: 3}
+    opaque:
+      X: 0
+      Y: 0
+      Width: 128
+      Height: 128
+  - kind: ui
+    id: slot-disabled
+    subject: slot-disabled
+    variant: static
+    sprite: {fileID: 21300000, guid: 059bba9cb230bca4a9c9bdf6ad7008f0, type: 3}
+    opaque:
+      X: 0
+      Y: 0
+      Width: 160
+      Height: 120
+  - kind: ui
+    id: slot-flash
+    subject: slot-flash
+    variant: static
+    sprite: {fileID: 21300000, guid: 35f207f03ddade64e8bc5de5febcadbe, type: 3}
+    opaque:
+      X: 0
+      Y: 0
+      Width: 160
+      Height: 120
+  - kind: ui
+    id: slot-frame-ability
+    subject: slot-frame
+    variant: ability
+    sprite: {fileID: 21300000, guid: bd50d94c7da395f40bdd494a3ba83976, type: 3}
+    opaque:
+      X: 0
+      Y: 0
+      Width: 160
+      Height: 120
+  - kind: ui
+    id: slot-frame-attack
+    subject: slot-frame
+    variant: attack
+    sprite: {fileID: 21300000, guid: 71d18baf8c852354da98ff3c5c88aa85, type: 3}
+    opaque:
+      X: 0
+      Y: 0
+      Width: 160
+      Height: 120
+  - kind: ui
+    id: slot-frame-defense
+    subject: slot-frame
+    variant: defense
+    sprite: {fileID: 21300000, guid: b48aa99f8239071418d2f15337e8e832, type: 3}
+    opaque:
+      X: 0
+      Y: 0
+      Width: 160
+      Height: 120
+  - kind: ui
+    id: slot-glow
+    subject: slot-glow
+    variant: static
+    sprite: {fileID: 21300000, guid: c6eb88768d21da64b9b787a4887d2800, type: 3}
+    opaque:
+      X: 1
+      Y: 1
+      Width: 170
+      Height: 130
   - kind: action
     id: attack-left
     subject: attack-left

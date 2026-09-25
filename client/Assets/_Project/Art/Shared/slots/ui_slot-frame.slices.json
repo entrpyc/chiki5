@@ -1,0 +1,7 @@
+{
+  "borders": {
+    "attack": { "left": 16, "bottom": 16, "right": 16, "top": 16 },
+    "defense": { "left": 16, "bottom": 16, "right": 16, "top": 16 },
+    "ability": { "left": 16, "bottom": 16, "right": 16, "top": 16 }
+  }
+}

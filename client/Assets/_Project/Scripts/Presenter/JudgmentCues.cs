@@ -11,11 +11,17 @@ namespace Chiki.Client.Presenter
     /// the track's (PRD 3.3.1.6). A grade plays the recording the audio catalogue holds for its
     /// id — <c>cue-perfect</c>, <c>cue-good</c>, <c>cue-miss</c> — and, only for an id the
     /// catalogue lacks, a generated tone: high for Perfect, middle for Good, low for Miss.
+    ///
+    /// The refused-press sound (PRD 3.3.5.3) plays through the same source and is counted apart,
+    /// because a refused press is not a judgment: it records no grade and no judgment cue plays.
     /// </summary>
     [DisallowMultipleComponent]
     public sealed class JudgmentCues : MonoBehaviour
     {
         private const int SampleRate = 48000;
+
+        /// <summary>The catalogue id of the refused-press sound (PRD 3.3.5.3).</summary>
+        public const string DisabledSoundId = "press-disabled";
 
         [SerializeField] private AudioClip? perfectCue;
         [SerializeField] private AudioClip? goodCue;
@@ -25,6 +31,7 @@ namespace Chiki.Client.Presenter
         private AudioClip? _generatedPerfect;
         private AudioClip? _generatedGood;
         private AudioClip? _generatedMiss;
+        private AudioClip? _generatedDisabled;
 
         /// <summary>The cue source, created on a child of its own so it never shares a source with the track.</summary>
         public AudioSource Source
@@ -49,6 +56,12 @@ namespace Chiki.Client.Presenter
         public AudioClip? LastClip { get; private set; }
 
         public int PlayCount { get; private set; }
+
+        /// <summary>What the last refused press played (PRD 3.3.5.3).</summary>
+        public AudioClip? LastDisabledClip { get; private set; }
+
+        /// <summary>How many refused presses have sounded; judgment cues are counted apart.</summary>
+        public int DisabledPlayCount { get; private set; }
 
         /// <summary>The catalogue id of a grade's cue (PRD 3.3.8.1).</summary>
         public static string IdOf(Judgment grade)
@@ -83,6 +96,22 @@ namespace Chiki.Client.Presenter
         public bool IsRecorded(Judgment grade)
         {
             return AudioCatalogue.Active.HasSound(IdOf(grade));
+        }
+
+        /// <summary>The clip a refused press plays: the catalogue's recording, or a generated thud.</summary>
+        public AudioClip DisabledClip()
+        {
+            var recorded = AudioCatalogue.Active.Sound(DisabledSoundId);
+            return recorded != null ? recorded : _generatedDisabled ??= Tone(DisabledSoundId, 110f, 90, 0.35f);
+        }
+
+        /// <summary>Plays the refused-press sound; no grade is recorded (PRD 3.3.5.3).</summary>
+        public void PlayDisabled()
+        {
+            var clip = DisabledClip();
+            Source.PlayOneShot(clip);
+            LastDisabledClip = clip;
+            DisabledPlayCount++;
         }
 
         public void Play(Judgment grade)

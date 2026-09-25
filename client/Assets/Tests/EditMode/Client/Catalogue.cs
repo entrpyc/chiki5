@@ -135,6 +135,46 @@ namespace Client
             Assert.That(catalogue.Missing, Is.Empty, "a telegraph icon fell back: " + string.Join(", ", catalogue.Missing));
         }
 
+        /// <summary>P3.1: a frame and an icon per Category, the frames sliced and the icons told apart in greyscale.</summary>
+        [Test]
+        public void category_art_complete()
+        {
+            var catalogue = Shipped();
+            var categories = new[] { CardCategory.Ability, CardCategory.LeftAttack, CardCategory.Defense };
+
+            var images = new Dictionary<string, byte[]>();
+            foreach (var category in categories)
+            {
+                string id = SlotWidget.CategoryId(category);
+
+                string frameId = SlotWidget.FrameIdPrefix + id;
+                Assert.That(catalogue.Has(SlotWidget.UiKind, frameId), Is.True, frameId + " is not in the shipped catalogue");
+                var border = catalogue.Sprite(SlotWidget.UiKind, frameId).border;
+                Assert.That(border.x, Is.GreaterThan(0f), frameId + " has no left 9-slice border");
+                Assert.That(border.y, Is.GreaterThan(0f), frameId + " has no bottom 9-slice border");
+                Assert.That(border.z, Is.GreaterThan(0f), frameId + " has no right 9-slice border");
+                Assert.That(border.w, Is.GreaterThan(0f), frameId + " has no top 9-slice border");
+
+                Assert.That(catalogue.Has(SlotWidget.CategoryKind, id), Is.True, id + " has no Category icon in the shipped catalogue");
+                var icon = catalogue.Sprite(SlotWidget.CategoryKind, id);
+                Assert.That(icon.rect.size, Is.EqualTo(new Vector2(64f, 64f)), id + " is not a 64 by 64 icon");
+                images[id] = File.ReadAllBytes(AssetDatabase.GetAssetPath(icon));
+            }
+
+            foreach (var one in images)
+            {
+                foreach (var other in images)
+                {
+                    if (one.Key != other.Key)
+                    {
+                        Assert.That(one.Value, Is.Not.EqualTo(other.Value), one.Key + " and " + other.Key + " are the same image");
+                    }
+                }
+            }
+
+            Assert.That(catalogue.Missing, Is.Empty, "a Category's art fell back: " + string.Join(", ", catalogue.Missing));
+        }
+
         /// <summary>The catalogue the game ships with, with nothing recorded as missing yet.</summary>
         private static VisualCatalogue Shipped()
         {

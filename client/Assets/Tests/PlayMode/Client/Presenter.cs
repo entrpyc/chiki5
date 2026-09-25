@@ -34,6 +34,19 @@ namespace Client
             return host;
         }
 
+        /// <summary>
+        /// No piece of a slot fell back (P3.1 to P3.4). The whole HUD is up, and art the later
+        /// phases owe — the status icons of P4.3 among it — is legitimately still missing, so
+        /// this looks only at what the slots are drawn from.
+        /// </summary>
+        private static void AssertNoSlotArtMissing(VisualCatalogue catalogue)
+        {
+            var slotArt = catalogue.Missing
+                .Where(id => id.StartsWith(SlotWidget.CategoryKind + "/") || id.StartsWith(SlotWidget.UiKind + "/slot-"))
+                .ToList();
+            Assert.That(slotArt, Is.Empty, "the slots fell back for: " + string.Join(", ", slotArt));
+        }
+
         private static IEnumerator WaitUntilRenderedAt(RhythmLineView line, int audioTimeMs, float timeoutSeconds = 30f)
         {
             float deadline = Time.realtimeSinceStartup + timeoutSeconds;
@@ -432,6 +445,177 @@ namespace Client
 
             var activated = battle.Events.OfType<ModifierActivated>().Single(e => e.Value == EffectValue.EnemyDamageTaken);
             Assert.That(activated.Beats, Is.EqualTo(Tuning.IronVeilBeats), "the veil that darkened the line does not last five beats");
+
+            Object.Destroy(hud.gameObject);
+            rig.Destroy();
+        }
+
+        /// <summary>P3.1: every slot on both lines wears its Category's frame and icon, never another's.</summary>
+        [UnityTest]
+        [Timeout(30000)]
+        public IEnumerator slot_frames_follow_category()
+        {
+            var catalogue = ClientTestContent.ShippedVisuals();
+            var binder = Binder.Starter(ClientTestContent.LoadRunContent().Starter);
+            binder.AutoFill();
+            var loadout = binder.Loadout;
+
+            var rig = ClientTestContent.ScheduledRig("presenter-slot-frames", Beats.ToQuarterBeats(60));
+            var hud = BattleHud.Build(rig.Driver, null, null, slot => loadout[slot]?.Definition);
+            yield return null;
+
+            var expected = new (SlotKey Key, string Category)[]
+            {
+                (SlotKey.Q, "ability"), (SlotKey.W, "ability"),
+                (SlotKey.E, "attack"), (SlotKey.R, "attack"), (SlotKey.U, "attack"), (SlotKey.I, "attack"),
+                (SlotKey.O, "defense"), (SlotKey.P, "defense"),
+            };
+
+            for (int line = 0; line < Slot.LineCount; line++)
+            {
+                foreach (var (key, category) in expected)
+                {
+                    var widget = hud.Slots.Widget(new Slot(line, key));
+                    string where = "line " + line + " slot " + key;
+                    Assert.That(
+                        widget.Frame.sprite,
+                        Is.SameAs(catalogue.Sprite(SlotWidget.UiKind, SlotWidget.FrameIdPrefix + category)),
+                        where + " does not carry the " + category + " frame");
+                    Assert.That(
+                        widget.CategoryIcon.sprite,
+                        Is.SameAs(catalogue.Sprite(SlotWidget.CategoryKind, category)),
+                        where + " does not carry the " + category + " icon");
+                    Assert.That(widget.CategoryIcon.gameObject.activeInHierarchy, Is.True, where + " hides its Category icon");
+                    Assert.That(
+                        widget.Frame.color.a,
+                        Is.EqualTo(widget.IsEmpty ? SlotWidget.EmptyOpacity : 1f).Within(0.001f),
+                        where + " does not draw an empty frame at half opacity");
+                }
+            }
+
+            AssertNoSlotArtMissing(catalogue);
+
+            Object.Destroy(hud.gameObject);
+            rig.Destroy();
+        }
+
+        /// <summary>P3.2: the cooldown overlay sweeps from full to empty across its beats, between beats included.</summary>
+        [UnityTest]
+        [Timeout(30000)]
+        public IEnumerator cooldown_sweeps_with_beats()
+        {
+            var catalogue = ClientTestContent.ShippedVisuals();
+            var card = new CardDefinition("card-cd-3", "Three", CardCategory.LeftAttack, 10, 3);
+            // The fixture track runs at 120 BPM, so beat 1 is 500 ms and a beat is 500 ms long.
+            var rig = ClientTestContent.ScheduledRig("presenter-sweep", Beats.ToQuarterBeats(1));
+            var hud = BattleHud.Build(rig.Driver, null, null, _ => card);
+            var slots = hud.Slots;
+            var widget = slots.Widget(ClientTestContent.SlotE);
+            yield return rig.WaitUntilAudioMs(500);
+
+            Assert.That(rig.Driver.PressAt(ClientTestContent.SlotE, card, 500).Accepted, Is.True, "the press was not accepted");
+
+            var sweep = catalogue.Sprite(SlotWidget.UiKind, SlotWidget.CooldownId);
+            Assert.That(widget.Overlay.sprite, Is.SameAs(sweep), "the cooldown overlay is not the catalogue's sweep");
+            Assert.That(widget.Overlay.type, Is.EqualTo(UnityEngine.UI.Image.Type.Filled), "the overlay is not a filled image");
+            Assert.That(widget.Overlay.fillMethod, Is.EqualTo(UnityEngine.UI.Image.FillMethod.Radial360), "the overlay does not sweep radially");
+            Assert.That(widget.Overlay.fillOrigin, Is.EqualTo((int)UnityEngine.UI.Image.Origin360.Top), "the sweep does not start at the top");
+            Assert.That(widget.Overlay.fillClockwise, Is.True, "the sweep does not run clockwise");
+
+            slots.TickAt(500);
+            Assert.That(widget.CountdownText, Is.EqualTo("3"));
+            Assert.That(widget.CooldownFill, Is.EqualTo(1f).Within(0.02f), "the sweep is not full at the start of the cooldown");
+
+            yield return rig.WaitUntilAudioMs(1000);
+            slots.TickAt(1000);
+            Assert.That(widget.CountdownText, Is.EqualTo("2"));
+            Assert.That(widget.CooldownFill, Is.EqualTo(2f / 3f).Within(0.02f), "the sweep did not fall by a third over one beat");
+
+            yield return rig.WaitUntilAudioMs(1750);
+            slots.TickAt(1750);
+            Assert.That(widget.CountdownText, Is.EqualTo("1"));
+            Assert.That(widget.CooldownFill, Is.EqualTo(1f / 6f).Within(0.02f), "the sweep did not move between beats");
+
+            Object.Destroy(hud.gameObject);
+            rig.Destroy();
+        }
+
+        /// <summary>P3.3: the open-window glow and the press flash are drawn art, and the flash dies in half a beat.</summary>
+        [UnityTest]
+        [Timeout(30000)]
+        public IEnumerator glow_and_flash_drawn_from_catalogue()
+        {
+            var catalogue = ClientTestContent.ShippedVisuals();
+            var card = ClientTestContent.LeftAttack10;
+            var rig = ClientTestContent.ScheduledRig("presenter-slot-glow", Beats.ToQuarterBeats(4));
+            var hud = BattleHud.Build(rig.Driver, null, null, _ => card);
+            var slots = hud.Slots;
+            var widget = slots.Widget(ClientTestContent.SlotE);
+            var pending = rig.Driver.Battle!.PendingAction;
+
+            yield return rig.WaitUntilAudioMs(pending.OpenMs + 20);
+            yield return null;
+            Assert.That(rig.Clock.NowMs, Is.LessThan(pending.CloseMs), "the window had already closed when checked");
+            Assert.That(widget.IsGlowing, Is.True, "a playable slot does not glow inside the window");
+            Assert.That(widget.Glow.sprite, Is.SameAs(catalogue.Sprite(SlotWidget.UiKind, SlotWidget.GlowId)), "the slot glow is not the catalogue's");
+
+            int pressMs = rig.Driver.Battle!.BeatMap.TimeAtBeat(4);
+            Assert.That(rig.Driver.PressAt(ClientTestContent.SlotE, card, pressMs).Accepted, Is.True, "the press on beat 4 was not accepted");
+            Assert.That(widget.IsFlashing, Is.True, "the pressed key did not flash");
+            Assert.That(widget.FlashImage.sprite, Is.SameAs(catalogue.Sprite(SlotWidget.UiKind, SlotWidget.FlashId)), "the press flash is not the catalogue's");
+            Assert.That(widget.FlashAlpha, Is.GreaterThan(0f), "the flash started transparent");
+
+            // Half a beat of the fixture track at 120 BPM.
+            slots.TickAt(pressMs + 250);
+            Assert.That(widget.IsFlashing, Is.False, "the flash outlasted half a beat");
+            Assert.That(widget.FlashAlpha, Is.EqualTo(0f).Within(0.001f), "the flash did not fade to nothing");
+
+            AssertNoSlotArtMissing(catalogue);
+
+            Object.Destroy(hud.gameObject);
+            rig.Destroy();
+        }
+
+        /// <summary>P3.4: a refused press sounds and flashes as itself, and is not a judgment.</summary>
+        [UnityTest]
+        [Timeout(30000)]
+        public IEnumerator disabled_press_sound_and_flash()
+        {
+            var visuals = ClientTestContent.ShippedVisuals();
+            var audio = ClientTestContent.ShippedAudio();
+            var card = new CardDefinition("card-cd-3", "Three", CardCategory.LeftAttack, 10, 3);
+            var rig = ClientTestContent.ScheduledRig("presenter-disabled", Beats.ToQuarterBeats(1));
+            var hud = BattleHud.Build(rig.Driver, null, null, _ => card);
+            var slots = hud.Slots;
+            var widget = slots.Widget(ClientTestContent.SlotE);
+            yield return rig.WaitUntilAudioMs(500);
+
+            Assert.That(rig.Driver.PressAt(ClientTestContent.SlotE, card, 500).Accepted, Is.True, "the press was not accepted");
+            int cuesBefore = hud.Cues.PlayCount;
+
+            // One beat on: E is still cooling, with 2 of its 3 beats left.
+            yield return rig.WaitUntilAudioMs(1000);
+            yield return null;
+            Assert.That(rig.Driver.Battle!.CooldownOf(ClientTestContent.SlotE), Is.EqualTo(2), "E is not cooling with 2 beats left");
+            Assert.That(widget.IsFlashing, Is.False, "the first press's flash is still running");
+
+            var before = rig.Driver.Battle!.Events.Count;
+            var result = rig.Driver.PressAt(ClientTestContent.SlotE, card, 1000);
+            Assert.That(result.Accepted, Is.False, "a cooling slot accepted a press");
+            Assert.That(rig.Driver.Battle!.Events.Skip(before).OfType<SlotDisabled>().Single().Slot, Is.EqualTo(ClientTestContent.SlotE));
+
+            var clip = audio.Sound(JudgmentCues.DisabledSoundId);
+            Assert.That(clip, Is.Not.Null, "the shipped audio catalogue holds no " + JudgmentCues.DisabledSoundId);
+            Assert.That(hud.Cues.DisabledPlayCount, Is.EqualTo(1), "the refused press did not sound exactly once");
+            Assert.That(hud.Cues.LastDisabledClip, Is.SameAs(clip), "the refused press did not play the shipped recording");
+            Assert.That(hud.Cues.PlayCount, Is.EqualTo(cuesBefore), "a judgment cue played on a refused press");
+
+            Assert.That(widget.IsDisabledFlashing, Is.True, "E does not show the disabled flash");
+            Assert.That(
+                widget.DisabledFlashImage.sprite,
+                Is.SameAs(visuals.Sprite(SlotWidget.UiKind, SlotWidget.DisabledId)),
+                "the disabled flash is not the catalogue's");
+            Assert.That(widget.IsFlashing, Is.False, "the ordinary press flash showed on a refused press");
 
             Object.Destroy(hud.gameObject);
             rig.Destroy();

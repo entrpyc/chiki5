@@ -43,5 +43,18 @@ namespace Chiki.Client.Audio
 
             return _qb;
         }
+
+        /// <summary>
+        /// The continuous beat an audio time falls on: whole quarter beats plus the fraction of
+        /// the current one, so anything drawn between beats moves smoothly (P3.2).
+        /// </summary>
+        public float BeatAt(int audioTimeMs)
+        {
+            int qb = QbAt(audioTimeMs);
+            int start = _map.TimeAtQb(qb);
+            int end = _map.TimeAtQb(qb + 1);
+            float fraction = end > start ? Math.Max(0, audioTimeMs - start) / (float)(end - start) : 0f;
+            return (qb + fraction) / Beats.QuarterBeatsPerBeat;
+        }
     }
 }

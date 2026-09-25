@@ -12,5 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a8171831981e8ad4aac1950b4792a57e, type: 3}
   m_Name: AudioCatalogue
   m_EditorClassIdentifier: Chiki.Client::Chiki.Client.Visuals.AudioCatalogue
-  sounds: []
+  sounds:
+  - id: press-disabled
+    clip: {fileID: 8300000, guid: 7c53b9c24331a2b4b8ac56891c4fae76, type: 3}
   tracks: []

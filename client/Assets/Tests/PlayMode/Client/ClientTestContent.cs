@@ -269,6 +269,21 @@ namespace Client
             VisualCatalogue.Use(catalogue);
             return catalogue;
         }
+
+        /// <summary>The audio catalogue the game ships with, handed over as Boot hands it over (P1.4).</summary>
+        public static AudioCatalogue ShippedAudio()
+        {
+            var catalogue = UnityEditor.AssetDatabase.LoadAssetAtPath<AudioCatalogue>(AudioCatalogue.AssetPath);
+            if (catalogue == null)
+            {
+                throw new System.InvalidOperationException(
+                    "No audio catalogue at " + AudioCatalogue.AssetPath + "; run Chiki > Rebuild Visual Catalogue.");
+            }
+
+            catalogue.ClearMissing();
+            AudioCatalogue.Use(catalogue);
+            return catalogue;
+        }
 #endif
 
         /// <summary>A named 4 by 4 sprite the catalogue tests can tell apart by reference (P1.3).</summary>

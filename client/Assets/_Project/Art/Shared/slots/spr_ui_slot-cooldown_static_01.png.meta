@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 1553c06a68ffde842ad77e5cb9a96a49
+guid: 167e07d4a4fd64f4e961f7f85a09cd66
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 203853807950576665
-    second: spr_ui_rhythmline_bg-dark_01_0
+      213: 1093588589579551740
+    second: spr_ui_slot-cooldown_static_01_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -52,7 +52,7 @@ TextureImporter:
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
   spritePixelsToUnits: 100
-  spriteBorder: {x: 32, y: 0, z: 32, w: 0}
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
   alphaIsTransparency: 1
@@ -113,13 +113,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: spr_ui_rhythmline_bg-dark_01_0
+      name: spr_ui_slot-cooldown_static_01_0
       rect:
         serializedVersion: 2
         x: 0
         y: 0
-        width: 400
-        height: 180
+        width: 128
+        height: 128
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -128,8 +128,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 91c310155fb34d200800000000000000
-      internalID: 203853807950576665
+      spriteID: cf34f4437053d2f00800000000000000
+      internalID: 1093588589579551740
       vertices: []
       indices: 
       edges: []

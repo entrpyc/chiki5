@@ -11,6 +11,7 @@ namespace Chiki.Client.Presenter
     /// Judgment feedback (PRD 3.3.8.1): a cue per grade and a key flash on every graded input,
     /// a glow on the cards that can be played while the next action's Judgment Window is open,
     /// and a light camera shake when a hit costs more than <see cref="HeavyHitThreshold"/> ARD.
+    /// A refused press gets its own sound and its own flash instead (PRD 3.3.5.3).
     /// The Rhythm Line highlights its own incoming actions. Everything here reads the event
     /// stream and battle state; nothing changes them.
     /// </summary>
@@ -67,6 +68,11 @@ namespace Chiki.Client.Presenter
                     Cues.Play(judged.Grade);
                     Slots?.Flash(judged.Slot, NowMs(battle));
                     _answeredIndex = judged.ActionIndex;
+                    break;
+
+                case SlotDisabled disabled:
+                    Cues.PlayDisabled();
+                    Slots?.FlashDisabled(disabled.Slot, NowMs(battle));
                     break;
 
                 case DamageTaken taken when taken.Amount > HeavyHitThreshold:

@@ -199,13 +199,13 @@ After that the order follows what the player reads first in a fight. The Rhythm 
 - Needs: P2.1
 - Test (integration): `Client.Presenter › iron_veil_darkens_line_for_five_beats` — given an enemy with Iron Veil whose buff lands at beat 2, when beats 2 to 8 render, then the line shows the dark background and the Iron Veil icon until the veil expires 5 beats later, and the normal background with no icon after.
 
-### Phase 3 — Slots read by colour and shape
+### ✅ Phase 3 — Slots read by colour and shape
 
 *The sixteen slots carry their category's frame and icon, a radial cooldown sweep, a drawn glow and flash, and a distinct disabled flash and sound. Done when every P3 test is green and the suite passes.*
 
 **Generated assets:** `tools/gen-phase3-art.mjs` draws the three category slot frames, the three category icons, the cooldown sweep, the glow, the press flash and the disabled flash, the three icons as silhouettes that stay apart in greyscale; `tools/gen-phase3-audio.mjs` renders the disabled-press sound as a short muted thud unlike any judgment cue. Ten sprites and one WAV.
 
-#### P3.1 Category frames and icons
+#### ✅ P3.1 Category frames and icons
 - PRD: 3.4.2
 - Does: every slot frame uses its category's frame, Attack red for E, R, U and I, Defense blue for O and P, Ability green for Q and W, with the category icon in the top-right corner; the icon always appears with the colour, never instead of it. Empty slots show the frame at half opacity. The inactive line stays at 70% scale.
 - Assets, in `Art/Shared/slots/`:
@@ -215,21 +215,21 @@ After that the order follows what the player reads first in a fight. The Rhythm 
 - Test (integration): `Client.Catalogue › category_art_complete` — given the shipped catalogue, when the three categories are read, then each has a frame with borders set and a 64 × 64 icon, and no two icons are the same image.
 - Test (integration): `Client.Presenter › slot_frames_follow_category` — given the starter loadout, when the battle HUD renders, then on both lines Q and W carry the ability frame and icon, E, R, U and I the attack frame and icon, and O and P the defense frame and icon.
 
-#### P3.2 Radial cooldown
+#### ✅ P3.2 Radial cooldown
 - PRD: 3.3.5.4
 - Does: the cooldown overlay becomes a radial sweep, `Image.Filled` Radial 360 clockwise from the top, whose fill is the fraction of cooldown left, read from audio time so it moves smoothly between beats; the beat count stays as text on top.
 - Assets: `spr_ui_slot-cooldown_static_01.png`, 128 × 128, a white rounded square matching the slot frame's corners; the client dims and fills it.
 - Needs: P3.1
 - Test (integration): `Client.Presenter › cooldown_sweeps_with_beats` — given a 3-beat cooldown started at beat 1, when audio time is at beat 1, beat 2 and halfway through beat 3, then the fill is 1, 2/3 and 1/6 within 0.02, the count reads 3, 2 and 1, and the overlay carries the catalogue sprite.
 
-#### P3.3 Glow and press flash
+#### ✅ P3.3 Glow and press flash
 - PRD: 3.3.8.1
 - Does: the open-window glow and the key-press flash use their sprites; the flash fades from full to nothing over half a beat of audio time, as today.
 - Assets: `spr_ui_slot-glow_static_01.png`, 9-slice, 172 × 132, 22 px borders, soft outer glow; `spr_ui_slot-flash_static_01.png`, 9-slice, 160 × 120, 16 px borders, white.
 - Needs: P3.1
 - Test (integration): `Client.Presenter › glow_and_flash_drawn_from_catalogue` — given the window at beat 4 and a press on E at beat 4, when rendered, then the playable slots' glow and E's flash carry the catalogue sprites, and E's flash alpha is 0 half a beat later.
 
-#### P3.4 Disabled press
+#### ✅ P3.4 Disabled press
 - PRD: 3.3.5.3
 - Does: a `SlotDisabled` event plays `press-disabled` from the audio catalogue and shows the disabled flash on that slot for half a beat; no judgment cue plays and the ordinary press flash does not show.
 - Assets: `spr_ui_slot-disabled_static_01.png`, 9-slice, 160 × 120, 16 px borders; `sfx_press_disabled.wav`, under 150 ms, clearly unlike the three judgment cues.

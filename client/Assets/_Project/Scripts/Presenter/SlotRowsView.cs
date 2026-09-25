@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using Chiki.Client.Audio;
 using Chiki.Client.Driver;
 using Chiki.Client.Keys;
-using Chiki.Client.Text;
 using Chiki.Sim;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -14,8 +13,9 @@ namespace Chiki.Client.Presenter
     /// <summary>
     /// The sixteen slot widgets in two rows (PRD 3.3.5.4, 3.3.2.2): both rows are always on
     /// screen, the active line's row at full width and the other rendered narrower. Each slot
-    /// shows its key's label for the current layout (PRD 3.3.2.5), the card it holds, and while
-    /// on cooldown a dim overlay with the beats left, read from the battle after every event.
+    /// shows its Category's frame and icon (PRD 3.4.2), its key's label for the current layout
+    /// (PRD 3.3.2.5), the card it holds, and while on cooldown a radial sweep with the beats
+    /// left, read from the battle after every event.
     /// </summary>
     [DisallowMultipleComponent]
     public sealed class SlotRowsView : MonoBehaviour, IBattlePresenter
@@ -33,6 +33,7 @@ namespace Chiki.Client.Presenter
         private readonly List<SlotWidget> _widgets = new List<SlotWidget>();
         private readonly Dictionary<Slot, SlotWidget> _bySlot = new Dictionary<Slot, SlotWidget>();
         private BeatClock? _clock;
+        private BeatCursor? _cursor;
         private Sim.Battle? _battle;
         private BattleInput? _input;
         private Func<Slot, CardDefinition?>? _cardInSlot;
@@ -97,6 +98,32 @@ namespace Chiki.Client.Presenter
             Widget(slot).Flash(audioTimeMs);
         }
 
+        /// <summary>Flashes a slot as refused at an audio time; no press flash shows (PRD 3.3.5.3).</summary>
+        public void FlashDisabled(Slot slot, int audioTimeMs)
+        {
+            Widget(slot).FlashDisabled(audioTimeMs);
+        }
+
+        /// <summary>
+        /// Moves every widget's flashes and cooldown sweep to an audio time, as the frame loop
+        /// does; the tests drive it at an exact time rather than at whatever the frame landed on.
+        /// </summary>
+        public void TickAt(int audioTimeMs)
+        {
+            if (_battle == null)
+            {
+                return;
+            }
+
+            _cursor ??= new BeatCursor(_battle.BeatMap);
+            float beatMs = HudFactory.BeatMs(_battle);
+            float beatNow = _cursor.BeatAt(audioTimeMs);
+            foreach (var widget in _widgets)
+            {
+                widget.Tick(audioTimeMs, beatMs, beatNow);
+            }
+        }
+
         /// <summary>Re-reads every key's label from the current keyboard layout (PRD 3.3.2.5).</summary>
         public void RefreshLabels()
         {
@@ -120,7 +147,7 @@ namespace Chiki.Client.Presenter
             {
                 widget.SetCooldown(battle.CooldownOf(widget.Slot));
                 var card = _cardInSlot?.Invoke(widget.Slot);
-                widget.SetCard(card != null ? card.Name : Strings.Get("slot.empty"));
+                widget.SetCard(card);
             }
         }
 
@@ -187,12 +214,7 @@ namespace Chiki.Client.Presenter
                 return;
             }
 
-            int now = Math.Max(0, _clock.NowMs);
-            float beatMs = HudFactory.BeatMs(_battle);
-            foreach (var widget in _widgets)
-            {
-                widget.Tick(now, beatMs);
-            }
+            TickAt(Math.Max(0, _clock.NowMs));
         }
 
         private void OnDestroy()

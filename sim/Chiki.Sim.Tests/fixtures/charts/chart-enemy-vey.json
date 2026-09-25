@@ -1,0 +1,27 @@
+{
+  "id": "chart-enemy-vey",
+  "enemy": "enemy-vey",
+  "track": "track-fixture-vey",
+  "actions": [
+    { "kind": "attack-left", "position": 1 },
+    { "kind": "attack-right", "position": 2, "applies": [ { "status": "bleed", "stacks": 1 } ] },
+    { "kind": "attack-left", "position": 3 },
+    { "kind": "charge", "position": 4, "windUpBeats": 3 },
+    { "kind": "attack-right", "position": 8 },
+    { "kind": "attack-left", "position": 9 },
+    { "kind": "attack-right", "position": 10.25, "applies": [ { "status": "bleed", "stacks": 1 } ] },
+    { "kind": "attack-left", "position": 11 },
+    { "kind": "buff", "position": 12 },
+    { "kind": "attack-right", "position": 13 },
+    { "kind": "attack-left", "position": 14 },
+    { "kind": "attack-right", "position": 15 },
+    { "kind": "charge", "position": 16, "windUpBeats": 4 },
+    { "kind": "attack-left", "position": 21 },
+    { "kind": "attack-right", "position": 22, "applies": [ { "status": "bleed", "stacks": 1 } ] },
+    { "kind": "attack-left", "position": 23 },
+    { "kind": "attack-right", "position": 24 },
+    { "kind": "attack-left", "position": 25.75 },
+    { "kind": "attack-right", "position": 27 },
+    { "kind": "buff", "position": 28 }
+  ]
+}

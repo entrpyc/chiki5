@@ -139,5 +139,94 @@ namespace Client
 
             rig.Destroy();
         }
+
+#if UNITY_EDITOR
+        [UnityTest]
+        [Timeout(90000)]
+        public IEnumerator recorded_track_continuous_through_stun_signature_and_loop()
+        {
+            // P11.3, PRD 3.3.1.6: Ren's recording under a battle with attacks on beats 1 to 8; three
+            // sends fire the Signature on beat 3, a Stun lands on beat 5, and the track loops at 16 s.
+            ClientTestContent.ShippedAudio();
+            try
+            {
+                var track = Chiki.Client.Scene.BattleContent.LoadFixtures().Enemy("enemy-ren").Track;
+                var recorded = Chiki.Client.Visuals.AudioCatalogue.Active.Track(track.Id);
+                Assert.That(recorded, Is.Not.Null, "Ren's track has no recording in the shipped audio catalogue");
+
+                var rig = new Rig("clock-recorded");
+                rig.Clock.Schedule(track, Chiki.Client.Audio.TrackAudio.For(track));
+                var battle = ClientTestContent.Battle(ClientTestContent.Chart(track, Enumerable.Range(1, 8).Select(Beats.ToQuarterBeats).ToArray()));
+                rig.Driver.Bind(rig.Clock, battle);
+                rig.Driver.Script(new[]
+                {
+                    new Chiki.Client.Driver.ScriptedInput(500, ClientTestContent.SlotE, ClientTestContent.LeftAttack10, SignatureSend: true),
+                    new Chiki.Client.Driver.ScriptedInput(1000, ClientTestContent.SlotR, ClientTestContent.LeftAttack10, SignatureSend: true),
+                    new Chiki.Client.Driver.ScriptedInput(1500, ClientTestContent.SlotELine2, ClientTestContent.LeftAttack10, SignatureSend: true),
+                });
+                var source = rig.Source;
+                Assert.That(source.clip, Is.SameAs(recorded), "the battle is not on the shipped recording");
+
+                int lapMs = track.OffsetMs + track.BeatMap.LengthMs;
+                double runSeconds = lapMs / 1000.0 + 2.0;
+                Assert.That(runSeconds, Is.LessThan(40.0), "the loop does not fall inside 40 seconds");
+
+                AudioSettings.GetDSPBufferSize(out int bufferLength, out _);
+                int clipSamples = source.clip.samples;
+                int frequency = source.clip.frequency;
+
+                yield return rig.WaitUntilAudioMs(0);
+                double startDsp = AudioSettings.dspTime;
+                double lastDsp = startDsp;
+                int lastSamples = source.timeSamples;
+                int wraps = 0;
+                int frames = 0;
+                double worstDrift = 0;
+                bool pitchStayed = true;
+                bool stunned = false;
+                while (AudioSettings.dspTime - startDsp < runSeconds)
+                {
+                    yield return null;
+                    if (!stunned && rig.Clock.NowMs >= 2400)
+                    {
+                        battle.ApplyStatus(StatusTarget.Player, StatusKind.Stun);
+                        stunned = true;
+                    }
+
+                    double nowDsp = AudioSettings.dspTime;
+                    int nowSamples = source.timeSamples;
+                    long advanced = nowSamples - lastSamples;
+                    if (advanced < 0)
+                    {
+                        advanced += clipSamples; // the loop point: the position wrapped to the start of the clip
+                        wraps++;
+                    }
+
+                    // DSP time counts whole samples; rounding drops the error of holding it as seconds in a double.
+                    double elapsed = Math.Round((nowDsp - lastDsp) * frequency);
+                    worstDrift = Math.Max(worstDrift, Math.Abs(advanced - elapsed));
+                    pitchStayed &= Mathf.Approximately(source.pitch, 1f);
+                    lastDsp = nowDsp;
+                    lastSamples = nowSamples;
+                    frames++;
+                }
+
+                Assert.That(battle.Events.OfType<SignatureFired>().Count(), Is.EqualTo(1), "the Signature did not fire");
+                Assert.That(battle.Events.OfType<StatusTriggered>().Any(e => e.Kind == StatusKind.Stun), Is.True, "the Stun did not act");
+                Assert.That(battle.Events.OfType<TrackLooped>().Any(), Is.True, "the battle did not loop");
+                Assert.That(wraps, Is.EqualTo(1), "the recording did not wrap exactly once at the loop point");
+                Assert.That(frames, Is.GreaterThan(0));
+                Assert.That(worstDrift, Is.LessThanOrEqualTo(bufferLength), "on some frame the source advanced " + worstDrift + " samples away from the audio time elapsed, more than one " + bufferLength + "-sample buffer");
+                Assert.That(pitchStayed, Is.True, "the pitch changed");
+                Assert.That(source.isPlaying, Is.True, "the track stopped");
+
+                rig.Destroy();
+            }
+            finally
+            {
+                ClientTestContent.ClearCatalogues();
+            }
+        }
+#endif
     }
 }

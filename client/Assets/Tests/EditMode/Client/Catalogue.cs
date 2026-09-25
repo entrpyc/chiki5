@@ -4,6 +4,8 @@ using System.IO;
 using System.Linq;
 using Chiki.Client.Editor;
 using Chiki.Client.Presenter;
+using Chiki.Client.Scene;
+using Chiki.Client.Screens;
 using Chiki.Client.Visuals;
 using Chiki.Sim;
 using Chiki.Sim.Data;
@@ -226,6 +228,31 @@ namespace Client
             Assert.That(catalogue.Missing, Is.Empty, "a judgment cue fell back: " + string.Join(", ", catalogue.Missing));
         }
 
+        /// <summary>P11.1: every fixture enemy's track has a recording as long as its sidecar's offset plus one lap of its beat map.</summary>
+        [Test]
+        public void cast_tracks_complete()
+        {
+            var catalogue = ShippedAudio();
+            var enemies = Chiki.Client.Scene.BattleContent.LoadFixtures().Enemies.Values.ToList();
+            Assert.That(enemies, Has.Count.EqualTo(5), "the fixture cast is not the five enemies");
+
+            foreach (var enemy in enemies)
+            {
+                var track = enemy.Track;
+                var clip = catalogue.Track(track.Id);
+                Assert.That(clip, Is.Not.Null, enemy.Id + "'s track " + track.Id + " has no recording in the shipped audio catalogue");
+
+                double expectedMs = track.OffsetMs + track.BeatMap.LengthMs;
+                double actualMs = clip!.samples * 1000.0 / clip.frequency;
+                Assert.That(
+                    actualMs,
+                    Is.EqualTo(expectedMs).Within(10.0),
+                    track.Id + " lasts " + actualMs + " ms, but its sidecar gives " + track.OffsetMs + " ms offset plus " + track.BeatMap.LengthMs + " ms of beats");
+            }
+
+            Assert.That(catalogue.Missing, Is.Empty, "a cast track fell back: " + string.Join(", ", catalogue.Missing));
+        }
+
         /// <summary>P4.3: one icon per status, each at 64 by 64 and each a different image.</summary>
         [Test]
         public void status_icons_complete()
@@ -268,11 +295,132 @@ namespace Client
         [Test]
         public void enemy_ren_art_complete()
         {
-            AssertFighterArtComplete(StageView.EnemyKind, "ren", FighterClips.Enemy);
-            var charge = Shipped().Clip(StageView.EnemyKind, "ren", FighterClips.Charge);
-            Assert.That(charge.FrameCount, Is.EqualTo(4), "Ren's charge wind-up is not four frames");
-            Assert.That(charge.Loop, Is.True, "Ren's charge wind-up does not loop");
-            Assert.That(charge.LengthBeats, Is.EqualTo(1), "Ren's charge wind-up does not last one beat");
+            AssertEnemyArtComplete("ren");
+        }
+
+        /// <summary>P6.1: Kess's seven clips, on every condition Ren's are held to.</summary>
+        [Test]
+        public void enemy_kess_art_complete()
+        {
+            AssertEnemyArtComplete("kess");
+        }
+
+        /// <summary>P6.2: Vey's seven clips, on every condition Ren's are held to.</summary>
+        [Test]
+        public void enemy_vey_art_complete()
+        {
+            AssertEnemyArtComplete("vey");
+        }
+
+        /// <summary>P6.3: Orm's seven clips, on every condition Ren's are held to.</summary>
+        [Test]
+        public void enemy_orm_art_complete()
+        {
+            AssertEnemyArtComplete("orm");
+        }
+
+        /// <summary>P6.4: Malk's seven clips, on every condition Ren's are held to.</summary>
+        [Test]
+        public void enemy_malk_art_complete()
+        {
+            AssertEnemyArtComplete("malk");
+        }
+
+        /// <summary>
+        /// One enemy's clip set (P5.5, and P6.1 to P6.4 on the same conditions): the seven clips
+        /// every fighter carries, plus the four-frame charge wind-up that loops over one beat.
+        /// </summary>
+        private static void AssertEnemyArtComplete(string subject)
+        {
+            AssertFighterArtComplete(StageView.EnemyKind, subject, FighterClips.Enemy);
+            var charge = Shipped().Clip(StageView.EnemyKind, subject, FighterClips.Charge);
+            Assert.That(charge.FrameCount, Is.EqualTo(4), subject + "'s charge wind-up is not four frames");
+            Assert.That(charge.Loop, Is.True, subject + "'s charge wind-up does not loop");
+            Assert.That(charge.LengthBeats, Is.EqualTo(1), subject + "'s charge wind-up does not last one beat");
+        }
+
+        /// <summary>P7.1: a card frame per Category and a treatment per rarity, each drawn at the card's 512 by 720.</summary>
+        [Test]
+        public void card_frames_complete()
+        {
+            var catalogue = Shipped();
+            var frames = new[] { CardCategory.LeftAttack, CardCategory.Defense, CardCategory.Ability }.Select(CardFace.FrameId).ToArray();
+            var rarities = ((CardRarity[])System.Enum.GetValues(typeof(CardRarity))).Select(CardFace.RarityId).ToArray();
+            Assert.That(frames, Is.Unique.And.Length.EqualTo(3), "the three Category frames are not three ids");
+            Assert.That(rarities, Is.Unique.And.Length.EqualTo(4), "the four rarity treatments are not four ids");
+
+            foreach (string id in frames.Concat(rarities))
+            {
+                Assert.That(catalogue.Has(CardFace.UiKind, id), Is.True, id + " is not in the shipped catalogue");
+                var sprite = catalogue.Sprite(CardFace.UiKind, id);
+                Assert.That(sprite.rect.size, Is.EqualTo(CardFace.ArtSize), id + " is not drawn at 512 by 720");
+            }
+
+            Assert.That(catalogue.Missing, Is.Empty, "a card frame or treatment fell back: " + string.Join(", ", catalogue.Missing));
+        }
+
+        /// <summary>P7.2: every card of the starter set has its illustration, at the card's 512 by 720.</summary>
+        [Test]
+        public void starter_card_art_complete()
+        {
+            var catalogue = Shipped();
+            var set = CardLoader.SetFromJson(Chiki.Client.Content.ContentFiles.ReadText("sets/starter.json"));
+            Assert.That(set.Cards, Is.Not.Empty, "the starter set holds no cards");
+
+            foreach (var card in set.Cards)
+            {
+                string id = CardFace.IllustrationId(card);
+                var sprite = catalogue.Sprite(CardFace.CardKind, id);
+                Assert.That(sprite.rect.size, Is.EqualTo(CardFace.ArtSize), card.Id + "'s illustration is not drawn at 512 by 720");
+            }
+
+            Assert.That(catalogue.Missing, Is.Empty, "a starter card has no illustration: " + string.Join(", ", catalogue.Missing));
+        }
+
+        /// <summary>P8.3: every fixture enemy's portrait id resolves to a 512 by 512 portrait.</summary>
+        [Test]
+        public void enemy_portraits_complete()
+        {
+            var catalogue = Shipped();
+            var enemies = BattleContent.LoadFixtures().Enemies.Values.ToList();
+            Assume.That(enemies, Is.Not.Empty, "data/enemies/fixtures.json holds no enemy");
+
+            foreach (var enemy in enemies)
+            {
+                Assert.That(enemy.PortraitId, Is.Not.Null.And.Not.Empty, enemy.Id + " names no portrait");
+                string subject = EnemyCard.PortraitSubject(enemy);
+                Assert.That(catalogue.Has(EnemyCard.PortraitKind, subject), Is.True, enemy.PortraitId + " resolves to nothing in the shipped catalogue");
+                var sprite = catalogue.Sprite(EnemyCard.PortraitKind, subject);
+                Assert.That(sprite.rect.size, Is.EqualTo(new Vector2(512f, 512f)), enemy.PortraitId + " is not a 512 by 512 portrait");
+            }
+
+            Assert.That(catalogue.Missing, Is.Empty, "a portrait fell back: " + string.Join(", ", catalogue.Missing));
+        }
+
+        /// <summary>P8.4: every ability and trait a fixture enemy carries, and every role, has a 64 by 64 icon.</summary>
+        [Test]
+        public void power_and_role_icons_complete()
+        {
+            var catalogue = Shipped();
+            var enemies = BattleContent.LoadFixtures().Enemies.Values.ToList();
+            var icons = new List<(string Kind, string Id)>();
+            icons.AddRange(enemies.SelectMany(e => e.Abilities).Distinct().Select(a => (EnemyCard.AbilityKind, EnemyLoader.AbilityToId(a))));
+            icons.AddRange(enemies.SelectMany(e => e.Traits).Distinct().Select(t => (EnemyCard.TraitKind, EnemyLoader.TraitToId(t))));
+            foreach (EnemyRole role in System.Enum.GetValues(typeof(EnemyRole)))
+            {
+                icons.Add((EnemyCard.RoleKind, EnemyLoader.RoleToId(role)));
+            }
+
+            Assume.That(icons.Count(i => i.Kind == EnemyCard.RoleKind), Is.EqualTo(3), "the three roles of PRD 3.6.1 were not all looked up");
+
+            foreach (var (kind, id) in icons)
+            {
+                Assert.That(catalogue.Has(kind, id), Is.True, kind + "/" + id + " has no icon in the shipped catalogue");
+                var sprite = catalogue.Sprite(kind, id);
+                Assert.That(sprite.rect.size, Is.EqualTo(new Vector2(64f, 64f)), kind + "/" + id + " is not a 64 by 64 icon");
+            }
+
+            Assert.That(catalogue.Missing, Is.Empty, "an icon fell back: " + string.Join(", ", catalogue.Missing));
         }
 
         /// <summary>

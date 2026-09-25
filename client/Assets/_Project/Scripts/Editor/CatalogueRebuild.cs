@@ -98,6 +98,7 @@ namespace Chiki.Client.Editor
 
             catalogue.RemoveAll();
             var trackIds = TrackIds();
+            var oggTracks = new HashSet<string>(StringComparer.Ordinal);
             int count = 0;
             foreach (string assetPath in Files(AudioAssetPostprocessor.AudioRoot, "*.*"))
             {
@@ -128,8 +129,25 @@ namespace Chiki.Client.Editor
                     continue;
                 }
 
+                // A recording (OGG) wins over a generated stand-in (WAV) of the same name, so a
+                // real track replaces the stand-in by being added beside it (docs/plan.md, Generators).
+                bool isOgg = fileName.EndsWith(".ogg", StringComparison.OrdinalIgnoreCase);
+                if (oggTracks.Contains(trackId) && !isOgg)
+                {
+                    continue;
+                }
+
+                if (isOgg)
+                {
+                    oggTracks.Add(trackId);
+                }
+
+                if (!catalogue.HasTrack(trackId))
+                {
+                    count++;
+                }
+
                 catalogue.PutTrack(trackId, clip);
-                count++;
             }
 
             return count;

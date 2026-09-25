@@ -25,4 +25,14 @@ MonoBehaviour:
     clip: {fileID: 8300000, guid: 90e6fc2eb97d79943804668b2b8e3db7, type: 3}
   - id: press-disabled
     clip: {fileID: 8300000, guid: 7c53b9c24331a2b4b8ac56891c4fae76, type: 3}
-  tracks: []
+  tracks:
+  - id: track-fixture-kess
+    clip: {fileID: 8300000, guid: 00d1abdfdf7cb324c9798263e7497f1a, type: 3}
+  - id: track-fixture-malk
+    clip: {fileID: 8300000, guid: 64e0f0f8ba68424489ebd4ba8d8715dc, type: 3}
+  - id: track-fixture-orm
+    clip: {fileID: 8300000, guid: 998b76b3bfbc5b748b2afb4987a29a4e, type: 3}
+  - id: track-fixture-ren
+    clip: {fileID: 8300000, guid: 59b382e540dad754d88f10b9cd621204, type: 3}
+  - id: track-fixture-vey
+    clip: {fileID: 8300000, guid: 7c79cb0034b7eff45b76664dc047b9de, type: 3}

@@ -167,6 +167,13 @@ namespace Client
 
             foreach (var button in root.GetComponentsInChildren<Button>(true))
             {
+                // A card face offered as a pick is clicked through an invisible hit area laid over
+                // it (P7.4); the face is what the player sees, so the area carries no skin.
+                if (button.transition == Selectable.Transition.None && button.targetGraphic != null && button.targetGraphic.color.a == 0f)
+                {
+                    continue;
+                }
+
                 string name = "the " + screen + " screen's " + button.name + " button";
                 Assert.That(button.transition, Is.EqualTo(Selectable.Transition.SpriteSwap), name + " does not swap sprites");
                 Assert.That(((Image)button.targetGraphic).sprite, Is.SameAs(catalogue.Sprite(UiSkin.Kind, UiSkin.ButtonNormalId)), name + " has no normal sprite");

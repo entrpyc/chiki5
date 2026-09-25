@@ -1,0 +1,42 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 087105096b754cb4aaf6b6bf7eaf6cd6, type: 3}
+  m_Name: clip_enemy_vey_charge
+  m_EditorClassIdentifier: Chiki.Client::Chiki.Client.Visuals.SpriteClip
+  kind: enemy
+  subject: vey
+  variant: charge
+  frames:
+  - {fileID: 21300000, guid: 7586cc7a690fdb84da8c471846c0ea3c, type: 3}
+  - {fileID: 21300000, guid: 40b397ed92527434d9c5334434cf70e5, type: 3}
+  - {fileID: 21300000, guid: ac304eefb00f32047bc4c33c8e50729b, type: 3}
+  - {fileID: 21300000, guid: 668c9f35c3b9d214484a73227ec64cc2, type: 3}
+  lengthBeats: 1
+  loop: 1
+  strikeFrame: 0
+  frameBounds:
+  - X: 204
+    Y: 0
+    Width: 220
+    Height: 413
+  - X: 206
+    Y: 0
+    Width: 220
+    Height: 412
+  - X: 204
+    Y: 0
+    Width: 220
+    Height: 413
+  - X: 202
+    Y: 0
+    Width: 219
+    Height: 412

@@ -109,12 +109,14 @@ namespace Chiki.Client.Profiles
 
         /// <summary>
         /// One step per past version: rewrites a file of that version into the next (P22.3).
-        /// Version 1 to 2: <c>bossesDefeated</c> joined the file (P21.5); Unity's JSON reader
-        /// gives a missing field its default, so the step changes nothing but the version.
+        /// Version 1 to 2: <c>bossesDefeated</c> joined the file (P21.5). Version 2 to 3:
+        /// <c>enemiesFought</c> joined it, empty (P8.1). Unity's JSON reader gives a missing
+        /// field its default, so neither step changes anything but the version.
         /// </summary>
         private static readonly Dictionary<int, Func<string, string>> Migrations = new Dictionary<int, Func<string, string>>
         {
             [1] = text => text,
+            [2] = text => text,
         };
 
         /// <summary>The file text brought up to this build's schema; a newer file is refused untouched.</summary>

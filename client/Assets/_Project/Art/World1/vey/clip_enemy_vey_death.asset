@@ -1,0 +1,62 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 087105096b754cb4aaf6b6bf7eaf6cd6, type: 3}
+  m_Name: clip_enemy_vey_death
+  m_EditorClassIdentifier: Chiki.Client::Chiki.Client.Visuals.SpriteClip
+  kind: enemy
+  subject: vey
+  variant: death
+  frames:
+  - {fileID: 21300000, guid: e0a016a1ae0a08647bafc9e0b2179477, type: 3}
+  - {fileID: 21300000, guid: 4d73eacc6fc3de3409a7aaed66b1f44e, type: 3}
+  - {fileID: 21300000, guid: f390c1bead698a44ab22713380cff3b6, type: 3}
+  - {fileID: 21300000, guid: 7e1bb47a199b93e4a8b257d4626a0593, type: 3}
+  - {fileID: 21300000, guid: 58677f28cb72adf479f5a659a691fe46, type: 3}
+  - {fileID: 21300000, guid: e367e917f37595a45afa72b3e86da7cf, type: 3}
+  - {fileID: 21300000, guid: 86b2087485a5cd6449a867e45aba4c6f, type: 3}
+  - {fileID: 21300000, guid: f2443f373db0cd24791b56bb8faf7595, type: 3}
+  lengthBeats: 2
+  loop: 0
+  strikeFrame: 0
+  frameBounds:
+  - X: 186
+    Y: 0
+    Width: 163
+    Height: 378
+  - X: 194
+    Y: 0
+    Width: 132
+    Height: 363
+  - X: 174
+    Y: 0
+    Width: 164
+    Height: 341
+  - X: 151
+    Y: 0
+    Width: 204
+    Height: 312
+  - X: 133
+    Y: 0
+    Width: 238
+    Height: 277
+  - X: 119
+    Y: 0
+    Width: 266
+    Height: 238
+  - X: 111
+    Y: 0
+    Width: 288
+    Height: 194
+  - X: 110
+    Y: 0
+    Width: 302
+    Height: 148

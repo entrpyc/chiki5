@@ -1,0 +1,52 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 087105096b754cb4aaf6b6bf7eaf6cd6, type: 3}
+  m_Name: clip_enemy_kess_attack-right
+  m_EditorClassIdentifier: Chiki.Client::Chiki.Client.Visuals.SpriteClip
+  kind: enemy
+  subject: kess
+  variant: attack-right
+  frames:
+  - {fileID: 21300000, guid: b877a477ebde8fa408e921ddab0fa63d, type: 3}
+  - {fileID: 21300000, guid: 10a55a13d8dd9ba40bcc2beb7990dffd, type: 3}
+  - {fileID: 21300000, guid: 0709bbbe7f8547b44b24edeb30bf7c81, type: 3}
+  - {fileID: 21300000, guid: 41f11b68f94de124c9b3eedf8b19b9fd, type: 3}
+  - {fileID: 21300000, guid: 828e0099ed3899e459106feb18f79b80, type: 3}
+  - {fileID: 21300000, guid: c2c2735a6acb2f14e88e58d609c8a5fe, type: 3}
+  lengthBeats: 2
+  loop: 0
+  strikeFrame: 3
+  frameBounds:
+  - X: 221
+    Y: 0
+    Width: 203
+    Height: 440
+  - X: 190
+    Y: 0
+    Width: 197
+    Height: 420
+  - X: 14
+    Y: 0
+    Width: 301
+    Height: 401
+  - X: 58
+    Y: 0
+    Width: 251
+    Height: 415
+  - X: 119
+    Y: 0
+    Width: 194
+    Height: 423
+  - X: 168
+    Y: 0
+    Width: 156
+    Height: 427

@@ -330,49 +330,49 @@ After that the order follows what the player reads first in a fight. The Rhythm 
 - Needs: P5.1
 - Test (integration): `Client.Catalogue › enemy_ren_art_complete` — given the shipped catalogue, when Ren's clips are read, then all seven exist, idle has 8 frames looping over 2 beats, charge has 4 frames looping over 1 beat, the others have 3 to 8 frames, both attacks have a strike frame, and the first idle frame's opaque height is 360 to 440 px.
 
-### Phase 6 — The whole cast
+### ✅ Phase 6 — The whole cast
 
 *Every enemy the game can roll is drawn and animated. Done when every P6 test is green and the suite passes.*
 
 **Generated assets:** `tools/gen-phase6-art.mjs` draws Kess, Vey, Orm and Malk, seven clips each with a sidecar, from the same puppet as Phase 5 and on the same spec as Ren; each one's proportions, palette and headpiece are seeded from its enemy id, so no two of the five share a silhouette. About 160 frames and four sidecars.
 
-#### P6.1 Kess's art
+#### ✅ P6.1 Kess's art
 - PRD: 3.14.1
 - Does: Kess's seven clips are catalogued as enemy `kess`. Kess: Normal tier, Aggressor, fast rhythm, Rising Tempo, "Every hit I land is the next one's warm-up."
 - Assets: in `Art/World1/kess/`, `spr_enemy_kess_<clip>_<nn>.png` for idle (8 frames), attack-left, attack-right, defend, charge (4 frames), hit and death, on the canvas, height and facing rules of P5.5; `enemy_kess.clips.json`.
 - Needs: P5.1
 - Test (integration): `Client.Catalogue › enemy_kess_art_complete` — given the shipped catalogue, when Kess's clips are read, then they meet every condition of `enemy_ren_art_complete`.
 
-#### P6.2 Vey's art
+#### ✅ P6.2 Vey's art
 - PRD: 3.14.1
 - Does: Vey's seven clips are catalogued as enemy `vey`. Vey: Normal tier, Mentalist, fast rhythm, Charge / Buff, applies Bleed, "Small cuts. Many beats. Do the sum."
 - Assets: in `Art/World1/vey/`, `spr_enemy_vey_<clip>_<nn>.png` for the seven clips on the rules of P5.5; `enemy_vey.clips.json`.
 - Needs: P5.1
 - Test (integration): `Client.Catalogue › enemy_vey_art_complete` — given the shipped catalogue, when Vey's clips are read, then they meet every condition of `enemy_ren_art_complete`.
 
-#### P6.3 Orm's art
+#### ✅ P6.3 Orm's art
 - PRD: 3.14.1
 - Does: Orm's seven clips are catalogued as enemy `orm`. Orm: Elite tier, Tank, slow rhythm, Iron Veil, Stoneform and Guard, applies Weak, "Stone does not hurry. Stone does not miss."
 - Assets: in `Art/World1/orm/`, `spr_enemy_orm_<clip>_<nn>.png` for the seven clips on the rules of P5.5; `enemy_orm.clips.json`.
 - Needs: P5.1
 - Test (integration): `Client.Catalogue › enemy_orm_art_complete` — given the shipped catalogue, when Orm's clips are read, then they meet every condition of `enemy_ren_art_complete`.
 
-#### P6.4 Malk's art
+#### ✅ P6.4 Malk's art
 - PRD: 3.14.1
 - Does: Malk's seven clips are catalogued as enemy `malk`. Malk: Boss tier, Aggressor, fast rhythm, Rising Tempo and Charge / Buff, Stoneform and Guard, applies Bleed and Weak. Boss phase clips wait for multi-phase bosses, which are not built.
 - Assets: in `Art/World1/malk/`, `spr_enemy_malk_<clip>_<nn>.png` for the seven clips on the rules of P5.5; `enemy_malk.clips.json`.
 - Needs: P5.1
 - Test (integration): `Client.Catalogue › enemy_malk_art_complete` — given the shipped catalogue, when Malk's clips are read, then they meet every condition of `enemy_ren_art_complete`.
 
-### Phase 7 — Cards look like cards
+### ✅ Phase 7 — Cards look like cards
 
 *A card face shows the whole anatomy over its illustration, and the Binder and the reward panel show faces instead of text. Done when every P7 test is green and the suite passes.*
 
 **Generated assets:** `tools/gen-phase7-art.mjs` draws the three category card frames with their illustration windows and plain text areas, the four rarity treatments as border and gem overlays, and the twenty card illustrations, each an emblem composed of shapes seeded by the card id inside the central band the item names, so no two cards share an illustration and a renamed card gets a new one. Twenty-seven sprites.
 
-#### P7.1 Card face
+#### ✅ P7.1 Card face
 - PRD: 3.4.7
-- Does: a `CardFace` prefab renders the anatomy: illustration, the category frame of 3.4.2, a rarity treatment, name, value, cooldown in beats, the icons of statuses it applies, special rules and flavour text when present. It comes in a full size, 256 × 360, for previews and offers, and a compact size, 100 × 140, showing illustration, frame, rarity and name, for Binder slots. All text comes from the card definition or the string table.
+- Does: a `CardFace` prefab renders the anatomy: illustration, the category frame of 3.4.2, a rarity treatment, name, value, cooldown in beats, the icons of statuses it applies, special rules and flavour text when present. It comes in a full size, 256 × 360, for previews and offers, and a compact size, 100 × 140, showing illustration, frame, rarity and name, for Binder slots. All text comes from the card definition or the string table. Assumption: `CardFace` is a component built in code, as every other screen piece is built through `HudFactory` and `ScreenFactory`, rather than a prefab asset; it lays itself out in the art's 512 × 720 space and scales to its size. Assumption: an Ability card whose value is 0 shows no value badge, since its worth is in its rules text.
 - Assets, in `Art/Shared/cards/`:
   - `spr_ui_card-frame_attack_01.png`, `spr_ui_card-frame_defense_01.png`, `spr_ui_card-frame_ability_01.png`, 512 × 720, with a transparent illustration window and plain areas for name, value, cooldown and rules text
   - `spr_ui_card-rarity_common_01.png`, `_uncommon_01`, `_rare_01`, `_legendary_01`, 512 × 720 overlays, border and gem only, transparent elsewhere
@@ -380,7 +380,7 @@ After that the order follows what the player reads first in a fight. The Rhythm 
 - Test (integration): `Client.Catalogue › card_frames_complete` — given the shipped catalogue, when frames and rarity treatments are read, then three frames and four treatments exist at 512 × 720.
 - Test (integration): `Client.Cards › card_face_shows_anatomy` — given `card-rend` with a test illustration, when a full face renders, then it shows the illustration, the attack frame, the Common treatment, "Rend", 10, 3 beats, the Bleed icon and "Applies 1 Bleed." with no flavour line; and `card-jab` shows its flavour line.
 
-#### P7.2 Starter card illustrations
+#### ✅ P7.2 Starter card illustrations
 - PRD: 3.4.7
 - Does: every card in `data/sets/starter.json` has an illustration in the catalogue.
 - Assets, in `Art/Shared/cards/`:
@@ -390,55 +390,55 @@ After that the order follows what the player reads first in a fight. The Rhythm 
 - Needs: P7.1
 - Test (integration): `Client.Catalogue › starter_card_art_complete` — given the shipped catalogue and `data/sets/starter.json`, when every card id is looked up, then each has a 512 × 720 illustration and `Missing` stays empty.
 
-#### P7.3 Binder previews card faces
+#### ✅ P7.3 Binder previews card faces
 - PRD: 3.5.5
-- Does: the Binder screen shows its 16 slots as compact faces, replaces the text list of owned cards with a scrolling column of compact faces, and shows the highlighted card as a full face preview. Keys, Confirm and Back behave as today.
+- Does: the Binder screen shows its 16 slots as compact faces, replaces the text list of owned cards with a scrolling column of compact faces, and shows the highlighted card as a full face preview. Keys, Confirm and Back behave as today. Assumption: the highlighted card is the candidate Up and Down select for the selected slot, the one Enter would place; it is outlined in the owned column, which scrolls to keep it in view, and owned cards already in the loadout carry a small mark where the text list starred them.
 - Assets: none beyond P7.1 and P7.2.
 - Needs: P7.1
 - Test (integration): `Client.Loadout › binder_previews_card_faces` — given the starter Binder, when the Binder opens, then 16 compact faces fill the slots, every owned card appears as a compact face, and moving the selection shows that card as the full face preview.
 
-#### P7.4 Reward offers as card faces
+#### ✅ P7.4 Reward offers as card faces
 - PRD: 3.7.2
-- Does: the reward panel offers its three cards as three full faces side by side, chosen with Left, Right and Enter or with keys 1 to 3; Skip stays on Esc.
+- Does: the reward panel offers its three cards as three full faces side by side, chosen with Left, Right and Enter or with keys 1 to 3; Skip stays on Esc. Assumption: the highlight starts on the first face and stops at the first and last rather than wrapping; a click on a face takes it.
 - Assets: none beyond P7.1 and P7.2.
 - Needs: P7.1
 - Test (integration): `Client.Reward › three_offers_as_card_faces` — given a Normal win offering three cards, when the reward panel renders, then three full faces show those cards, and choosing the second puts it in the Binder.
 
-### Phase 8 — The enemy card before the fight
+### ✅ Phase 8 — The enemy card before the fight
 
 *Before a fight, and while the loadout is edited, the player sees who they face: portrait, name, BPM, powers, quote and a New or role badge. Done when every P8 test is green and the suite passes.*
 
 **Generated assets:** `tools/gen-phase8-art.mjs` draws the five enemy portraits — each the puppet head of Phase 5 and 6 at portrait scale, head and shoulders on transparency, so a portrait and its fighter are the same character — the badge plate, the four power icons and the three role icons. Thirteen sprites.
 
-#### P8.1 Fought enemies on the profile
+#### ✅ P8.1 Fought enemies on the profile
 - PRD: — (groundwork for P8.2)
 - Does: the profile gains `enemiesFought`, the ids of enemies it has finished a battle against, won or lost, written when the battle ends (3.1.8). The profile schema moves from 2 to 3 with a migration that adds an empty list. PRD 4.1 does not list this field; it exists only for the New badge of 3.6.26.
 - Assets: none.
 - Needs: —
 - Test (integration): `Client.Profile › fought_enemies_recorded_and_migrated` — given a schema-2 profile file, when loaded, then its version is 3 and `enemiesFought` is empty; when a battle against Ren ends and the profile is reloaded, then it holds `enemy-ren` once.
 
-#### P8.2 Enemy card
+#### ✅ P8.2 Enemy card
 - PRD: 3.6.26
-- Does: the pre-battle panel becomes the enemy card: portrait, name, BPM from the track's starting tempo, each ability and trait as icon and name, the quote line, a badge, and the Edit (Binder) and Fight buttons. The badge reads New while the enemy is absent from `enemiesFought`, otherwise the role icon and role name. Assumption: "New or Type" means New for a never-fought enemy and its role after; the PRD defines it no further. Ability, trait and role names come from the string table. A portrait id such as `portrait-enemy-ren` resolves to `spr_portrait_ren_static_01.png`.
+- Does: the pre-battle panel becomes the enemy card: portrait, name, BPM from the track's starting tempo, each ability and trait as icon and name, the quote line, a badge, and the Edit (Binder) and Fight buttons. The badge reads New while the enemy is absent from `enemiesFought`, otherwise the role icon and role name. Assumption: "New or Type" means New for a never-fought enemy and its role after; the PRD defines it no further. Ability, trait and role names come from the string table. A portrait id such as `portrait-enemy-ren` resolves to `spr_portrait_ren_static_01.png`. Assumption: the loadout text stays on the panel under the card, smaller, since 3.5.6 keeps the previous loadout and the panel is where the player sees it kept.
 - Assets: `spr_ui_badge_new_01.png`, 9-slice, 160 × 48, 16 px borders, no lettering.
 - Needs: P8.1, P1.3
 - Test (integration): `Client.EnemyCard › shows_every_field` — given Ren on a profile that has never fought Ren, when the pre-battle panel opens, then it shows Ren's portrait, "Ren", 120 BPM, Iron Veil and Guard each with its icon, the quote, the New badge, Edit and Fight; after one battle against Ren, the badge shows the Tank icon and name instead.
 
-#### P8.3 Enemy portraits
+#### ✅ P8.3 Enemy portraits
 - PRD: 3.6.26
-- Does: every enemy's portrait id resolves to a portrait in the catalogue.
+- Does: every enemy's portrait id resolves to a portrait in the catalogue. Assumption: Kess, Vey, Orm and Malk have no fighter art until Phase 6, so `tools/gen-phase8-art.mjs` states their puppet specs — proportions seeded from the enemy id, palette and headpiece given — and Phase 6 draws the fighters from those same specs so portrait and fighter stay one character. Portraits sit in each enemy's own `Art/World1/<name>/` folder.
 - Assets: `spr_portrait_ren_static_01.png`, `spr_portrait_kess_static_01.png`, `spr_portrait_vey_static_01.png`, `spr_portrait_orm_static_01.png`, `spr_portrait_malk_static_01.png`, 512 × 512, head and shoulders, facing left, transparent background.
 - Needs: P8.2
 - Test (integration): `Client.Catalogue › enemy_portraits_complete` — given the shipped catalogue and `data/enemies/fixtures.json`, when every enemy's portrait id is looked up, then each resolves to a 512 × 512 sprite.
 
-#### P8.4 Power and role icons
+#### ✅ P8.4 Power and role icons
 - PRD: 3.6.26
 - Does: every ability and trait an enemy carries, and every role, has an icon for the enemy card.
 - Assets: `spr_ability_rising-tempo_static_01.png`, `spr_ability_charge-buff_static_01.png`, `spr_trait_guard_static_01.png`, `spr_trait_stoneform_static_01.png`, `spr_role_aggressor_static_01.png`, `spr_role_tank_static_01.png`, `spr_role_mentalist_static_01.png`, 64 × 64 each. Iron Veil's icon comes from P2.4.
 - Needs: P8.2, P2.4
 - Test (integration): `Client.Catalogue › power_and_role_icons_complete` — given the shipped catalogue, when every ability and trait carried by an enemy in `data/enemies/fixtures.json` and the three roles are looked up, then each has a 64 × 64 icon.
 
-#### P8.5 Enemy card while editing
+#### ✅ P8.5 Enemy card while editing
 - PRD: 3.5.8
 - Does: opening the Binder from the pre-battle panel shows the same enemy card, compact, beside the slots: portrait, name, BPM, powers and badge.
 - Assets: none beyond P8.3 and P8.4.

@@ -1,0 +1,62 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 087105096b754cb4aaf6b6bf7eaf6cd6, type: 3}
+  m_Name: clip_enemy_malk_idle
+  m_EditorClassIdentifier: Chiki.Client::Chiki.Client.Visuals.SpriteClip
+  kind: enemy
+  subject: malk
+  variant: idle
+  frames:
+  - {fileID: 21300000, guid: 50f3a480db7b0804b94df201c70af339, type: 3}
+  - {fileID: 21300000, guid: 5d80e6223fd787c468d25b81393e7871, type: 3}
+  - {fileID: 21300000, guid: 76f778a9cc3a2ff40815928dbf52214d, type: 3}
+  - {fileID: 21300000, guid: 499024f221e060f4db004e957f4220b5, type: 3}
+  - {fileID: 21300000, guid: 080846a4850c52e49842f18c828aaad4, type: 3}
+  - {fileID: 21300000, guid: 444fc5952bcf34243b9867a61b67d0b7, type: 3}
+  - {fileID: 21300000, guid: 710a0496992e7d94095e5764329de9d7, type: 3}
+  - {fileID: 21300000, guid: a4aef0f462aca2145bd9d1845f201265, type: 3}
+  lengthBeats: 2
+  loop: 1
+  strikeFrame: 0
+  frameBounds:
+  - X: 130
+    Y: 0
+    Width: 201
+    Height: 431
+  - X: 112
+    Y: 0
+    Width: 224
+    Height: 432
+  - X: 104
+    Y: 0
+    Width: 233
+    Height: 432
+  - X: 112
+    Y: 0
+    Width: 224
+    Height: 432
+  - X: 130
+    Y: 0
+    Width: 201
+    Height: 431
+  - X: 149
+    Y: 0
+    Width: 178
+    Height: 431
+  - X: 158
+    Y: 0
+    Width: 167
+    Height: 430
+  - X: 149
+    Y: 0
+    Width: 178
+    Height: 431

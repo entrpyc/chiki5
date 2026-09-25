@@ -1,0 +1,11 @@
+{
+  "clips": {
+    "idle": { "beats": 2, "loop": true },
+    "attack-left": { "beats": 2, "loop": false, "strikeFrame": 3 },
+    "attack-right": { "beats": 2, "loop": false, "strikeFrame": 3 },
+    "defend": { "beats": 2, "loop": false },
+    "charge": { "beats": 1, "loop": true },
+    "hit": { "beats": 1, "loop": false },
+    "death": { "beats": 2, "loop": false }
+  }
+}

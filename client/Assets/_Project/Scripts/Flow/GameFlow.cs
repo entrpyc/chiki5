@@ -109,6 +109,7 @@ namespace Chiki.Client.Flow
             Store = store ?? throw new ArgumentNullException(nameof(store));
             ActiveProfile.Set(profile, store);
             EnsureEventSystem();
+            EnsureListener();
             if (profile.RunInProgress != null)
             {
                 ResumeRun();
@@ -631,6 +632,19 @@ namespace Chiki.Client.Flow
             host.transform.SetParent(transform, false);
             host.AddComponent<EventSystem>();
             host.AddComponent<InputSystemUIInputModule>();
+        }
+
+        /// <summary>The screens outside a battle carry no listener of their own, so without one the calibration metronome plays silently (PRD 3.12.1).</summary>
+        private void EnsureListener()
+        {
+            if (FindAnyObjectByType<AudioListener>() != null)
+            {
+                return;
+            }
+
+            var host = new GameObject("AudioListener");
+            host.transform.SetParent(transform, false);
+            host.AddComponent<AudioListener>();
         }
 
         private void OnDestroy()

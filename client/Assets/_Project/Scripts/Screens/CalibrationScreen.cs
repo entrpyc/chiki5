@@ -23,7 +23,8 @@ namespace Chiki.Client.Screens
     /// 100 to 300 ms. The click track is built from the recorded click samples at the beat
     /// map's times, the accent on every fourth beat, and the marker is the calibration sprite
     /// (P10.4). The test ends after the sixteenth tap, or a beat after the last click with
-    /// the taps it has; Done then closes the screen.
+    /// the taps it has; Done then closes the screen. Cancel stops the test at any point and
+    /// closes without touching the profile.
     /// </summary>
     [DisallowMultipleComponent]
     public sealed class CalibrationScreen : MonoBehaviour
@@ -31,7 +32,7 @@ namespace Chiki.Client.Screens
         public const string TrackId = "track-calibration-120";
         public const int Bpm = 120;
         public const int BeatCount = 16;
-        public const double LeadSeconds = 1.0;
+        public const double LeadSeconds = 0.25;
         public const int GraceMs = 1000;
 
         /// <summary>The marker's catalogue id under the ui kind (P10.4).</summary>
@@ -48,7 +49,9 @@ namespace Chiki.Client.Screens
         private UnityEngine.UI.Text? _result;
         private UnityEngine.UI.Text? _note;
         private Button? _done;
+        private Button? _cancel;
         private bool _finished;
+        private bool _cancelled;
 
         /// <summary>The metronome track: 16 beats at BPM 120 with beat 0 on the first sample.</summary>
         public Track Track { get; private set; } = null!;
@@ -83,6 +86,9 @@ namespace Chiki.Client.Screens
         public bool BluetoothNoteShown => _note != null && _note.gameObject.activeInHierarchy && _note.text == Strings.Get("calibration.bluetooth_note");
 
         public bool DoneEnabled => _done != null && _done.interactable;
+
+        /// <summary>Whether the player stopped the test before it finished; the profile then keeps the offset it had.</summary>
+        public bool Cancelled => _cancelled;
 
         /// <summary>The test ended and the profile was saved.</summary>
         public event Action<CalibrationScreen>? Completed;
@@ -122,10 +128,10 @@ namespace Chiki.Client.Screens
             TapAt(_clock.AudioTimeMsAt(inputTime));
         }
 
-        /// <summary>A tap already stamped with its audio time: its offset from the nearest beat is recorded.</summary>
+        /// <summary>A tap already stamped with its audio time: its offset from the nearest beat is recorded. A tap in the lead-in, before the first click is within half a beat, is not a judgment of anything and is ignored.</summary>
         public void TapAt(int audioTimeMs)
         {
-            if (_finished)
+            if (_finished || audioTimeMs < -(30_000 / Bpm))
             {
                 return;
             }
@@ -179,6 +185,24 @@ namespace Chiki.Client.Screens
         public bool ChooseDone()
         {
             return _done != null && ScreenFactory.Submit(_done);
+        }
+
+        /// <summary>Stops the test and closes the screen: the metronome ends where it is, nothing is recorded, and the profile keeps the offset and calibrated flag it already had (PRD 3.12.1).</summary>
+        public void Cancel()
+        {
+            if (!_finished)
+            {
+                _cancelled = true;
+                StopMetronome();
+            }
+
+            Close();
+        }
+
+        /// <summary>Activates Cancel the way the player would.</summary>
+        public bool ChooseCancel()
+        {
+            return _cancel != null && ScreenFactory.Submit(_cancel);
         }
 
         public void Close()
@@ -236,8 +260,9 @@ namespace Chiki.Client.Screens
             _marker = Presenter.HudFactory.Image("Marker", root, drawn ? Color.white : ScreenFactory.Accent, new Vector2(0f, 20f), new Vector2(140f, 140f), drawn ? marker : null);
             _taps = ScreenFactory.Label("Taps", root, Strings.Format("calibration.taps", 0, BeatCount), 40, new Vector2(0f, -160f), new Vector2(800f, 70f), TextAnchor.MiddleCenter);
             _result = ScreenFactory.Label("Result", root, "", 40, new Vector2(0f, -240f), new Vector2(1200f, 70f), TextAnchor.MiddleCenter, ScreenFactory.Accent);
-            _done = ScreenFactory.Button("Done", root, Strings.Get("calibration.done"), new Vector2(0f, -380f), new Vector2(320f, 80f), Close);
+            _done = ScreenFactory.Button("Done", root, Strings.Get("calibration.done"), new Vector2(-180f, -380f), new Vector2(320f, 80f), Close);
             _done.interactable = false;
+            _cancel = ScreenFactory.Button("Cancel", root, Strings.Get("calibration.cancel"), new Vector2(180f, -380f), new Vector2(320f, 80f), Cancel);
         }
 
         private void StartMetronome()

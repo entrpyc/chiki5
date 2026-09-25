@@ -34,6 +34,7 @@
   "calibration.result": "Your offset is {0} ms",
   "calibration.no_taps": "No taps were recorded. Your offset is unchanged.",
   "calibration.done": "Done",
+  "calibration.cancel": "Cancel",
   "prerun.title": "Chiki",
   "prerun.start_run": "Start Run",
   "menu.settings": "Settings",

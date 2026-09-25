@@ -264,5 +264,36 @@ namespace Client
             Assert.That(metronome.Sources, Is.Not.Empty);
             Assert.That(metronome.Sources, Has.None.SameAs(rig.Source), "clicks play through the track's source");
         }
+
+        /// <summary>PRD 3.12.8: Cancel stops the test part-way and closes the screen, and the profile keeps the offset and flag it had.</summary>
+        [UnityTest]
+        [Timeout(30000)]
+        public IEnumerator cancel_leaves_the_profile_unchanged()
+        {
+            ProfileRecord profile = _store.Create("quitter");
+            profile.CalibrationOffsetMs = 42;
+            _store.Save(profile);
+            var flow = NewFlow("flow-quitter");
+            flow.Begin(profile, _store);
+            yield return null;
+
+            Assert.That(flow.Calibration, Is.Not.Null, "the calibration screen did not open on first launch");
+            var screen = flow.Calibration!;
+            var map = screen.Track.BeatMap;
+            screen.TapAt(map.TimeAtBeat(0) + 90);
+            Assert.That(screen.Offsets, Has.Count.EqualTo(1));
+
+            Assert.That(screen.ChooseCancel(), Is.True, "Cancel did not accept input");
+            yield return null;
+
+            Assert.That(screen.Cancelled, Is.True);
+            Assert.That(screen.Finished, Is.False, "cancelling recorded a result");
+            Assert.That(flow.Calibration, Is.Null, "the calibration screen is still open");
+            Assert.That(flow.PreRun!.StartRunEnabled, Is.True, "Start Run stayed disabled after calibration was cancelled");
+
+            var saved = new ProfileStore(_root).Load("quitter");
+            Assert.That(saved.CalibrationOffsetMs, Is.EqualTo(42), "cancelling changed the stored offset");
+            Assert.That(saved.Calibrated, Is.False, "cancelling marked the profile calibrated");
+        }
     }
 }

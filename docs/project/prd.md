@@ -493,6 +493,7 @@ Unlock tracks — content as currently authored (blank cells are unwritten conte
 - **3.12.5** Display settings cover fullscreen or windowed mode, resolution and vertical sync.
 - 🔨 **3.12.6** Combat keys cannot be rebound (3.3.2.1); settings show the physical layout with the characters the player's keyboard produces (3.3.2.5). *(remaining: settings do not show the physical layout; keys are already fixed and battle labels follow the keyboard layout)*
 - 🔨 **3.12.7** The game ships in English; all player-facing text is held outside code so further languages can be added without rule changes. *(remaining: raw ids still reach the player (the reward panel's Imprint, CRP source fallbacks), and no test shows a second language added as data; run-end unlocks now show their names)*
+- **3.12.8** The calibration screen can be stopped at any point before it finishes; stopping closes it and leaves the profile's stored offset and calibrated flag unchanged (3.12.1).
 
 ### 🔨 3.13 Onboarding & tutorial
 

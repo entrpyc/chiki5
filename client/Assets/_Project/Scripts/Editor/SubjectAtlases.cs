@@ -12,7 +12,7 @@ namespace Chiki.Client.Editor
     /// One Sprite Atlas per subject beside its frames (P1.2). This settles the contradiction in
     /// docs/project/unity-setup.md between one atlas per enemy and one per World in favour of
     /// one per subject: a battle touches one enemy, so a subject's frames are what belongs on a
-    /// page together. Pages are 2048 px, 4096 when the frames do not fit.
+    /// page together. Pages are 2048 px, doubled up to 8192 when the frames do not fit.
     ///
     /// The project packs with Sprite Atlas V2 (ProjectSettings/EditorSettings.asset), so the
     /// asset written is a <c>.spriteatlasv2</c> through <see cref="SpriteAtlasAsset"/>.
@@ -21,6 +21,7 @@ namespace Chiki.Client.Editor
     {
         public const int SmallPage = 2048;
         public const int LargePage = 4096;
+        public const int LargestPage = 8192;
         public const int Padding = 4;
 
         /// <summary>The platform key of an atlas's default texture settings.</summary>
@@ -75,7 +76,13 @@ namespace Chiki.Client.Editor
                     return;
                 }
 
-                int page = widest > SmallPage || area > (long)SmallPage * SmallPage ? LargePage : SmallPage;
+                // Full-screen art (the menu backdrop, the map) keeps its source size up to 8192
+                // (SpriteNames.MaxTextureSize), so a page of 4096 is not always enough either.
+                int page = SmallPage;
+                while (page < LargestPage && (widest > page || area > (long)page * page))
+                {
+                    page *= 2;
+                }
 
                 // The atlas is written whole every time: its contents are exactly the subject's
                 // sprites, so there is nothing in an older one worth merging.
@@ -91,13 +98,24 @@ namespace Chiki.Client.Editor
                 texture.generateMipMaps = false;
                 atlas.SetTextureSettings(texture);
 
-                var platform = atlas.GetPlatformSettings(DefaultPlatform);
-                platform.maxTextureSize = page;
-                atlas.SetPlatformSettings(platform);
-
                 atlas.Add(packables.ToArray());
                 SpriteAtlasAsset.Save(atlas, path);
                 AssetDatabase.ImportAsset(path);
+
+                // The page belongs to the importer beside the asset, not to the asset: a V2 atlas
+                // saves with no platform entries, so a page set on the asset is dropped and packing
+                // falls back to the 2048 default, which rejects full-screen frames. The atlas's own
+                // texture settings cannot carry it either — their maxTextureSize is read only.
+                if (AssetImporter.GetAtPath(path) is SpriteAtlasImporter importer)
+                {
+                    var platform = importer.GetPlatformSettings(DefaultPlatform);
+                    if (platform.maxTextureSize != page)
+                    {
+                        platform.maxTextureSize = page;
+                        importer.SetPlatformSettings(platform);
+                        importer.SaveAndReimport();
+                    }
+                }
             }
             catch (System.Exception exception)
             {

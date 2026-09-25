@@ -1,0 +1,8 @@
+{
+  "borders": {
+    "normal": { "left": 24, "bottom": 24, "right": 24, "top": 24 },
+    "highlighted": { "left": 24, "bottom": 24, "right": 24, "top": 24 },
+    "pressed": { "left": 24, "bottom": 24, "right": 24, "top": 24 },
+    "disabled": { "left": 24, "bottom": 24, "right": 24, "top": 24 }
+  }
+}

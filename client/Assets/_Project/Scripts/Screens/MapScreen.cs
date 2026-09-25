@@ -83,7 +83,7 @@ namespace Chiki.Client.Screens
             var screen = canvas.gameObject.AddComponent<MapScreen>();
             screen._run = run;
             var root = canvas.transform;
-            ScreenFactory.Fill("Backdrop", root, ScreenFactory.Backdrop);
+            ScreenFactory.BackdropImage(root);
             ScreenFactory.Label("Title", root, Strings.Get("map.title"), 48, new Vector2(-780f, 470f), new Vector2(300f, 80f), TextAnchor.MiddleLeft);
             screen._header = ScreenFactory.Label("Header", root, "", 30, new Vector2(0f, 470f), new Vector2(1100f, 80f), TextAnchor.MiddleCenter, ScreenFactory.MutedText);
             var crpPiece = new LinePiece(CrpView.UiKind, CrpView.CrpIconId, ScreenFactory.Accent);

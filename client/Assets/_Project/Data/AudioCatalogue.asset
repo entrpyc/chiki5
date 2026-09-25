@@ -13,6 +13,10 @@ MonoBehaviour:
   m_Name: AudioCatalogue
   m_EditorClassIdentifier: Chiki.Client::Chiki.Client.Visuals.AudioCatalogue
   sounds:
+  - id: click-accent
+    clip: {fileID: 8300000, guid: 77ccb1233abf1b44797ba4087182caf3, type: 3}
+  - id: click-beat
+    clip: {fileID: 8300000, guid: 6a3009caeabd0934c90aca9dee674253, type: 3}
   - id: cue-good
     clip: {fileID: 8300000, guid: 83d140a6f0b120f46ae67f6a210786e2, type: 3}
   - id: cue-miss

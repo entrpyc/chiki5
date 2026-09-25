@@ -8,6 +8,7 @@ using Chiki.Client.Audio;
 using Chiki.Client.Driver;
 using Chiki.Client.Flow;
 using Chiki.Client.Profiles;
+using Chiki.Client.Scene;
 using Chiki.Client.Screens;
 using Chiki.Sim;
 using NUnit.Framework;
@@ -43,6 +44,7 @@ namespace Client
 
             _spawned.Clear();
             ActiveProfile.Clear();
+            ClientTestContent.ClearCatalogues();
             if (Directory.Exists(_root))
             {
                 Directory.Delete(_root, true);
@@ -100,6 +102,56 @@ namespace Client
             Assert.That(profile.Calibrated, Is.True);
             Assert.That(new ProfileStore(_root).Load("cal").CalibrationOffsetMs, Is.EqualTo(60), "the offset was not saved to the profile file");
             Assert.That(screen.DoneEnabled, Is.True);
+        }
+
+        /// <summary>P10.4: the drawn marker, and a click track of the recorded clicks on the beat map, accented every fourth beat.</summary>
+        [UnityTest]
+        [Timeout(60000)]
+        public IEnumerator marker_and_clicks_recorded()
+        {
+            var visuals = ClientTestContent.ShippedVisuals();
+            var audio = ClientTestContent.ShippedAudio();
+            var beatClick = audio.Sound(PlaceholderAudio.BeatClickId);
+            var accentClick = audio.Sound(PlaceholderAudio.AccentClickId);
+            Assert.That(beatClick, Is.Not.Null, "no recorded beat click has shipped");
+            Assert.That(accentClick, Is.Not.Null, "no recorded accent click has shipped");
+
+            ProfileRecord profile = _store.Create("clicks");
+            var screen = CalibrationScreen.Open(Host("calibration-clicks").transform, profile, _store);
+            var clock = screen.Clock!;
+            var map = screen.Track.BeatMap;
+            while (clock.NowMs < map.TimeAtBeat(8))
+            {
+                yield return null;
+            }
+
+            Assert.That(screen.Marker, Is.Not.Null);
+            Assert.That(screen.Marker!.sprite, Is.SameAs(visuals.Sprite("ui", CalibrationScreen.MarkerId)), "the marker is not the calibration sprite");
+            Assert.That(clock.Source!.clip, Is.SameAs(screen.ClickTrack), "the metronome does not play the click track");
+
+            var clicks = screen.Clicks.Take(8).ToList();
+            Assert.That(clicks, Has.Count.EqualTo(8), "eight clicks were not placed");
+            var track = new float[screen.ClickTrack!.samples * screen.ClickTrack.channels];
+            screen.ClickTrack.GetData(track, 0);
+            for (int beat = 0; beat < 8; beat++)
+            {
+                var click = clicks[beat];
+                bool accent = beat == 0 || beat == 4;
+                var recording = accent ? accentClick! : beatClick!;
+                Assert.That(click.Beat, Is.EqualTo(beat));
+                Assert.That(click.AudioTimeMs, Is.EqualTo(map.TimeAtBeat(beat)), "beat " + beat + " is not at the beat map's time");
+                Assert.That(click.Accent, Is.EqualTo(accent), "beat " + beat + (accent ? " is not accented" : " is accented"));
+                Assert.That(click.Recording, Is.SameAs(recording), "beat " + beat + " does not use the recorded " + (accent ? "accent" : "beat") + " click");
+
+                var samples = new float[recording.samples];
+                recording.GetData(samples, 0);
+                for (int i = 0; i < samples.Length; i++)
+                {
+                    Assert.That(track[click.StartSample + i], Is.EqualTo(samples[i]).Within(1e-4f), "beat " + beat + "'s recording is not in the click track at sample " + i);
+                }
+            }
+
+            Assert.That(visuals.Missing, Is.Empty, "the calibration screen fell back: " + string.Join(", ", visuals.Missing));
         }
 
         [UnityTest]

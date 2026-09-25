@@ -1,11 +1,15 @@
 #nullable enable
 using System;
+using System.Collections.Generic;
 using Chiki.Client.Visuals;
 using Chiki.Sim;
 using UnityEngine;
 
 namespace Chiki.Client.Scene
 {
+    /// <summary>One click placed on a click track: its beat, its audio time on the beat map, the sample it starts on, whether it is the bar's accent, and the recording mixed in (null for a generated tone).</summary>
+    public sealed record PlacedClick(int Beat, int AudioTimeMs, int StartSample, bool Accent, AudioClip? Recording);
+
     /// <summary>
     /// Generated audio for tracks that have a JSON sidecar but no recording yet: a click on
     /// every beat of the track, accented every fourth beat, placed from the beat map so the
@@ -20,6 +24,33 @@ namespace Chiki.Client.Scene
         public const string BeatClickId = "click-beat";
         public const string AccentClickId = "click-accent";
 
+        /// <summary>Where every click of one lap of the track goes: one per beat at the beat map's time, the accent on every fourth beat from beat 0.</summary>
+        public static IReadOnlyList<PlacedClick> Clicks(Track track)
+        {
+            if (track is null)
+            {
+                throw new ArgumentNullException(nameof(track));
+            }
+
+            var beatClip = AudioCatalogue.Active.Sound(BeatClickId);
+            var accentClip = AudioCatalogue.Active.Sound(AccentClickId);
+            var clicks = new List<PlacedClick>(track.LengthBeats);
+            for (int beat = 0; beat < track.LengthBeats; beat++)
+            {
+                int timeMs = track.BeatMap.TimeAtBeat(beat);
+                bool accent = beat % 4 == 0;
+                clicks.Add(new PlacedClick(beat, timeMs, SampleAt(timeMs), accent, accent ? accentClip : beatClip));
+            }
+
+            return clicks;
+        }
+
+        /// <summary>The sample of a 48 kHz clip an audio time falls on.</summary>
+        public static int SampleAt(int audioTimeMs)
+        {
+            return checked((int)((long)audioTimeMs * SampleRate / 1000));
+        }
+
         public static AudioClip ClickTrack(Track track)
         {
             if (track is null)
@@ -27,23 +58,21 @@ namespace Chiki.Client.Scene
                 throw new ArgumentNullException(nameof(track));
             }
 
-            int samples = checked((int)((long)(track.OffsetMs + track.BeatMap.LengthMs) * SampleRate / 1000));
+            int samples = SampleAt(track.OffsetMs + track.BeatMap.LengthMs);
             var data = new float[samples];
             var beatSample = Samples(AudioCatalogue.Active.Sound(BeatClickId));
             var accentSample = Samples(AudioCatalogue.Active.Sound(AccentClickId));
 
-            for (int beat = 0; beat < track.LengthBeats; beat++)
+            foreach (var click in Clicks(track))
             {
-                int start = checked((int)((long)track.BeatMap.TimeAtBeat(beat) * SampleRate / 1000));
-                bool accent = beat % 4 == 0;
-                var recorded = accent ? accentSample : beatSample;
+                var recorded = click.Accent ? accentSample : beatSample;
                 if (recorded != null)
                 {
-                    Mix(data, start, recorded);
+                    Mix(data, click.StartSample, recorded);
                 }
                 else
                 {
-                    Click(data, start, accent ? 1500f : 1000f, accent ? 0.6f : 0.4f, 12);
+                    Click(data, click.StartSample, click.Accent ? 1500f : 1000f, click.Accent ? 0.6f : 0.4f, 12);
                 }
             }
 

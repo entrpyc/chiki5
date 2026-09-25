@@ -34,7 +34,7 @@ namespace Chiki.Client.Screens
             panel.NodeType = node.Type;
             var root = canvas.transform;
             ScreenFactory.Fill("Dim", root, new Color(0f, 0f, 0f, 0.6f));
-            var face = HudFactory.Image("Panel", root, ScreenFactory.Panel, Vector2.zero, new Vector2(800f, 420f));
+            var face = ScreenFactory.PanelImage("Panel", root, Vector2.zero, new Vector2(800f, 420f));
             face.raycastTarget = true;
             ScreenFactory.Label("Title", face.transform, Labels.NodeLabel(node.Type), 52, new Vector2(0f, 130f), new Vector2(720f, 80f), TextAnchor.MiddleCenter);
             ScreenFactory.Label("Body", face.transform, Strings.Get("stop.empty"), 30, new Vector2(0f, 20f), new Vector2(720f, 100f), TextAnchor.MiddleCenter, ScreenFactory.MutedText);

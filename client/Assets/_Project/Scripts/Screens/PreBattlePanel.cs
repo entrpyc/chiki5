@@ -43,7 +43,7 @@ namespace Chiki.Client.Screens
             var panel = canvas.gameObject.AddComponent<PreBattlePanel>();
             var root = canvas.transform;
             ScreenFactory.Fill("Dim", root, new Color(0f, 0f, 0f, 0.6f));
-            var face = HudFactory.Image("Panel", root, ScreenFactory.Panel, Vector2.zero, new Vector2(1100f, 760f));
+            var face = ScreenFactory.PanelImage("Panel", root, Vector2.zero, new Vector2(1100f, 760f));
             face.raycastTarget = true;
             var enemy = run.CurrentNode.IsBattle ? run.CurrentNodeEnemy.Name : "";
             ScreenFactory.Label("Title", face.transform, Strings.Format("prebattle.title", enemy, Labels.NodeLabel(run.CurrentNode.Type)), 52, new Vector2(0f, 320f), new Vector2(1000f, 80f), TextAnchor.MiddleCenter);

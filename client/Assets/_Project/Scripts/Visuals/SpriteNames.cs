@@ -63,6 +63,15 @@ namespace Chiki.Client.Visuals
             return IndexOf(FullFrameKinds, kind) >= 0 ? 8192 : 2048;
         }
 
+        /// <summary>
+        /// The cap for one file: the kind's, raised to 8192 when the file is drawn larger than
+        /// 2048 on a side, so full-screen art of any kind (the menu backdrop, P10.1) is never downscaled.
+        /// </summary>
+        public static int MaxTextureSize(string kind, int width, int height)
+        {
+            return Math.Max(width, height) > 2048 ? 8192 : MaxTextureSize(kind);
+        }
+
         public static bool IsKind(string kind)
         {
             return IndexOf(Kinds, kind) >= 0;

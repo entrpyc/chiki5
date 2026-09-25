@@ -43,12 +43,21 @@ namespace Chiki.Client.Visuals
         /// <summary>Where the shipped catalogue lives, for the rebuild command and the operator.</summary>
         public const string AssetPath = "Assets/_Project/Data/VisualCatalogue.asset";
 
+        /// <summary>Where the font family lives (P10.1); a licensed family replaces these two files in place.</summary>
+        public const string FontFolder = "Assets/_Project/UI/Fonts";
+
+        public const string RegularFontFile = "font_regular.ttf";
+
+        public const string BoldFontFile = "font_bold.ttf";
+
         private static VisualCatalogue? _active;
         private static Sprite? _white;
         private static Sprite? _fallback;
 
         [SerializeField] private List<SpriteEntry> sprites = new List<SpriteEntry>();
         [SerializeField] private List<ClipEntry> clips = new List<ClipEntry>();
+        [SerializeField] private Font? font;
+        [SerializeField] private Font? boldFont;
 
         private Dictionary<string, SpriteEntry>? _spriteIndex;
         private Dictionary<string, ClipEntry>? _clipIndex;
@@ -203,6 +212,23 @@ namespace Chiki.Client.Visuals
             return found;
         }
 
+        /// <summary>
+        /// The shipped font every text is set in (P10.1): the regular weight, or the bold one for
+        /// headlines and buttons. Null until the fonts ship; text then falls back to the
+        /// engine's built-in font.
+        /// </summary>
+        public Font? TextFont(bool bold = false)
+        {
+            return bold && boldFont != null ? boldFont : font;
+        }
+
+        /// <summary>Puts the font family; the rebuild command fills it from <see cref="FontFolder"/>.</summary>
+        public void PutFonts(Font? regular, Font? bold)
+        {
+            font = regular;
+            boldFont = bold;
+        }
+
         /// <summary>Puts a sprite under a kind and id; the rebuild command and the tests fill a catalogue this way.</summary>
         public void Put(string kind, string id, Sprite sprite, string? subject = null, string? variant = null, OpaqueRect bounds = default)
         {
@@ -243,6 +269,8 @@ namespace Chiki.Client.Visuals
         {
             sprites.Clear();
             clips.Clear();
+            font = null;
+            boldFont = null;
             _spriteIndex = null;
             _clipIndex = null;
             _missing.Clear();

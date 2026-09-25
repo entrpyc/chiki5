@@ -446,13 +446,16 @@ namespace Chiki.Client.Flow
             RunEnd.Continued += EnterPreRun;
         }
 
-        /// <summary>The run-end figures (PRD 3.9.11): battles from the run's records, Perfect Defenses, Essence earned and the CRP peak from this session's events, and the unlocks by name.</summary>
+        /// <summary>The catalogue kind of a Charm's icon; the only unlocks a run grants today are Charms (PRD 3.9.11, P10.3).</summary>
+        private const string CharmKind = "charm";
+
+        /// <summary>The run-end figures (PRD 3.9.11): battles from the run's records, Perfect Defenses, Essence earned and the CRP peak from this session's events, and the unlocks by icon and name.</summary>
         private RunEndSummary Summarise(Run run)
         {
             int essenceEarned = run.Events.OfType<EssenceChanged>().Where(e => e.Amount > 0).Sum(e => e.Amount);
             int crpPeak = run.Events.OfType<CrpChanged>().Select(e => e.Total).DefaultIfEmpty(0).Max();
             crpPeak = Math.Max(crpPeak, run.Stats.Crp);
-            var unlocks = _unlocksThisRun.Select(id => Content?.FindCharm(id)?.Name ?? id).ToList();
+            var unlocks = _unlocksThisRun.Select(id => new RunEndUnlock(CharmKind, id, Content?.FindCharm(id)?.Name ?? id)).ToList();
             return new RunEndSummary(run.Status, run.Seed, run.Battles.Count, _perfectDefensesThisRun, essenceEarned, crpPeak, unlocks);
         }
 

@@ -6,6 +6,7 @@ using Chiki.Client.Keys;
 using Chiki.Client.Profiles;
 using Chiki.Client.Scene;
 using Chiki.Client.Text;
+using Chiki.Client.Visuals;
 using Chiki.Sim;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -19,7 +20,9 @@ namespace Chiki.Client.Screens
     /// taps Space on every click; each tap is stamped with audio time (P12.3) and its offset
     /// from the nearest beat is kept; the median of those offsets becomes the profile's
     /// calibration offset and the profile is saved. The screen states that Bluetooth audio adds
-    /// 100 to 300 ms. The test ends after the sixteenth tap, or a beat after the last click with
+    /// 100 to 300 ms. The click track is built from the recorded click samples at the beat
+    /// map's times, the accent on every fourth beat, and the marker is the calibration sprite
+    /// (P10.4). The test ends after the sixteenth tap, or a beat after the last click with
     /// the taps it has; Done then closes the screen.
     /// </summary>
     [DisallowMultipleComponent]
@@ -31,13 +34,16 @@ namespace Chiki.Client.Screens
         public const double LeadSeconds = 1.0;
         public const int GraceMs = 1000;
 
+        /// <summary>The marker's catalogue id under the ui kind (P10.4).</summary>
+        public const string MarkerId = "calibration-marker";
+
         private readonly List<int> _offsets = new List<int>();
         private InputAction? _tapAction;
         private Profile? _profile;
         private ProfileStore? _store;
         private BeatClock? _clock;
         private GameObject? _metronomeHost;
-        private RectTransform? _marker;
+        private Image? _marker;
         private UnityEngine.UI.Text? _taps;
         private UnityEngine.UI.Text? _result;
         private UnityEngine.UI.Text? _note;
@@ -46,6 +52,15 @@ namespace Chiki.Client.Screens
 
         /// <summary>The metronome track: 16 beats at BPM 120 with beat 0 on the first sample.</summary>
         public Track Track { get; private set; } = null!;
+
+        /// <summary>The beat marker that pulses on every click.</summary>
+        public Image? Marker => _marker;
+
+        /// <summary>Where every click of the metronome sits in the click track, one per beat.</summary>
+        public IReadOnlyList<PlacedClick> Clicks { get; private set; } = Array.Empty<PlacedClick>();
+
+        /// <summary>The click track the metronome plays.</summary>
+        public AudioClip? ClickTrack { get; private set; }
 
         /// <summary>The clock the metronome runs on; null once the test has finished.</summary>
         public BeatClock? Clock => _clock;
@@ -211,11 +226,14 @@ namespace Chiki.Client.Screens
 
         private void BuildUi(Transform root)
         {
-            ScreenFactory.Fill("Backdrop", root, ScreenFactory.Backdrop);
+            ScreenFactory.BackdropImage(root);
             ScreenFactory.Label("Title", root, Strings.Get("calibration.title"), 64, new Vector2(0f, 400f), new Vector2(1200f, 90f), TextAnchor.MiddleCenter);
             ScreenFactory.Label("Instructions", root, Strings.Format("calibration.instructions", BeatCount, Bpm), 36, new Vector2(0f, 300f), new Vector2(1400f, 80f), TextAnchor.MiddleCenter);
             _note = ScreenFactory.Label("BluetoothNote", root, Strings.Get("calibration.bluetooth_note"), 30, new Vector2(0f, 220f), new Vector2(1400f, 80f), TextAnchor.MiddleCenter, ScreenFactory.MutedText);
-            _marker = Presenter.HudFactory.Image("Marker", root, ScreenFactory.Accent, new Vector2(0f, 20f), new Vector2(140f, 140f)).rectTransform;
+            var catalogue = VisualCatalogue.Active;
+            var marker = catalogue.Sprite(ScreenFactory.UiKind, MarkerId);
+            bool drawn = catalogue.Has(ScreenFactory.UiKind, MarkerId);
+            _marker = Presenter.HudFactory.Image("Marker", root, drawn ? Color.white : ScreenFactory.Accent, new Vector2(0f, 20f), new Vector2(140f, 140f), drawn ? marker : null);
             _taps = ScreenFactory.Label("Taps", root, Strings.Format("calibration.taps", 0, BeatCount), 40, new Vector2(0f, -160f), new Vector2(800f, 70f), TextAnchor.MiddleCenter);
             _result = ScreenFactory.Label("Result", root, "", 40, new Vector2(0f, -240f), new Vector2(1200f, 70f), TextAnchor.MiddleCenter, ScreenFactory.Accent);
             _done = ScreenFactory.Button("Done", root, Strings.Get("calibration.done"), new Vector2(0f, -380f), new Vector2(320f, 80f), Close);
@@ -229,7 +247,9 @@ namespace Chiki.Client.Screens
             _metronomeHost.transform.SetParent(transform, false);
             _metronomeHost.AddComponent<AudioSource>();
             _clock = _metronomeHost.AddComponent<BeatClock>();
-            _clock.Schedule(Track, TrackAudio.For(Track), LeadSeconds);
+            Clicks = PlaceholderAudio.Clicks(Track);
+            ClickTrack = PlaceholderAudio.ClickTrack(Track);
+            _clock.Schedule(Track, ClickTrack, LeadSeconds);
         }
 
         private void StopMetronome()
@@ -271,7 +291,7 @@ namespace Chiki.Client.Screens
                 int beatMs = 60_000 / Bpm;
                 float phase = ((nowMs % beatMs) + beatMs) % beatMs / (float)beatMs;
                 float scale = 1f + 0.35f * (1f - phase) * (1f - phase);
-                _marker.localScale = new Vector3(scale, scale, 1f);
+                _marker.rectTransform.localScale = new Vector3(scale, scale, 1f);
             }
 
             if (nowMs > Track.BeatMap.TimeAtBeat(BeatCount - 1) + GraceMs)

@@ -42,7 +42,7 @@ namespace Chiki.Client.Screens
             panel.Offer = offer;
             var root = canvas.transform;
             ScreenFactory.Fill("Dim", root, new Color(0f, 0f, 0f, 0.6f));
-            var face = HudFactory.Image("Panel", root, ScreenFactory.Panel, Vector2.zero, new Vector2(1000f, 640f));
+            var face = ScreenFactory.PanelImage("Panel", root, Vector2.zero, new Vector2(1000f, 640f));
             face.raycastTarget = true;
             ScreenFactory.Label("Title", face.transform, Strings.Format("reward.title", Labels.Tier(offer.Tier)), 52, new Vector2(0f, 260f), new Vector2(900f, 80f), TextAnchor.MiddleCenter);
             string granted = Strings.Format("reward.essence", offer.Essence);

@@ -116,11 +116,15 @@ namespace Chiki.Client.Presenter
             image.type = drawn.border == Vector4.zero ? UnityEngine.UI.Image.Type.Simple : UnityEngine.UI.Image.Type.Sliced;
         }
 
-        public static UnityEngine.UI.Text Text(string name, Transform parent, int fontSize, Color color, TextAnchor alignment)
+        /// <summary>
+        /// A label in the shipped font (P10.1), the bold weight when asked for; the engine's
+        /// built-in font only while the catalogue holds no font.
+        /// </summary>
+        public static UnityEngine.UI.Text Text(string name, Transform parent, int fontSize, Color color, TextAnchor alignment, bool bold = false)
         {
             var rect = Rect(name, parent);
             var text = rect.gameObject.AddComponent<UnityEngine.UI.Text>();
-            var font = DefaultFont;
+            var font = VisualCatalogue.Active.TextFont(bold) ?? DefaultFont;
             if (font != null)
             {
                 text.font = font;
@@ -135,9 +139,9 @@ namespace Chiki.Client.Presenter
             return text;
         }
 
-        public static UnityEngine.UI.Text StretchedText(string name, Transform parent, int fontSize, Color color, TextAnchor alignment)
+        public static UnityEngine.UI.Text StretchedText(string name, Transform parent, int fontSize, Color color, TextAnchor alignment, bool bold = false)
         {
-            var text = Text(name, parent, fontSize, color, alignment);
+            var text = Text(name, parent, fontSize, color, alignment, bold);
             Stretch(text.rectTransform);
             return text;
         }

@@ -492,15 +492,15 @@ After that the order follows what the player reads first in a fight. The Rhythm 
 - Test (integration): `Client.Catalogue › charm_and_imprint_icons_complete` — given the shipped catalogue, when every Charm in `data/charms/fixtures.json` and every Imprint in `data/imprints/fixtures.json` is looked up, then each has a 64 × 64 icon.
 - Test (integration): `Client.Map › charms_and_imprints_shown` — given Clean Victory equipped and Keen Edge and Thick Hide held, when the map renders, then one Charm icon and two Imprint icons show from the catalogue, each with its name in its tooltip.
 
-### Phase 10 — Menus, screens and type
+### ✅ Phase 10 — Menus, screens and type
 
 *Every screen wears the game's skin and font, the title has a logo, the run-end screen has banners and icons, and calibration uses a drawn marker and recorded clicks. Done when every P10 test is green and the suite passes.*
 
 **Generated assets:** `tools/gen-phase10-art.mjs` draws the four button states, the panel, the backdrop, the toggle box and check, the logo, the title background, the three outcome plates and the calibration marker; `tools/gen-font.mjs` builds the placeholder font family; `tools/gen-phase10-audio.mjs` renders the two click samples. Fourteen sprites, one font family and two WAVs.
 
-#### P10.1 UI skin and font
+#### ✅ P10.1 UI skin and font
 - PRD: 3.14.1
-- Does: `ScreenFactory` and `HudFactory` build every button, panel, toggle and backdrop from the skin sprites and every text in the shipped font. Buttons use Sprite Swap with normal, highlighted, pressed and disabled sprites. Plain colour fills such as scrims use the built-in white sprite.
+- Does: `ScreenFactory` and `HudFactory` build every button, panel, toggle and backdrop from the skin sprites and every text in the shipped font. Buttons use Sprite Swap with normal, highlighted, pressed and disabled sprites. Plain colour fills such as scrims use the built-in white sprite. Assumption: the two font files are `font_regular.ttf` and `font_bold.ttf`, catalogued with the sprites, and labels of 48 px and up and button labels take the bold weight; the plan names neither.
 - Assets:
   - a generated font family in `client/Assets/_Project/UI/Fonts/`, regular and bold, TTF, covering Latin-1 and Latin Extended-A (the ö in Björn, the en dash): `tools/gen-font.mjs` builds a geometric sans, every letter, digit and mark drawn from a stroke skeleton widened to an outline, the bold weight the same skeleton at a heavier stroke, and every accented character a composite glyph of a base and a diacritic, so the family is the implementer's own work and carries no licence. The operator drops a licensed family over the same two files later; nothing but the files changes
   - `spr_ui_button_normal_01.png`, `_highlighted_01`, `_pressed_01`, `_disabled_01`, 9-slice, 420 × 96, 24 px borders
@@ -510,21 +510,21 @@ After that the order follows what the player reads first in a fight. The Rhythm 
 - Needs: P7.4, P8.5, P9.4, P9.5
 - Test (integration): `Client.Screens › every_screen_uses_skin_and_font` — given the shipped catalogue, when the pre-run, map, Binder, pre-battle, reward, stop, run-end, settings and calibration screens open in turn, then every text uses the shipped font, every button has all four state sprites, and `Missing` is empty.
 
-#### P10.2 Title logo
+#### ✅ P10.2 Title logo
 - PRD: 3.14.1
 - Does: the pre-run screen shows the logo over the title background in place of the title text.
 - Assets: `spr_logo_chiki_static_01.png`, about 1200 × 400, transparent; `spr_bg_title_static_01.png`, 2560 × 1080.
 - Needs: P10.1
 - Test (integration): `Client.Screens › prerun_shows_logo` — given the shipped catalogue, when the pre-run screen opens, then the logo and title background show from the catalogue and Start Run and Settings still work.
 
-#### P10.3 Run-end banners and unlock icons
+#### ✅ P10.3 Run-end banners and unlock icons
 - PRD: 3.9.11
-- Does: the run-end screen shows the outcome word on its plate, Won, Died or Abandoned, and each unlock as its icon or compact card face with its name, never its raw id.
+- Does: the run-end screen shows the outcome word on its plate, Won, Died or Abandoned, and each unlock as its icon or compact card face with its name, never its raw id. Assumption: a run unlocks only Charms today, so every unlock shows as its Charm icon; a compact card face joins when a card unlock exists. Assumption: until P9.5's Charm icons ship, the test lends the shipped catalogue stand-in icons for the Charms it unlocks, since it proves the screen's use of the icon, not the icon.
 - Assets: `spr_ui_outcome_won_01.png`, `spr_ui_outcome_died_01.png`, `spr_ui_outcome_abandoned_01.png`, 1200 × 240 plates with no lettering.
 - Needs: P10.1, P9.5, P7.1
 - Test (integration): `Client.RunEnd › banner_and_unlock_icons` — given a run that ends by death after unlocking Clean Victory, when the screen renders, then the Died plate shows with "Died", and Clean Victory appears with its icon and name and not as `charm-clean-victory`.
 
-#### P10.4 Calibration marker and clicks
+#### ✅ P10.4 Calibration marker and clicks
 - PRD: 3.12.1
 - Does: the calibration beat marker uses its sprite and still pulses from audio time. The calibration click track is built from the recorded click samples at the beat map's times, accenting every fourth beat, and the metronome plays the same click through P1.4.
 - Assets: `spr_ui_calibration-marker_static_01.png`, 140 × 140; `sfx_click_beat.wav` and `sfx_click_accent.wav`, under 20 ms, attack inside the first millisecond.

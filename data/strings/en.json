@@ -80,7 +80,7 @@
   "runend.inprogress": "In progress",
   "runend.seed": "Seed {0}",
   "runend.stats": "Battles {0}   Perfect Defenses {1}   Essence earned {2}   CRP peak {3}",
-  "runend.unlocks": "Unlocked: {0}",
+  "runend.unlocked": "Unlocked",
   "runend.no_unlocks": "No new unlocks",
   "runend.continue": "Continue"
 }

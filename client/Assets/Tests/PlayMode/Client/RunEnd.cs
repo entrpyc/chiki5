@@ -5,7 +5,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Chiki.Client.Profiles;
+using Chiki.Client.Screens;
 using Chiki.Client.Text;
+using Chiki.Client.Visuals;
 using Chiki.Sim;
 using NUnit.Framework;
 using UnityEngine;
@@ -38,6 +40,7 @@ namespace Client
 
             _hosts.Clear();
             ActiveProfile.Clear();
+            ClientTestContent.ClearCatalogues();
             if (Directory.Exists(_root))
             {
                 Directory.Delete(_root, true);
@@ -91,6 +94,60 @@ namespace Client
             Assert.That(flow.RunEnd, Is.Null);
             Assert.That(profileFile, Does.Contain(charm.Id), "the profile file lacks the unlock");
             Assert.That(new ProfileStore(_root).Load("A").RunInProgress, Is.Null, "the ended run is still in progress");
+        }
+
+        /// <summary>
+        /// P10.3: the Died plate under the outcome word, and the unlocked Charm as its icon and
+        /// name. The Charm icons ship with P9.5; until they have, the test lends the shipped
+        /// catalogue stand-in icons, since what it proves is the screen's use of the icon.
+        /// </summary>
+        [UnityTest]
+        [Timeout(60000)]
+        public IEnumerator banner_and_unlock_icons()
+        {
+            var catalogue = Object.Instantiate(ClientTestContent.ShippedVisuals());
+            foreach (string charm in new[] { "clean-victory", "momentum-plate" })
+            {
+                if (!catalogue.Has("charm", charm))
+                {
+                    catalogue.Put("charm", charm, ClientTestContent.TestSprite("test-charm-" + charm));
+                }
+            }
+
+            catalogue.ClearMissing();
+            VisualCatalogue.Use(catalogue);
+
+            var flow = ClientTestContent.FlowWithRun(_root, "A", "chiki-1", _hosts, out _);
+            var run = flow.Run!;
+            ClientTestContent.WalkToBoss(run);
+            var boss = ClientTestContent.FightNodeBattle(run);
+            Assume.That(boss.Outcome, Is.EqualTo(BattleOutcome.Won));
+            flow.SettleBattle(boss);
+            Assume.That(flow.UnlocksThisRun, Does.Contain("charm-clean-victory"), "the Boss defeat did not unlock Clean Victory");
+            flow.SkipReward();
+            yield return null;
+
+            run.Stats.Ard = 5;
+            var enemy = flow.Content!.FindEnemy("enemy-kess")!;
+            var fatal = run.StartBattle(enemy, enemyHp: 1000);
+            fatal.AdvanceToBeat(enemy.Track.LengthBeats);
+            Assume.That(fatal.Outcome, Is.EqualTo(BattleOutcome.Died), "the last battle must end by death");
+            flow.SettleBattle(fatal);
+            yield return null;
+
+            var screen = flow.RunEnd;
+            Assert.That(screen, Is.Not.Null, "the run-end screen did not open");
+            Assert.That(screen!.OutcomePlate.sprite, Is.SameAs(catalogue.Sprite("ui", RunEndScreen.PlateId(RunStatus.Died))), "the Died plate is not the catalogue's");
+            Assert.That(screen.OutcomePlate.gameObject.activeInHierarchy, Is.True);
+            Assert.That(screen.OutcomeText, Is.EqualTo("Died"));
+            int index = screen.Summary.Unlocks.ToList().FindIndex(u => u.Id == "charm-clean-victory");
+            Assert.That(index, Is.GreaterThanOrEqualTo(0), "Clean Victory is not among the unlocks shown");
+            Assert.That(screen.UnlockIcons, Has.Count.EqualTo(screen.Summary.Unlocks.Count), "an unlock has no icon");
+            Assert.That(screen.UnlockIcons[index].sprite, Is.SameAs(catalogue.Find("charm", "clean-victory")), "Clean Victory's icon is not the catalogue's");
+            Assert.That(screen.UnlockNames[index].text, Is.EqualTo("Clean Victory"));
+            Assert.That(screen.UnlocksText, Does.Not.Contain("charm-clean-victory"), "the raw id is shown");
+            Assert.That(catalogue.Missing, Is.Empty, "the run-end screen fell back: " + string.Join(", ", catalogue.Missing));
+            Object.Destroy(catalogue);
         }
 
         [UnityTest]

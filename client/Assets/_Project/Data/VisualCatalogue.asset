@@ -64,6 +64,16 @@ MonoBehaviour:
       Width: 2560
       Height: 1080
   - kind: ui
+    id: calibration-marker
+    subject: calibration-marker
+    variant: static
+    sprite: {fileID: 21300000, guid: 87ccae34077b47a409cfb0472cbf64b8, type: 3}
+    opaque:
+      X: 6
+      Y: 6
+      Width: 128
+      Height: 128
+  - kind: ui
     id: crp
     subject: crp
     variant: static
@@ -153,6 +163,36 @@ MonoBehaviour:
       Y: 0
       Width: 64
       Height: 144
+  - kind: ui
+    id: outcome-abandoned
+    subject: outcome
+    variant: abandoned
+    sprite: {fileID: 21300000, guid: 1e2770480a7ef334b9d696e76e0d9228, type: 3}
+    opaque:
+      X: 25
+      Y: 29
+      Width: 1150
+      Height: 192
+  - kind: ui
+    id: outcome-died
+    subject: outcome
+    variant: died
+    sprite: {fileID: 21300000, guid: 634c1a40076c7a34584ea60e35a9b07c, type: 3}
+    opaque:
+      X: 25
+      Y: 29
+      Width: 1150
+      Height: 192
+  - kind: ui
+    id: outcome-won
+    subject: outcome
+    variant: won
+    sprite: {fileID: 21300000, guid: 5d6788e2e99fd0c40ac369eda6d73713, type: 3}
+    opaque:
+      X: 25
+      Y: 29
+      Width: 1150
+      Height: 192
   - kind: category
     id: ability
     subject: ability
@@ -393,6 +433,106 @@ MonoBehaviour:
       Y: 0
       Width: 64
       Height: 6
+  - kind: bg
+    id: title
+    subject: title
+    variant: static
+    sprite: {fileID: 21300000, guid: e88a45bca10171a4db921f54ad09d1c0, type: 3}
+    opaque:
+      X: 0
+      Y: 0
+      Width: 2560
+      Height: 1080
+  - kind: logo
+    id: chiki
+    subject: chiki
+    variant: static
+    sprite: {fileID: 21300000, guid: a5f59cd03bc73a747bf8cea46bfb0a52, type: 3}
+    opaque:
+      X: 108
+      Y: 11
+      Width: 996
+      Height: 383
+  - kind: ui
+    id: backdrop
+    subject: backdrop
+    variant: static
+    sprite: {fileID: 21300000, guid: e1806b4bf8c0f4b49876499d4704f5f4, type: 3}
+    opaque:
+      X: 0
+      Y: 0
+      Width: 2560
+      Height: 1080
+  - kind: ui
+    id: button-disabled
+    subject: button
+    variant: disabled
+    sprite: {fileID: 21300000, guid: 3e89a30d168c76640bafd9ed828c0a87, type: 3}
+    opaque:
+      X: 1
+      Y: 3
+      Width: 418
+      Height: 90
+  - kind: ui
+    id: button-highlighted
+    subject: button
+    variant: highlighted
+    sprite: {fileID: 21300000, guid: 0c2b8ecfd7608af4580d17a74ff6a0c2, type: 3}
+    opaque:
+      X: 0
+      Y: 2
+      Width: 420
+      Height: 92
+  - kind: ui
+    id: button-normal
+    subject: button
+    variant: normal
+    sprite: {fileID: 21300000, guid: a4158595a66578948a3a3239173e8308, type: 3}
+    opaque:
+      X: 1
+      Y: 3
+      Width: 418
+      Height: 90
+  - kind: ui
+    id: button-pressed
+    subject: button
+    variant: pressed
+    sprite: {fileID: 21300000, guid: 55b9ea78a7537df4cb00e90bd4ba3089, type: 3}
+    opaque:
+      X: 1
+      Y: 3
+      Width: 418
+      Height: 90
+  - kind: ui
+    id: panel
+    subject: panel
+    variant: static
+    sprite: {fileID: 21300000, guid: 40e659a1de434eb4a852d44b3ae87756, type: 3}
+    opaque:
+      X: 1
+      Y: 1
+      Width: 510
+      Height: 510
+  - kind: ui
+    id: toggle-box
+    subject: toggle
+    variant: box
+    sprite: {fileID: 21300000, guid: e252566d7427817409b620d03ba88426, type: 3}
+    opaque:
+      X: 0
+      Y: 0
+      Width: 44
+      Height: 44
+  - kind: ui
+    id: toggle-check
+    subject: toggle
+    variant: check
+    sprite: {fileID: 21300000, guid: b5c8666ff4cc6974190a2d44ad17c36b, type: 3}
+    opaque:
+      X: 0
+      Y: 1
+      Width: 26
+      Height: 24
   clips:
   - kind: player
     id: lulu-ability
@@ -469,3 +609,5 @@ MonoBehaviour:
     subject: ren
     variant: idle
     clip: {fileID: 11400000, guid: 21c7b4cffeafb6c42aec64484e722b72, type: 2}
+  font: {fileID: 12800000, guid: 9fb76cda3fb75e3419a47e1fe253fbb7, type: 3}
+  boldFont: {fileID: 12800000, guid: 02fb3647291bc504187c9768891e230a, type: 3}

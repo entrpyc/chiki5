@@ -77,7 +77,7 @@ namespace Chiki.Client.Screens
             var screen = canvas.gameObject.AddComponent<BinderScreen>();
             screen._binder = binder;
             var root = canvas.transform;
-            ScreenFactory.Fill("Backdrop", root, ScreenFactory.Backdrop);
+            ScreenFactory.BackdropImage(root);
             ScreenFactory.Label("Title", root, Strings.Get("binder.title"), 56, new Vector2(0f, 470f), new Vector2(800f, 80f), TextAnchor.MiddleCenter);
             ScreenFactory.Label("Hint", root, Strings.Get("binder.hint"), 24, new Vector2(0f, 410f), new Vector2(1600f, 50f), TextAnchor.MiddleCenter, ScreenFactory.MutedText);
 

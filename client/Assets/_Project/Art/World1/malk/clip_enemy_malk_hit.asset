@@ -1,0 +1,42 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 087105096b754cb4aaf6b6bf7eaf6cd6, type: 3}
+  m_Name: clip_enemy_malk_hit
+  m_EditorClassIdentifier: Chiki.Client::Chiki.Client.Visuals.SpriteClip
+  kind: enemy
+  subject: malk
+  variant: hit
+  frames:
+  - {fileID: 21300000, guid: 660a4b5b3f7fb2044a7276cf7bda313a, type: 3}
+  - {fileID: 21300000, guid: 2f6f4ed1322bf6e45a1d276a7c42728c, type: 3}
+  - {fileID: 21300000, guid: 59e80545180525a498c5b4e31c595f89, type: 3}
+  - {fileID: 21300000, guid: b4a4037759fb5534cb11982dbb9d2edc, type: 3}
+  lengthBeats: 1
+  loop: 0
+  strikeFrame: 0
+  frameBounds:
+  - X: 194
+    Y: 0
+    Width: 311
+    Height: 409
+  - X: 225
+    Y: 0
+    Width: 287
+    Height: 392
+  - X: 190
+    Y: 0
+    Width: 258
+    Height: 420
+  - X: 185
+    Y: 0
+    Width: 151
+    Height: 430

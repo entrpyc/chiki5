@@ -1,0 +1,47 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 087105096b754cb4aaf6b6bf7eaf6cd6, type: 3}
+  m_Name: clip_enemy_orm_defend
+  m_EditorClassIdentifier: Chiki.Client::Chiki.Client.Visuals.SpriteClip
+  kind: enemy
+  subject: orm
+  variant: defend
+  frames:
+  - {fileID: 21300000, guid: bfd199f564ec7654ca737b5f6e8ae7a9, type: 3}
+  - {fileID: 21300000, guid: 443e6ef175d8ca24e8ea6e224c128419, type: 3}
+  - {fileID: 21300000, guid: bef324d883ae93548bc519a05f1ae15c, type: 3}
+  - {fileID: 21300000, guid: e3eae1638c6d0bb4ab713f9616ceff1b, type: 3}
+  - {fileID: 21300000, guid: b9a8987876e18ee479cf28cb10211482, type: 3}
+  lengthBeats: 2
+  loop: 0
+  strikeFrame: 0
+  frameBounds:
+  - X: 141
+    Y: 0
+    Width: 196
+    Height: 358
+  - X: 124
+    Y: 0
+    Width: 222
+    Height: 351
+  - X: 124
+    Y: 0
+    Width: 222
+    Height: 351
+  - X: 139
+    Y: 0
+    Width: 199
+    Height: 357
+  - X: 136
+    Y: 0
+    Width: 200
+    Height: 363

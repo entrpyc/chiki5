@@ -268,11 +268,48 @@ namespace Client
         [Test]
         public void enemy_ren_art_complete()
         {
-            AssertFighterArtComplete(StageView.EnemyKind, "ren", FighterClips.Enemy);
-            var charge = Shipped().Clip(StageView.EnemyKind, "ren", FighterClips.Charge);
-            Assert.That(charge.FrameCount, Is.EqualTo(4), "Ren's charge wind-up is not four frames");
-            Assert.That(charge.Loop, Is.True, "Ren's charge wind-up does not loop");
-            Assert.That(charge.LengthBeats, Is.EqualTo(1), "Ren's charge wind-up does not last one beat");
+            AssertEnemyArtComplete("ren");
+        }
+
+        /// <summary>P6.1: Kess's seven clips, on every condition Ren's are held to.</summary>
+        [Test]
+        public void enemy_kess_art_complete()
+        {
+            AssertEnemyArtComplete("kess");
+        }
+
+        /// <summary>P6.2: Vey's seven clips, on every condition Ren's are held to.</summary>
+        [Test]
+        public void enemy_vey_art_complete()
+        {
+            AssertEnemyArtComplete("vey");
+        }
+
+        /// <summary>P6.3: Orm's seven clips, on every condition Ren's are held to.</summary>
+        [Test]
+        public void enemy_orm_art_complete()
+        {
+            AssertEnemyArtComplete("orm");
+        }
+
+        /// <summary>P6.4: Malk's seven clips, on every condition Ren's are held to.</summary>
+        [Test]
+        public void enemy_malk_art_complete()
+        {
+            AssertEnemyArtComplete("malk");
+        }
+
+        /// <summary>
+        /// One enemy's clip set (P5.5, and P6.1 to P6.4 on the same conditions): the seven clips
+        /// every fighter carries, plus the four-frame charge wind-up that loops over one beat.
+        /// </summary>
+        private static void AssertEnemyArtComplete(string subject)
+        {
+            AssertFighterArtComplete(StageView.EnemyKind, subject, FighterClips.Enemy);
+            var charge = Shipped().Clip(StageView.EnemyKind, subject, FighterClips.Charge);
+            Assert.That(charge.FrameCount, Is.EqualTo(4), subject + "'s charge wind-up is not four frames");
+            Assert.That(charge.Loop, Is.True, subject + "'s charge wind-up does not loop");
+            Assert.That(charge.LengthBeats, Is.EqualTo(1), subject + "'s charge wind-up does not last one beat");
         }
 
         /// <summary>

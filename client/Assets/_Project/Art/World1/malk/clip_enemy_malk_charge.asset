@@ -1,0 +1,42 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 087105096b754cb4aaf6b6bf7eaf6cd6, type: 3}
+  m_Name: clip_enemy_malk_charge
+  m_EditorClassIdentifier: Chiki.Client::Chiki.Client.Visuals.SpriteClip
+  kind: enemy
+  subject: malk
+  variant: charge
+  frames:
+  - {fileID: 21300000, guid: 1d6e930977ae98a49aad57c5dd390a2e, type: 3}
+  - {fileID: 21300000, guid: 5a95549d98b9d0f4fb5cb5b83011339f, type: 3}
+  - {fileID: 21300000, guid: c6cf5f4a77fc31942a03fa187a18b2f4, type: 3}
+  - {fileID: 21300000, guid: f91cdf7ed25f7a84eb8a5bc435fcab66, type: 3}
+  lengthBeats: 1
+  loop: 1
+  strikeFrame: 0
+  frameBounds:
+  - X: 205
+    Y: 0
+    Width: 245
+    Height: 501
+  - X: 207
+    Y: 0
+    Width: 246
+    Height: 499
+  - X: 205
+    Y: 0
+    Width: 245
+    Height: 501
+  - X: 203
+    Y: 0
+    Width: 244
+    Height: 501

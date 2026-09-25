@@ -1,0 +1,62 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 087105096b754cb4aaf6b6bf7eaf6cd6, type: 3}
+  m_Name: clip_enemy_malk_death
+  m_EditorClassIdentifier: Chiki.Client::Chiki.Client.Visuals.SpriteClip
+  kind: enemy
+  subject: malk
+  variant: death
+  frames:
+  - {fileID: 21300000, guid: 0b203f7ed6b67f94485481b4a088d468, type: 3}
+  - {fileID: 21300000, guid: d8ee105e596cd944ba7452ce9257a8cf, type: 3}
+  - {fileID: 21300000, guid: 7183e3a24c8e3464fb3f9c9830396848, type: 3}
+  - {fileID: 21300000, guid: 7d9a08dbc8a72814dacb1212d2199617, type: 3}
+  - {fileID: 21300000, guid: 6ae7b6bb52fe8454e99de5b2155d0fb3, type: 3}
+  - {fileID: 21300000, guid: d132fbd16063a9f4a8a614921f770dcf, type: 3}
+  - {fileID: 21300000, guid: 7c32a1e8251b017419a74d032e0c2ccb, type: 3}
+  - {fileID: 21300000, guid: 98ca309e90534664db98a81371782d64, type: 3}
+  lengthBeats: 2
+  loop: 0
+  strikeFrame: 0
+  frameBounds:
+  - X: 183
+    Y: 0
+    Width: 198
+    Height: 429
+  - X: 188
+    Y: 0
+    Width: 151
+    Height: 414
+  - X: 162
+    Y: 0
+    Width: 175
+    Height: 391
+  - X: 135
+    Y: 0
+    Width: 219
+    Height: 360
+  - X: 113
+    Y: 0
+    Width: 258
+    Height: 323
+  - X: 96
+    Y: 0
+    Width: 290
+    Height: 279
+  - X: 85
+    Y: 0
+    Width: 315
+    Height: 231
+  - X: 82
+    Y: 0
+    Width: 331
+    Height: 180

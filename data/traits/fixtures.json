@@ -1,0 +1,17 @@
+{
+  "id": "fixtures",
+  "traits": [
+    {
+      "id": "trait-tempered",
+      "name": "Tempered",
+      "effect": { "trigger": "battle-started", "modifier": "gain-block", "amount": 3, "target": "player" },
+      "source": "pool"
+    },
+    {
+      "id": "trait-honed",
+      "name": "Honed",
+      "effect": { "trigger": "passive", "modifier": "multiply-value", "value": "damage-dealt", "amount": 1050, "lifetime": "battle" },
+      "source": "pool"
+    }
+  ]
+}

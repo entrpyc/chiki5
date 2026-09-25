@@ -265,11 +265,17 @@ namespace Chiki.Sim.Data
                     throw new JsonException($"The run names an unknown card definition '{definitionId}'.");
                 }
 
+                string? traitId = cardJson.Optional("trait")?.AsString();
+                if (traitId != null && content.FindTrait(traitId) is null)
+                {
+                    throw new JsonException($"The run names an unknown Trait '{traitId}'.");
+                }
+
                 cards.Add(CardInstance.Restore(
                     cardJson["id"].AsInt(),
                     definition,
                     cardJson.Optional("upgraded")?.AsBool() ?? false,
-                    cardJson.Optional("trait")?.AsString(),
+                    traitId,
                     cardJson.Optional("battlesRemaining")?.AsInt(),
                     cardJson.Optional("shopPrice")?.AsInt()));
             }

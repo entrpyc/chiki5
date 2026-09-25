@@ -17,7 +17,7 @@ namespace Chiki.Sim
 
         public bool Upgraded { get; private set; }
 
-        /// <summary>The Trait on this card, at most one (PRD 3.4.19); null until the Forge plan builds Traits.</summary>
+        /// <summary>The id of the Trait on this card, at most one (PRD 3.4.19), resolved by <see cref="RunContent.TraitOf"/>; null when it holds none. Only a restored instance carries one until the Forge plan applies Traits.</summary>
         public string? TraitId { get; private set; }
 
         /// <summary>Battles left before an Unstable card is destroyed (PRD 3.4.16); null for other classes.</summary>

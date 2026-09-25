@@ -137,8 +137,9 @@ namespace Chiki.Client.Flow
         {
             RequireProfile();
             CloseAll();
-            Map = MapScreen.Build(transform, Run);
+            Map = MapScreen.Build(transform, Run, Content);
             Map.SettingsChosen += OpenSettings;
+            Map.BinderChosen += OpenBinderFromMap;
             Map.NeighbourChosen += nodeId => ChooseNeighbour(nodeId);
             SaveRun();
             if (Run != null && Run.PendingReward != null)
@@ -189,8 +190,15 @@ namespace Chiki.Client.Flow
             RequireProfile();
             var saved = Profile!.RunInProgress ?? throw new InvalidOperationException("The profile holds no run in progress.");
             var content = LoadContent();
-            Run = RunSerializer.FromJson(saved, content);
-            AttachRun(content);
+            Resume(RunSerializer.FromJson(saved, content), content);
+        }
+
+        /// <summary>Takes up a run already restored against its content and opens the map at its node, as a resume does (PRD 3.1.5).</summary>
+        public void Resume(Run run, RunContent content)
+        {
+            RequireProfile();
+            Run = run ?? throw new ArgumentNullException(nameof(run));
+            AttachRun(content ?? throw new ArgumentNullException(nameof(content)));
             EnterMap();
         }
 
@@ -204,7 +212,7 @@ namespace Chiki.Client.Flow
             LastSummary = null;
         }
 
-        /// <summary>The fixture content a run draws on (P17.5): the fixture cards, Charms, Imprints and enemies from data/.</summary>
+        /// <summary>The fixture content a run draws on (P17.5, P9.1): the fixture cards, Charms, Imprints, enemies and Traits from data/.</summary>
         public static RunContent LoadContent()
         {
             var content = BattleContent.LoadFixtures();
@@ -212,7 +220,8 @@ namespace Chiki.Client.Flow
                 content.Cards,
                 CharmLoader.SetFromJson(ContentFiles.ReadText("charms/fixtures.json")),
                 ImprintLoader.SetFromJson(ContentFiles.ReadText("imprints/fixtures.json")),
-                enemies: new EnemySet("fixtures", content.Enemies.Values.ToList()));
+                enemies: new EnemySet("fixtures", content.Enemies.Values.ToList()),
+                traits: TraitLoader.SetFromJson(ContentFiles.ReadText("traits/fixtures.json")));
         }
 
         /// <summary>Commits to a forward node (PRD 3.2.7); the transition saves the run (PRD 3.1.5).</summary>
@@ -291,9 +300,27 @@ namespace Chiki.Client.Flow
                 return;
             }
 
-            Binder = BinderScreen.Build(transform, run.Binder);
+            Binder = BinderScreen.Build(transform, run.Binder, Content);
             Binder.Confirmed += () => EnterBattle();
             Binder.BackChosen += CloseBinder;
+        }
+
+        /// <summary>
+        /// Opens the Binder from the map to review cards, Traits and Unstable lifespans without
+        /// editing the loadout (PRD 3.5.11); Back returns to the map at the same node. The map's
+        /// keys rest while it is open so browsing never travels.
+        /// </summary>
+        public void OpenBinderFromMap()
+        {
+            var run = RequireRun();
+            if (Binder != null || Map == null)
+            {
+                return;
+            }
+
+            Binder = BinderScreen.Build(transform, run.Binder, Content, readOnly: true);
+            Binder.BackChosen += CloseBinder;
+            Map.Covered = true;
         }
 
         public void CloseBinder()
@@ -302,6 +329,11 @@ namespace Chiki.Client.Flow
             {
                 Destroy(Binder.gameObject);
                 Binder = null;
+            }
+
+            if (Map != null)
+            {
+                Map.Covered = false;
             }
 
             if (PreBattle != null)

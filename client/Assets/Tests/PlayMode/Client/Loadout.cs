@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using Chiki.Client.Presenter;
 using Chiki.Client.Profiles;
+using Chiki.Client.Text;
 using Chiki.Sim;
 using NUnit.Framework;
 using UnityEngine;
@@ -154,6 +155,80 @@ namespace Client
             Assert.That(moved, Is.SameAs(binder.Candidates[1]), "Down did not move the selection to the next card");
             Assert.That(preview.Size, Is.EqualTo(CardFaceSize.Full), "the preview is not a full face");
             Assert.That(preview.Card, Is.SameAs(moved!.Definition), "the preview does not show the card the selection moved to");
+        }
+
+        /// <summary>P9.2: the Binder opened from the map shows lifespans and Traits on its faces, refuses every edit and returns to the same node.</summary>
+        [UnityTest]
+        [Timeout(60000)]
+        public IEnumerator map_binder_is_read_only()
+        {
+            var fixtures = ClientTestContent.LoadRunContent();
+            var unstable = new CardDefinition("card-test-unstable", "Flicker", CardCategory.LeftAttack, 8, Tuning.CooldownMinBeats, CardRarity.Common, CardClass.Unstable, lifespan: 3);
+            var content = new RunContent(
+                fixtures.Starter,
+                fixtures.Charms,
+                fixtures.Imprints,
+                new[] { new CardSet("test-unstable", new[] { unstable }) },
+                fixtures.Enemies,
+                fixtures.Traits);
+            var trait = content.FindTrait("trait-tempered");
+            Assume.That(trait, Is.Not.Null, "the fixture Trait is missing");
+
+            var starter = Binder.Starter(content.Starter);
+            int next = starter.NextId;
+            var jab = content.FindCard("card-jab")!;
+            var traited = CardInstance.Restore(next, jab, false, trait!.Id, null, null);
+            var fading = CardInstance.Restore(next + 1, unstable, false, null, 2, null);
+            var cards = starter.Cards.Concat(new[] { traited, fading }).ToList();
+            var run = ClientTestContent.RunAtEntry(content, "chiki-1", cards: cards);
+            var flow = ClientTestContent.FlowResuming(_root, "A", run, content, _hosts);
+            yield return null;
+            var map = flow.Map;
+            Assume.That(map, Is.Not.Null, "the run did not open on the map");
+            string node = run.CurrentNodeId;
+            var loadoutBefore = LoadoutIds(run);
+
+            bool opened = map!.ChooseBinder();
+            yield return null;
+            var binder = flow.Binder;
+            Assume.That(binder, Is.Not.Null, "the Binder button did not open the Binder");
+
+            var owned = binder!.OwnedFaces;
+            var traitedFace = owned[run.Binder.Cards.ToList().IndexOf(traited)];
+            var fadingFace = owned[run.Binder.Cards.ToList().IndexOf(fading)];
+            var traitedCard = traitedFace.Card;
+            string traitText = traitedFace.TraitText;
+            var fadingCard = fadingFace.Card;
+            string lifespanText = fadingFace.LifespanText;
+            bool readOnly = binder.ReadOnly;
+            bool confirmShown = binder.ConfirmShown;
+            var slot = new Slot(0, SlotKey.E);
+            var other = binder.Candidates.FirstOrDefault(c => !ReferenceEquals(c, run.Loadout[slot]));
+            Assume.That(other, Is.Not.Null, "slot E has no other card to place");
+            binder.Select(slot);
+            var placement = binder.Fill(slot, other!);
+            bool cleared = binder.ClearSlot(slot);
+            binder.KeyDown(Key.Enter);
+            binder.KeyDown(Key.Delete);
+            var loadoutAfter = LoadoutIds(run);
+            bool back = binder.ChooseBack();
+            yield return null;
+
+            Assert.That(opened, Is.True, "the Binder button did not accept the press");
+            Assert.That(readOnly, Is.True, "the Binder opened from the map is editable");
+            Assert.That(traitedCard, Is.SameAs(jab), "the card with a Trait is not shown as a face");
+            Assert.That(traitText, Is.EqualTo(trait.Name), "the face does not name the card's Trait");
+            Assert.That(fadingCard, Is.SameAs(unstable), "the Unstable card is not shown as a face");
+            Assert.That(lifespanText, Is.EqualTo(Strings.Format("card.battles_left", 2)).And.Contain("2 battles"), "the face does not show the battles left");
+            Assert.That(placement, Is.Null, "a placement was not refused");
+            Assert.That(cleared, Is.False, "clearing a slot was not refused");
+            Assert.That(loadoutAfter, Is.EqualTo(loadoutBefore), "the loadout changed in the read-only Binder");
+            Assert.That(confirmShown, Is.False, "the read-only Binder shows Confirm");
+            Assert.That(back, Is.True, "Back did not accept the press");
+            Assert.That(flow.Binder, Is.Null, "Back did not close the Binder");
+            Assert.That(flow.Map, Is.Not.Null, "Back did not return to the map");
+            Assert.That(run.CurrentNodeId, Is.EqualTo(node), "the run left its node");
+            Assert.That(flow.Map!.Covered, Is.False, "the map's keys stayed resting after Back");
         }
     }
 }

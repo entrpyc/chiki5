@@ -61,15 +61,46 @@ namespace Client
         public static readonly CardDefinition LeftAttack10 = new CardDefinition("card-left-10", "Left 10", CardCategory.LeftAttack, 10, Tuning.CooldownMinBeats);
 
         /// <summary>data/tracks/fixture-120.json: 64 beats at BPM 120, offset 0.</summary>
-        /// <summary>The run content the flow starts a run on (P17.5): the fixture cards, Charms, Imprints and enemies from data/.</summary>
+        /// <summary>The run content the flow starts a run on (P17.5): the fixture cards, Charms, Imprints, enemies and Traits from data/.</summary>
         public static RunContent LoadRunContent()
         {
-            var content = BattleContent.LoadFixtures();
-            return new RunContent(
-                content.Cards,
-                CharmLoader.SetFromJson(ContentFiles.ReadText("charms/fixtures.json")),
-                ImprintLoader.SetFromJson(ContentFiles.ReadText("imprints/fixtures.json")),
-                enemies: new EnemySet("fixtures", content.Enemies.Values.ToList()));
+            return GameFlow.LoadContent();
+        }
+
+        /// <summary>
+        /// A run in World 1 at its entry node, built as a resumed save would restore it: the
+        /// given stats, equipped Charms and Binder cards, the loadout filled from the Binder. With
+        /// no cards given the Binder is the starter set's.
+        /// </summary>
+        public static Run RunAtEntry(RunContent content, string seed, RunStats? stats = null, IReadOnlyList<string>? charms = null, IReadOnlyList<CardInstance>? cards = null)
+        {
+            Binder binder;
+            if (cards == null)
+            {
+                binder = Binder.Starter(content.Starter);
+            }
+            else
+            {
+                binder = Binder.Restore(cards, cards.Max(c => c.Id) + 1);
+            }
+
+            binder.AutoFill();
+            return new Run(seed, stats ?? new RunStats(), charms ?? new string[0], new string[0], new string?[Tuning.ArmorUpgradeSlots], binder, new string[0], false, content, 1);
+        }
+
+        /// <summary>A flow on a fresh calibrated profile that takes up the given run on the map, as a resume would; the host is added to the list for teardown.</summary>
+        public static GameFlow FlowResuming(string root, string profileName, Run run, RunContent content, List<GameObject> hosts)
+        {
+            var store = new ProfileStore(root);
+            var profile = store.Create(profileName);
+            profile.Calibrated = true;
+            store.Save(profile);
+            var host = new GameObject("flow-" + profileName);
+            hosts.Add(host);
+            var flow = host.AddComponent<GameFlow>();
+            flow.Begin(profile, store);
+            flow.Resume(run, content);
+            return flow;
         }
 
         /// <summary>Walks the run along the first forward node at every step to the current World's Boss node without fighting: every stop on the way is completed as arrived at.</summary>

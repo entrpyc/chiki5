@@ -197,7 +197,7 @@ internal static class TestContent
         return Chiki.Sim.Data.EnemyLoader.SetFromJson(ReadData("enemies/fixtures.json"), charts);
     }
 
-    /// <summary>The starter set, the fixture Charms and the fixture Imprints as one run content (P17.1).</summary>
+    /// <summary>The starter set, the fixture Charms, Imprints and Traits as one run content (P17.1, P9.1).</summary>
     public static RunContent LoadRunContent(params CardSet[] otherSets)
     {
         return new RunContent(
@@ -205,7 +205,8 @@ internal static class TestContent
             Chiki.Sim.Data.CharmLoader.SetFromJson(ReadData("charms/fixtures.json")),
             Chiki.Sim.Data.ImprintLoader.SetFromJson(ReadData("imprints/fixtures.json")),
             otherSets,
-            LoadFixtureEnemies());
+            LoadFixtureEnemies(),
+            Chiki.Sim.Data.TraitLoader.SetFromJson(ReadData("traits/fixtures.json")));
     }
 
     /// <summary>A one-attack enemy with the given HP started by the run: a Perfect press on key E at 500 ms kills it before its attack lands.</summary>

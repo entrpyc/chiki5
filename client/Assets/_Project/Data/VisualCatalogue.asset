@@ -333,6 +333,26 @@ MonoBehaviour:
       Y: 0
       Width: 512
       Height: 720
+  - kind: charm
+    id: clean-victory
+    subject: clean-victory
+    variant: static
+    sprite: {fileID: 21300000, guid: 3bca2c2a75bccc744b0e3ea4f35d5c50, type: 3}
+    opaque:
+      X: 9
+      Y: 6
+      Width: 46
+      Height: 50
+  - kind: charm
+    id: momentum-plate
+    subject: momentum-plate
+    variant: static
+    sprite: {fileID: 21300000, guid: b08649d4aa792bb4ea7f930d73526810, type: 3}
+    opaque:
+      X: 5
+      Y: 8
+      Width: 54
+      Height: 48
   - kind: ui
     id: crp
     subject: crp
@@ -343,6 +363,66 @@ MonoBehaviour:
       Y: 2
       Width: 46
       Height: 60
+  - kind: imprint
+    id: bramble-skin
+    subject: bramble-skin
+    variant: static
+    sprite: {fileID: 21300000, guid: 526688187fb2b7a4bb35a734ca9e9c09, type: 3}
+    opaque:
+      X: 4
+      Y: 0
+      Width: 56
+      Height: 64
+  - kind: imprint
+    id: keen-edge
+    subject: keen-edge
+    variant: static
+    sprite: {fileID: 21300000, guid: 72c7ae1a90e9fc34995b0c5e647cad23, type: 3}
+    opaque:
+      X: 16
+      Y: 1
+      Width: 32
+      Height: 61
+  - kind: imprint
+    id: quick-guard
+    subject: quick-guard
+    variant: static
+    sprite: {fileID: 21300000, guid: 547df5b7bc7c2124f9c44103c3802e92, type: 3}
+    opaque:
+      X: 0
+      Y: 10
+      Width: 60
+      Height: 44
+  - kind: imprint
+    id: stone-heart
+    subject: stone-heart
+    variant: static
+    sprite: {fileID: 21300000, guid: 8e3772d75ec033d4f8cd99e1cb23eba8, type: 3}
+    opaque:
+      X: 7
+      Y: 4
+      Width: 50
+      Height: 51
+  - kind: imprint
+    id: thick-hide
+    subject: thick-hide
+    variant: static
+    sprite: {fileID: 21300000, guid: f7e711a71bd22b443970b7f50140bee7, type: 3}
+    opaque:
+      X: 7
+      Y: 6
+      Width: 50
+      Height: 49
+  - kind: imprint
+    id: war-drum
+    subject: war-drum
+    variant: static
+    sprite: {fileID: 21300000, guid: 5ab99428c250ee442837a519e47a8fab, type: 3}
+    opaque:
+      X: 6
+      Y: 6
+      Width: 57
+      Height: 58
   - kind: ability
     id: iron-veil
     subject: iron-veil
@@ -353,6 +433,116 @@ MonoBehaviour:
       Y: 6
       Width: 48
       Height: 54
+  - kind: bg
+    id: map
+    subject: map
+    variant: static
+    sprite: {fileID: 21300000, guid: 6b31f81831ff22048a7cc3fbb3ea9b1a, type: 3}
+    opaque:
+      X: 0
+      Y: 0
+      Width: 2560
+      Height: 1080
+  - kind: node
+    id: blacksmith
+    subject: blacksmith
+    variant: static
+    sprite: {fileID: 21300000, guid: fab84cc1e4c2de649afd6a12c4f06713, type: 3}
+    opaque:
+      X: 4
+      Y: 7
+      Width: 56
+      Height: 41
+  - kind: node
+    id: boss
+    subject: boss
+    variant: static
+    sprite: {fileID: 21300000, guid: 32412adca27768d4eb4269aefbe3b498, type: 3}
+    opaque:
+      X: 8
+      Y: 8
+      Width: 48
+      Height: 48
+  - kind: node
+    id: elite
+    subject: elite
+    variant: static
+    sprite: {fileID: 21300000, guid: b999ebba3011ce64a9280dbe7de5ad14, type: 3}
+    opaque:
+      X: 6
+      Y: 9
+      Width: 52
+      Height: 49
+  - kind: node
+    id: event
+    subject: event
+    variant: static
+    sprite: {fileID: 21300000, guid: 803e8fffc5c2ac546a9eb16f9b5c7f41, type: 3}
+    opaque:
+      X: 2
+      Y: 2
+      Width: 60
+      Height: 60
+  - kind: node
+    id: forge
+    subject: forge
+    variant: static
+    sprite: {fileID: 21300000, guid: 92b67e8459a766044b64847458d10c44, type: 3}
+    opaque:
+      X: 14
+      Y: 4
+      Width: 36
+      Height: 58
+  - kind: node
+    id: normal-battle
+    subject: normal-battle
+    variant: static
+    sprite: {fileID: 21300000, guid: da877d775f0e0f54eb3bf08312b64969, type: 3}
+    opaque:
+      X: 3
+      Y: 3
+      Width: 54
+      Height: 54
+  - kind: node
+    id: shop
+    subject: shop
+    variant: static
+    sprite: {fileID: 21300000, guid: 9a1c71162a2570140bfbfe9003f64b54, type: 3}
+    opaque:
+      X: 6
+      Y: 6
+      Width: 52
+      Height: 52
+  - kind: ui
+    id: map-marker
+    subject: map-marker
+    variant: static
+    sprite: {fileID: 21300000, guid: 8151b9357cab37346af42baca0a48153, type: 3}
+    opaque:
+      X: 12
+      Y: 2
+      Width: 40
+      Height: 58
+  - kind: ui
+    id: map-path
+    subject: map-path
+    variant: static
+    sprite: {fileID: 21300000, guid: 7fa86ccdbd6fc6346929e3f173883f9f, type: 3}
+    opaque:
+      X: 12
+      Y: 1
+      Width: 40
+      Height: 6
+  - kind: ui
+    id: map-path-walked
+    subject: map-path
+    variant: walked
+    sprite: {fileID: 21300000, guid: 775a92d374ca73a45a9df9e7baa0c993, type: 3}
+    opaque:
+      X: 0
+      Y: 1
+      Width: 64
+      Height: 6
   - kind: ui
     id: rhythmline-beat
     subject: rhythmline

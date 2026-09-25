@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using Chiki.Client.Editor;
 using Chiki.Client.Presenter;
+using Chiki.Client.Screens;
 using Chiki.Client.Visuals;
 using Chiki.Sim;
 using Chiki.Sim.Data;
@@ -348,6 +349,57 @@ namespace Client
             }
 
             Assert.That(catalogue.Missing, Is.Empty, "a starter card has no illustration: " + string.Join(", ", catalogue.Missing));
+        }
+
+        /// <summary>P9.3: one icon per map node type, each at 64 by 64 and each a different image.</summary>
+        [Test]
+        public void node_icons_complete()
+        {
+            var catalogue = Shipped();
+            var images = new Dictionary<string, byte[]>();
+            foreach (NodeType type in System.Enum.GetValues(typeof(NodeType)))
+            {
+                string id = MapScreen.NodeIconId(type);
+                Assert.That(catalogue.Has(MapScreen.NodeKind, id), Is.True, id + " has no icon in the shipped catalogue");
+                var sprite = catalogue.Sprite(MapScreen.NodeKind, id);
+                Assert.That(sprite.rect.size, Is.EqualTo(new Vector2(64f, 64f)), id + " is not a 64 by 64 icon");
+                images[id] = File.ReadAllBytes(AssetDatabase.GetAssetPath(sprite));
+            }
+
+            Assert.That(images, Has.Count.EqualTo(7), "the seven node types of PRD 3.2.16 were not all looked up");
+            foreach (var one in images)
+            {
+                foreach (var other in images)
+                {
+                    if (one.Key != other.Key)
+                    {
+                        Assert.That(one.Value, Is.Not.EqualTo(other.Value), one.Key + " and " + other.Key + " are the same image");
+                    }
+                }
+            }
+
+            Assert.That(catalogue.Missing, Is.Empty, "a node icon fell back: " + string.Join(", ", catalogue.Missing));
+        }
+
+        /// <summary>P9.5: every fixture Charm and every fixture Imprint has its 64 by 64 icon.</summary>
+        [Test]
+        public void charm_and_imprint_icons_complete()
+        {
+            var catalogue = Shipped();
+            var charms = CharmLoader.SetFromJson(Chiki.Client.Content.ContentFiles.ReadText("charms/fixtures.json")).Charms.Select(c => c.Id).ToList();
+            var imprints = ImprintLoader.SetFromJson(Chiki.Client.Content.ContentFiles.ReadText("imprints/fixtures.json")).Imprints.Select(i => i.Id).ToList();
+            Assert.That(charms, Is.Not.Empty, "the fixture Charm table is empty");
+            Assert.That(imprints, Is.Not.Empty, "the fixture Imprint pool is empty");
+
+            var wanted = charms.Select(id => (Kind: HeldIcon.CharmKind, Id: id)).Concat(imprints.Select(id => (Kind: HeldIcon.ImprintKind, Id: id)));
+            foreach (var (kind, contentId) in wanted)
+            {
+                string id = HeldIcon.IconId(kind, contentId);
+                Assert.That(catalogue.Has(kind, id), Is.True, contentId + " has no icon in the shipped catalogue");
+                Assert.That(catalogue.Sprite(kind, id).rect.size, Is.EqualTo(new Vector2(64f, 64f)), contentId + " is not a 64 by 64 icon");
+            }
+
+            Assert.That(catalogue.Missing, Is.Empty, "a Charm or Imprint icon fell back: " + string.Join(", ", catalogue.Missing));
         }
 
         /// <summary>

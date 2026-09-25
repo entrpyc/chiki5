@@ -59,6 +59,14 @@ namespace Chiki.Client.Presenter
         private static readonly UnityEngine.Rect RulesArea = UnityEngine.Rect.MinMaxRect(52f, 576f, 460f, 646f);
         private static readonly UnityEngine.Rect FlavourArea = UnityEngine.Rect.MinMaxRect(52f, 646f, 460f, 692f);
 
+        // The two plates an owned copy carries over the window's top (P9.2): its Trait's name
+        // (PRD 3.4.19) and an Unstable card's battles left (PRD 3.4.16, 3.5.10).
+        private static readonly UnityEngine.Rect TraitArea = UnityEngine.Rect.MinMaxRect(40f, 100f, 472f, 156f);
+        private static readonly UnityEngine.Rect LifespanArea = UnityEngine.Rect.MinMaxRect(40f, 162f, 472f, 218f);
+        private static readonly Color PlateColor = new Color(0.05f, 0.05f, 0.08f, 0.82f);
+        private static readonly Color TraitColor = new Color(0.62f, 0.9f, 0.75f, 1f);
+        private static readonly Color LifespanColor = new Color(1f, 0.72f, 0.4f, 1f);
+
         /// <summary>The status icons' drawn size on the art, in a row over the window's foot.</summary>
         private const float StatusIconSize = 48f;
         private const float StatusRowY = 492f;
@@ -80,6 +88,10 @@ namespace Chiki.Client.Presenter
         private UnityEngine.UI.Text _cooldown = null!;
         private UnityEngine.UI.Text _rules = null!;
         private UnityEngine.UI.Text _flavour = null!;
+        private Image _traitPlate = null!;
+        private UnityEngine.UI.Text _trait = null!;
+        private Image _lifespanPlate = null!;
+        private UnityEngine.UI.Text _lifespan = null!;
         private RectTransform _statusRow = null!;
         private readonly List<Image> _statusIcons = new List<Image>();
         private readonly List<StatusKind> _statusKinds = new List<StatusKind>();
@@ -117,6 +129,12 @@ namespace Chiki.Client.Presenter
 
         /// <summary>Whether the flavour line is on the face: only on a full face of a card that has flavour (PRD 3.4.7).</summary>
         public bool FlavourShown => _flavour.gameObject.activeSelf;
+
+        /// <summary>The name of the Trait the shown copy holds; empty when it holds none (PRD 3.4.19).</summary>
+        public string TraitText => _traitPlate.gameObject.activeSelf ? _trait.text : "";
+
+        /// <summary>The battles an Unstable copy has left, such as "2 battles"; empty for the other classes (PRD 3.4.16).</summary>
+        public string LifespanText => _lifespanPlate.gameObject.activeSelf ? _lifespan.text : "";
 
         /// <summary>The icons of the statuses the card applies, one per status, in the order its effects name them.</summary>
         public IReadOnlyList<Image> StatusIcons => _statusIcons.GetRange(0, _statusKinds.Count);
@@ -181,7 +199,11 @@ namespace Chiki.Client.Presenter
             return face;
         }
 
-        public void Show(CardInstance card)
+        /// <summary>
+        /// Shows an owned copy: its definition at the value it plays at, the name of the Trait it
+        /// holds when one is given (PRD 3.4.19), and an Unstable copy's battles left (PRD 3.4.16).
+        /// </summary>
+        public void Show(CardInstance card, TraitDefinition? trait = null)
         {
             if (card is null)
             {
@@ -189,6 +211,15 @@ namespace Chiki.Client.Presenter
             }
 
             Show(card.Definition, card.Value);
+            SetPlate(_traitPlate, _trait, trait?.Name);
+            int? left = card.BattlesRemaining;
+            SetPlate(_lifespanPlate, _lifespan, left is null ? null : BattlesLeft(left.Value));
+        }
+
+        /// <summary>An Unstable card's remaining lifespan as the face words it (PRD 3.4.16).</summary>
+        public static string BattlesLeft(int battles)
+        {
+            return battles == 1 ? Strings.Get("card.battle_left") : Strings.Format("card.battles_left", battles);
         }
 
         public void Show(CardDefinition card)
@@ -229,6 +260,8 @@ namespace Chiki.Client.Presenter
             _flavour.gameObject.SetActive(full && !string.IsNullOrEmpty(card.FlavorText));
 
             ShowStatuses(full ? AppliedStatuses(card) : Array.Empty<StatusKind>());
+            SetPlate(_traitPlate, _trait, null);
+            SetPlate(_lifespanPlate, _lifespan, null);
         }
 
         /// <summary>A slot with no card: the slot's Category frame at half opacity with the empty label, as the battle slots show it (P3.1).</summary>
@@ -245,6 +278,8 @@ namespace Chiki.Client.Presenter
             _rules.gameObject.SetActive(false);
             _flavour.gameObject.SetActive(false);
             ShowStatuses(Array.Empty<StatusKind>());
+            SetPlate(_traitPlate, _trait, null);
+            SetPlate(_lifespanPlate, _lifespan, null);
         }
 
         /// <summary>Marks the face as the one the keys are on.</summary>
@@ -301,6 +336,27 @@ namespace Chiki.Client.Presenter
             _flavour = Label("Flavour", Area("FlavourArea", FlavourArea), 22, FlavourColor, TextAnchor.LowerCenter);
             _flavour.fontStyle = FontStyle.Italic;
             _flavour.horizontalOverflow = HorizontalWrapMode.Wrap;
+
+            // Compact faces are drawn at a fifth of the art's size, so their plate text is set larger in art pixels.
+            int plateFont = full ? 30 : 46;
+            (_traitPlate, _trait) = Plate("Trait", TraitArea, plateFont, TraitColor);
+            (_lifespanPlate, _lifespan) = Plate("Lifespan", LifespanArea, plateFont, LifespanColor);
+        }
+
+        private (Image Plate, UnityEngine.UI.Text Label) Plate(string name, UnityEngine.Rect area, int fontSize, Color color)
+        {
+            var plate = HudFactory.Image(name, _art, PlateColor, ArtPoint(area.center), area.size);
+            var label = Label("Label", plate.rectTransform, fontSize, color, TextAnchor.MiddleCenter);
+            label.fontStyle = FontStyle.Bold;
+            label.horizontalOverflow = HorizontalWrapMode.Overflow;
+            plate.gameObject.SetActive(false);
+            return (plate, label);
+        }
+
+        private static void SetPlate(Image plate, UnityEngine.UI.Text label, string? text)
+        {
+            label.text = text ?? "";
+            plate.gameObject.SetActive(!string.IsNullOrEmpty(text));
         }
 
         private void SetFrame(CardCategory category, float opacity)

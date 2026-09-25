@@ -19,6 +19,11 @@ namespace Chiki.Client.Screens
     /// Delete or Backspace clears the slot. Confirm is disabled while any slot is empty and the
     /// panel names the empty slots; Confirm proceeds to the battle. Back returns to the
     /// pre-battle panel with the loadout as edited.
+    ///
+    /// Opened from the map it is read-only (PRD 3.5.11, P9.2): the same faces and keys for
+    /// browsing, but placing and clearing are refused, Confirm is absent and Back returns to the
+    /// map. In both modes a face names the Trait its copy holds and an Unstable copy's battles
+    /// left (PRD 3.4.16, 3.5.10).
     /// </summary>
     [DisallowMultipleComponent]
     public sealed class BinderScreen : MonoBehaviour
@@ -27,6 +32,7 @@ namespace Chiki.Client.Screens
         private const float ColumnGap = 12f;
 
         private Binder _binder = null!;
+        private RunContent? _content;
         private readonly Dictionary<Slot, CardFace> _slotFaces = new Dictionary<Slot, CardFace>();
         private readonly Dictionary<Slot, UnityEngine.UI.Text> _slotKeys = new Dictionary<Slot, UnityEngine.UI.Text>();
         private readonly List<CardFace> _ownedFaces = new List<CardFace>();
@@ -36,7 +42,7 @@ namespace Chiki.Client.Screens
         private CardFace _preview = null!;
         private UnityEngine.UI.Text _candidate = null!;
         private UnityEngine.UI.Text _empty = null!;
-        private Button _confirm = null!;
+        private Button? _confirm;
         private Button _back = null!;
         private ScreenKeys? _keys;
         private int _cursor;
@@ -49,8 +55,14 @@ namespace Chiki.Client.Screens
 
         public Slot SelectedSlot => Slot.All[_cursor];
 
+        /// <summary>Whether the Binder only shows the loadout, as it does when opened from the map (PRD 3.5.11).</summary>
+        public bool ReadOnly { get; private set; }
+
+        /// <summary>Whether Confirm is on the screen at all: never in the read-only Binder (P9.2).</summary>
+        public bool ConfirmShown => _confirm != null;
+
         /// <summary>Whether Confirm accepts input: only with every slot filled (PRD 3.5.5).</summary>
-        public bool ConfirmEnabled => _confirm.interactable;
+        public bool ConfirmEnabled => _confirm != null && _confirm.interactable;
 
         /// <summary>The panel's line naming the empty slots; empty when the loadout is complete.</summary>
         public string EmptySlotsText => _empty.text;
@@ -93,7 +105,11 @@ namespace Chiki.Client.Screens
             }
         }
 
-        public static BinderScreen Build(Transform? parent, Binder binder)
+        /// <summary>
+        /// Builds the Binder over whatever is open. The content resolves the Trait each copy holds
+        /// (PRD 4.11); without it no Trait is named. A read-only Binder refuses every edit (P9.2).
+        /// </summary>
+        public static BinderScreen Build(Transform? parent, Binder binder, RunContent? content = null, bool readOnly = false)
         {
             if (binder is null)
             {
@@ -103,10 +119,12 @@ namespace Chiki.Client.Screens
             var canvas = ScreenFactory.Canvas("BinderScreen", parent, 45);
             var screen = canvas.gameObject.AddComponent<BinderScreen>();
             screen._binder = binder;
+            screen._content = content;
+            screen.ReadOnly = readOnly;
             var root = canvas.transform;
             ScreenFactory.Fill("Backdrop", root, ScreenFactory.Backdrop);
-            ScreenFactory.Label("Title", root, Strings.Get("binder.title"), 56, new Vector2(0f, 470f), new Vector2(800f, 80f), TextAnchor.MiddleCenter);
-            ScreenFactory.Label("Hint", root, Strings.Get("binder.hint"), 24, new Vector2(0f, 410f), new Vector2(1600f, 50f), TextAnchor.MiddleCenter, ScreenFactory.MutedText);
+            ScreenFactory.Label("Title", root, Strings.Get(readOnly ? "binder.review_title" : "binder.title"), 56, new Vector2(0f, 470f), new Vector2(800f, 80f), TextAnchor.MiddleCenter);
+            ScreenFactory.Label("Hint", root, Strings.Get(readOnly ? "binder.review_hint" : "binder.hint"), 24, new Vector2(0f, 410f), new Vector2(1600f, 50f), TextAnchor.MiddleCenter, ScreenFactory.MutedText);
 
             var slots = HudFactory.Rect("Slots", root, new Vector2(-440f, 120f), new Vector2(900f, 440f));
             foreach (var slot in Slot.All)
@@ -127,8 +145,13 @@ namespace Chiki.Client.Screens
             screen._preview.Rect.localScale = new Vector3(1.5f, 1.5f, 1f);
             screen.BuildOwnedColumn(root);
             screen._empty = ScreenFactory.Label("Empty", root, "", 30, new Vector2(-440f, -260f), new Vector2(900f, 60f), TextAnchor.MiddleCenter, ScreenFactory.Accent);
-            screen._confirm = ScreenFactory.Button("Confirm", root, Strings.Get("binder.confirm"), new Vector2(-640f, -400f), new Vector2(400f, 84f), screen.Confirm);
-            screen._back = ScreenFactory.Button("Back", root, Strings.Get("binder.back"), new Vector2(-200f, -400f), new Vector2(400f, 84f), () => screen.BackChosen?.Invoke());
+            if (!readOnly)
+            {
+                screen._confirm = ScreenFactory.Button("Confirm", root, Strings.Get("binder.confirm"), new Vector2(-640f, -400f), new Vector2(400f, 84f), screen.Confirm);
+            }
+
+            var backAt = readOnly ? new Vector2(-440f, -400f) : new Vector2(-200f, -400f);
+            screen._back = ScreenFactory.Button("Back", root, Strings.Get("binder.back"), backAt, new Vector2(400f, 84f), () => screen.BackChosen?.Invoke());
             screen._keys = new ScreenKeys(new[] { Key.LeftArrow, Key.RightArrow, Key.UpArrow, Key.DownArrow, Key.Enter, Key.NumpadEnter, Key.Delete, Key.Backspace }, screen.KeyDown);
             screen.Refresh();
             return screen;
@@ -148,26 +171,36 @@ namespace Chiki.Client.Screens
             }
         }
 
-        /// <summary>Empties a slot (PRD 3.5.5); false when it was empty already.</summary>
+        /// <summary>Empties a slot (PRD 3.5.5); false when it was empty already or the Binder is read-only.</summary>
         public bool ClearSlot(Slot slot)
         {
+            if (ReadOnly)
+            {
+                return false;
+            }
+
             bool cleared = _binder.Clear(slot) != null;
             Refresh();
             return cleared;
         }
 
-        /// <summary>Places a Binder card in a slot (PRD 3.5.5).</summary>
-        public Placement Fill(Slot slot, CardInstance card)
+        /// <summary>Places a Binder card in a slot (PRD 3.5.5); null when the Binder is read-only and nothing was placed (PRD 3.5.11).</summary>
+        public Placement? Fill(Slot slot, CardInstance card)
         {
+            if (ReadOnly)
+            {
+                return null;
+            }
+
             var placement = _binder.Assign(slot, card);
             Refresh();
             return placement;
         }
 
-        /// <summary>Activates Confirm the way the player would; false while any slot is empty.</summary>
+        /// <summary>Activates Confirm the way the player would; false while any slot is empty, and always in the read-only Binder.</summary>
         public bool ChooseConfirm()
         {
-            return ScreenFactory.Submit(_confirm);
+            return _confirm != null && ScreenFactory.Submit(_confirm);
         }
 
         public bool ChooseBack()
@@ -195,12 +228,16 @@ namespace Chiki.Client.Screens
                     break;
                 case Key.Delete:
                 case Key.Backspace:
-                    _binder.Clear(SelectedSlot);
+                    if (!ReadOnly)
+                    {
+                        _binder.Clear(SelectedSlot);
+                    }
+
                     break;
                 case Key.Enter:
                 case Key.NumpadEnter:
                     var candidates = Candidates;
-                    if (candidates.Count > 0)
+                    if (!ReadOnly && candidates.Count > 0)
                     {
                         _binder.Assign(SelectedSlot, candidates[Wrap(_candidateIndex, candidates.Count)]);
                     }
@@ -244,7 +281,7 @@ namespace Chiki.Client.Screens
                 face.Rect.anchorMin = new Vector2(0.5f, 1f);
                 face.Rect.anchorMax = new Vector2(0.5f, 1f);
                 face.Rect.anchoredPosition = new Vector2(0f, -ColumnGap - CardFace.CompactSize.y / 2f - i * step);
-                face.Show(_binder.Cards[i]);
+                face.Show(_binder.Cards[i], TraitOf(_binder.Cards[i]));
                 var mark = HudFactory.Image("InLoadout", face.transform, ScreenFactory.Accent, new Vector2(CardFace.CompactSize.x / 2f - 2f, CardFace.CompactSize.y / 2f - 2f), new Vector2(16f, 16f));
                 _ownedFaces.Add(face);
                 _inLoadoutMarks.Add(mark.gameObject);
@@ -294,7 +331,7 @@ namespace Chiki.Client.Screens
                 }
                 else
                 {
-                    face.Show(card);
+                    face.Show(card, TraitOf(card));
                 }
 
                 bool selected = slot.Equals(SelectedSlot);
@@ -313,13 +350,13 @@ namespace Chiki.Client.Screens
                 }
                 else
                 {
-                    _preview.Show(inSlot);
+                    _preview.Show(inSlot, TraitOf(inSlot));
                 }
             }
             else
             {
                 _candidate.text = Strings.Format("binder.candidate", Strings.Format("binder.slot", SelectedSlot.Line + 1, SelectedSlot.Key), Preview(highlighted));
-                _preview.Show(highlighted);
+                _preview.Show(highlighted, TraitOf(highlighted));
             }
 
             for (int i = 0; i < _ownedFaces.Count; i++)
@@ -335,7 +372,11 @@ namespace Chiki.Client.Screens
             }
 
             var empty = loadout.EmptySlots;
-            _confirm.interactable = empty.Count == 0;
+            if (_confirm != null)
+            {
+                _confirm.interactable = empty.Count == 0;
+            }
+
             _empty.text = empty.Count == 0 ? "" : Strings.Format("binder.empty_slots", Loadout.Describe(empty));
         }
 
@@ -344,6 +385,11 @@ namespace Chiki.Client.Screens
         {
             var definition = card.Definition;
             return Strings.Format("binder.card", definition.Name, definition.Category, definition.Rarity, card.Value);
+        }
+
+        private TraitDefinition? TraitOf(CardInstance card)
+        {
+            return _content?.TraitOf(card);
         }
 
         private static int Wrap(int index, int count)

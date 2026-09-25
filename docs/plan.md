@@ -445,27 +445,27 @@ After that the order follows what the player reads first in a fight. The Rhythm 
 - Needs: P8.2, P7.3
 - Test (integration): `Client.Loadout › enemy_card_visible_while_editing` — given a battle node with Kess, when Edit opens the Binder, then Kess's enemy card is visible with its portrait and Rising Tempo.
 
-### Phase 9 — The map is a place
+### ✅ Phase 9 — The map is a place
 
 *The map is drawn: node icons, marker, paths and ground, a full header with the continent name, the equipped Charms and Imprints, and a Binder to review without editing. Done when every P9 test is green and the suite passes.*
 
 **Generated assets:** `tools/gen-phase9-art.mjs` draws the seven node icons, the player marker, the two tileable path sprites, the map backdrop, the two Charm icons and the six Imprint icons; the implementer writes three placeholder continent names into `data/strings/en.json`, which the operator renames later. Nineteen sprites and three strings.
 
-#### P9.1 Trait definition
+#### ✅ P9.1 Trait definition
 - PRD: 4.11
-- Does: a `TraitDefinition` record in the simulation holds id, name, one effect through the effect framework, and a source of Pool or Relationship (3.10.6); a loader reads `data/traits/*.json` and validation rejects a Trait without an effect or with an unknown source. Two fixture Traits ship in `data/traits/fixtures.json`, and `CardInstance.TraitId` resolves against them. Applying Traits at the Forge (3.4.19) stays out of scope; enemy traits (3.6.19 to 3.6.25) keep their current enum.
+- Does: a `TraitDefinition` record in the simulation holds id, name, one effect through the effect framework, and a source of Pool or Relationship (3.10.6); a loader reads `data/traits/*.json` and validation rejects a Trait without an effect or with an unknown source. Two fixture Traits ship in `data/traits/fixtures.json`, and `CardInstance.TraitId` resolves against them. Applying Traits at the Forge (3.4.19) stays out of scope; enemy traits (3.6.19 to 3.6.25) keep their current enum. Assumption: a Trait's effect may not trigger on play, since it is registered on its card rather than played; a saved card naming an unknown Trait fails the load.
 - Assets: none.
 - Needs: —
 - Test (unit): `Sim.Traits › fixtures_load_and_validate` — given `data/traits/fixtures.json`, when loaded, then two Traits load, each effect registers with the framework, and a Trait with no effect fails validation.
 
-#### P9.2 Read-only Binder from the map
+#### ✅ P9.2 Read-only Binder from the map
 - PRD: 3.5.11
-- Does: a Binder button on the map opens the Binder in review mode: slots and owned cards as faces, each card's Trait name when it has one, and each Unstable card's remaining battles (3.4.16). Placing and clearing are refused, Confirm is absent, and Back returns to the map at the same node.
+- Does: a Binder button on the map opens the Binder in review mode: slots and owned cards as faces, each card's Trait name when it has one, and each Unstable card's remaining battles (3.4.16). Placing and clearing are refused, Confirm is absent, and Back returns to the map at the same node. Assumption: the Trait name and the battles left sit on plates over the face's illustration in both Binder modes, which also gives 3.5.10 its lifespan display.
 - Assets: none beyond Phase 7.
 - Needs: P9.1, P7.3
 - Test (integration): `Client.Loadout › map_binder_is_read_only` — given a run on the map holding an Unstable card with 2 battles left and a card restored with a fixture Trait, when the Binder button is pressed, then both show as faces with "2 battles" and the Trait's name, a placement is refused, and Back returns to the same node.
 
-#### P9.3 Nodes, marker, paths and ground
+#### ✅ P9.3 Nodes, marker, paths and ground
 - PRD: 3.2.16
 - Does: each map node shows its type icon with its label below; the player marker and every connection use their sprites, walked connections the walked variant; and a backdrop fills the screen behind the board, the same in every World.
 - Assets, in `Art/Shared/map/`:
@@ -477,16 +477,16 @@ After that the order follows what the player reads first in a fight. The Rhythm 
 - Test (integration): `Client.Catalogue › node_icons_complete` — given the shipped catalogue, when the seven node types are looked up, then each has a 64 × 64 icon and no two are the same image.
 - Test (integration): `Client.Map › map_drawn_from_catalogue` — given a generated World 1 map, when rendered, then every node carries its type's icon, the marker and every connection carry catalogue sprites, the backdrop covers the screen, and `Missing` is empty.
 
-#### P9.4 Map header
+#### ✅ P9.4 Map header
 - PRD: 3.2.16
 - Does: the header shows the current World's continent name from the string table, ARD, CRP with its badge, Base DMG, Essence, the seed, a Binder button and Settings. Assumption: continent names are the strings `world.1.name` to `world.3.name`, written by the implementer as placeholders and renamed by the operator later; the PRD names no continents.
 - Assets: three continent names in `data/strings/en.json` under `world.1.name`, `world.2.name` and `world.3.name`.
 - Needs: P9.3, P9.2, P4.5
 - Test (integration): `Client.Map › header_shows_every_stat` — given World 1 with ARD 250 of 300, CRP 7, Base DMG 2, Essence 40 and seed "chiki-1", when the map renders, then the header shows the World 1 continent name and each value, and the Binder and Settings buttons are present.
 
-#### P9.5 Charms and Imprints on the map
+#### ✅ P9.5 Charms and Imprints on the map
 - PRD: 3.2.16
-- Does: a row of equipped Charm icons and held Imprint icons sits under the header, each with its name and effect in a tooltip.
+- Does: a row of equipped Charm icons and held Imprint icons sits under the header, each with its name and effect in a tooltip. Assumption: the effect line comes from the string table under `charm.effect.<id>` and `imprint.effect.<id>`, since the definitions carry no player-facing effect text; a stackable Imprint held twice shows once with its copy count.
 - Assets: `spr_charm_clean-victory_static_01.png`, `spr_charm_momentum-plate_static_01.png`, and `spr_imprint_<name>_static_01.png` for keen-edge, thick-hide, bramble-skin, quick-guard, war-drum and stone-heart, 64 × 64 each.
 - Needs: P9.3
 - Test (integration): `Client.Catalogue › charm_and_imprint_icons_complete` — given the shipped catalogue, when every Charm in `data/charms/fixtures.json` and every Imprint in `data/imprints/fixtures.json` is looked up, then each has a 64 × 64 icon.

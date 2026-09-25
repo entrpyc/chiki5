@@ -5,8 +5,8 @@ namespace Chiki.Sim
 {
     /// <summary>
     /// The content a run draws on: the starter set that fills its first Binder (PRD 3.5.3),
-    /// every other card set its instances may name, the Charm table (PRD 4.9) and the Imprint
-    /// pool (PRD 4.10). Loaded once at start and shared by every run; the run holds ids and
+    /// every other card set its instances may name, the Charm table (PRD 4.9), the Imprint
+    /// pool (PRD 4.10) and the Trait pool (PRD 4.11). Loaded once at start and shared by every run; the run holds ids and
     /// resolves them here.
     /// </summary>
     public sealed class RunContent
@@ -14,6 +14,7 @@ namespace Chiki.Sim
         private readonly Dictionary<string, CardDefinition> _cards = new Dictionary<string, CardDefinition>(StringComparer.Ordinal);
         private readonly Dictionary<string, CharmDefinition> _charms = new Dictionary<string, CharmDefinition>(StringComparer.Ordinal);
         private readonly Dictionary<string, ImprintDefinition> _imprints = new Dictionary<string, ImprintDefinition>(StringComparer.Ordinal);
+        private readonly Dictionary<string, TraitDefinition> _traits = new Dictionary<string, TraitDefinition>(StringComparer.Ordinal);
 
         public CardSet Starter { get; }
 
@@ -21,18 +22,22 @@ namespace Chiki.Sim
 
         public ImprintSet Imprints { get; }
 
+        /// <summary>The Traits a card instance's <see cref="CardInstance.TraitId"/> names (PRD 4.11).</summary>
+        public TraitSet Traits { get; }
+
         /// <summary>The enemy pool the maps roll battle nodes from (PRD 3.2.8–3.2.10, 3.6.1).</summary>
         public EnemySet Enemies { get; }
 
         /// <summary>Every card definition by id, from the starter set and the other sets.</summary>
         public IReadOnlyDictionary<string, CardDefinition> Cards => _cards;
 
-        public RunContent(CardSet starter, CharmSet? charms = null, ImprintSet? imprints = null, IReadOnlyList<CardSet>? otherSets = null, EnemySet? enemies = null)
+        public RunContent(CardSet starter, CharmSet? charms = null, ImprintSet? imprints = null, IReadOnlyList<CardSet>? otherSets = null, EnemySet? enemies = null, TraitSet? traits = null)
         {
             Starter = starter ?? throw new ArgumentNullException(nameof(starter));
             Enemies = enemies ?? new EnemySet("none", Array.Empty<EnemyDefinition>());
             Charms = charms ?? new CharmSet("none", Array.Empty<CharmDefinition>());
             Imprints = imprints ?? new ImprintSet("none", Array.Empty<ImprintDefinition>());
+            Traits = traits ?? new TraitSet("none", Array.Empty<TraitDefinition>());
 
             AddCards(starter);
             if (otherSets != null)
@@ -52,6 +57,11 @@ namespace Chiki.Sim
             {
                 _imprints[imprint.Id] = imprint;
             }
+
+            foreach (var trait in Traits.Traits)
+            {
+                _traits[trait.Id] = trait;
+            }
         }
 
         public CardDefinition? FindCard(string id)
@@ -67,6 +77,22 @@ namespace Chiki.Sim
         public ImprintDefinition? FindImprint(string id)
         {
             return _imprints.TryGetValue(id, out var imprint) ? imprint : null;
+        }
+
+        public TraitDefinition? FindTrait(string id)
+        {
+            return _traits.TryGetValue(id, out var trait) ? trait : null;
+        }
+
+        /// <summary>The Trait a card instance holds, resolved against the Trait pool; null when it holds none (PRD 3.4.19).</summary>
+        public TraitDefinition? TraitOf(CardInstance card)
+        {
+            if (card is null)
+            {
+                throw new ArgumentNullException(nameof(card));
+            }
+
+            return card.TraitId is null ? null : FindTrait(card.TraitId);
         }
 
         public EnemyDefinition? FindEnemy(string id)

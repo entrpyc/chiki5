@@ -734,6 +734,16 @@ MonoBehaviour:
       Width: 996
       Height: 383
   - kind: ui
+    id: top-bar
+    subject: top-bar
+    variant: static
+    sprite: {fileID: 21300000, guid: e47fd234f3ded0742a627be912c9e227, type: 3}
+    opaque:
+      X: 0
+      Y: 0
+      Width: 3840
+      Height: 250
+  - kind: ui
     id: backdrop
     subject: backdrop
     variant: static

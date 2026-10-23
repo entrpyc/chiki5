@@ -27,11 +27,14 @@ namespace Chiki.Client.Presenter
         /// <summary>Over the player on the stage, where a heavy hit bursts (P4.2).</summary>
         public static readonly Vector2 PlayerPoint = new Vector2(-520f, -150f);
 
-        /// <summary>The enemy's bar and statuses, top right.</summary>
-        public static readonly Vector2 EnemyBarPoint = new Vector2(640f, 440f);
+        /// <summary>The top bar, flush with the top edge.</summary>
+        public static readonly Vector2 TopBarPoint = new Vector2(0f, 477.5f);
 
-        /// <summary>The player's bar and statuses, top left.</summary>
-        public static readonly Vector2 PlayerBarPoint = new Vector2(-640f, 440f);
+        /// <summary>The enemy's bar and statuses, right, under the top bar.</summary>
+        public static readonly Vector2 EnemyBarPoint = new Vector2(640f, 335f);
+
+        /// <summary>The player's bar and statuses, left, under the top bar.</summary>
+        public static readonly Vector2 PlayerBarPoint = new Vector2(-640f, 335f);
 
         /// <summary>The Rhythm Line, just above the card panel's Category icons.</summary>
         public static readonly Vector2 RhythmLinePoint = new Vector2(0f, -215f);
@@ -57,13 +60,16 @@ namespace Chiki.Client.Presenter
         /// <summary>The CRP readout (PRD 3.8.1).</summary>
         public CrpView Crp { get; private set; } = null!;
 
+        /// <summary>The bar along the top: Charms, Imprints and the run's numbers.</summary>
+        public TopBarView TopBar { get; private set; } = null!;
+
         /// <summary>The shake on the battle camera; null when the HUD was built without a camera.</summary>
         public CameraShake? Shake { get; private set; }
 
         /// <summary>The burst a heavy hit plays over the player (P4.2).</summary>
         public HitEffectView HitEffect { get; private set; } = null!;
 
-        public static BattleHud Build(BattleDriver driver, Camera? camera, BattleInput? input, Func<Slot, CardDefinition?>? cardInSlot)
+        public static BattleHud Build(BattleDriver driver, Camera? camera, BattleInput? input, Func<Slot, CardDefinition?>? cardInSlot, HeldItems? held = null)
         {
             if (driver == null)
             {
@@ -88,6 +94,7 @@ namespace Chiki.Client.Presenter
             hud.Stage = StageView.Build(driver);
 
             hud.RhythmLine = RhythmLineView.Build(driver, rect, RhythmLinePoint, new Vector2(1600f, 180f));
+            hud.TopBar = TopBarView.Build(driver, rect, TopBarPoint, held ?? HeldItems.None);
             hud.Statuses = StatusIconsView.Build(driver, rect, EnemyBarPoint, PlayerBarPoint);
             hud.HitEffect = HitEffectView.Build(rect, PlayerPoint, driver.Clock);
             hud.Slots = SlotRowsView.Build(driver, rect, SlotRowsPoint, cardInSlot, input);

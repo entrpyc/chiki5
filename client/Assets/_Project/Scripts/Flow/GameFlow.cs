@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Chiki.Client.Content;
+using Chiki.Client.Presenter;
 using Chiki.Client.Profiles;
 using Chiki.Client.Scene;
 using Chiki.Client.Screens;
@@ -365,7 +366,7 @@ namespace Chiki.Client.Flow
             var host = new GameObject("Battle");
             host.transform.SetParent(transform, false);
             Battle = host.AddComponent<BattleScene>();
-            Battle.Compose(battle, slot => run.Loadout[slot]?.Definition);
+            Battle.Compose(battle, slot => run.Loadout[slot]?.Definition, new HeldItems(run.Charms, run.Imprints, Content));
             return Battle;
         }
 

@@ -89,7 +89,6 @@ namespace Client
 
         [UnityTest]
         [Timeout(30000)]
-        [Ignore("operator layout 2026-10-23: only the active line shows in the card panel, so no thinner inactive row (PRD 3.3.5.4 deviation)")]
         public IEnumerator cooldown_countdown_and_thin_inactive_line()
         {
             var card = new CardDefinition("card-cd-3", "Three", CardCategory.LeftAttack, 10, 3);

@@ -83,7 +83,7 @@ namespace Chiki.Client.Scene
         }
 
         /// <summary>Builds the rig, the keys and the HUD around a battle the run started (P23.2), reading cards from the run's loadout.</summary>
-        public void Compose(Sim.Battle battle, Func<Slot, CardDefinition?> cardInSlot)
+        public void Compose(Sim.Battle battle, Func<Slot, CardDefinition?> cardInSlot, HeldItems? held = null)
         {
             if (battle is null)
             {
@@ -96,7 +96,7 @@ namespace Chiki.Client.Scene
             }
 
             RequireNotComposed();
-            BuildRig(battle, cardInSlot);
+            BuildRig(battle, cardInSlot, held);
         }
 
         private void RequireNotComposed()
@@ -107,7 +107,7 @@ namespace Chiki.Client.Scene
             }
         }
 
-        private void BuildRig(Sim.Battle battle, Func<Slot, CardDefinition?> cardInSlot)
+        private void BuildRig(Sim.Battle battle, Func<Slot, CardDefinition?> cardInSlot, HeldItems? held = null)
         {
             _cardInSlot = cardInSlot;
             var enemy = battle.Enemy;
@@ -133,7 +133,7 @@ namespace Chiki.Client.Scene
             Metronome.Volume = ActiveProfile.MetronomeVolume;
             Metronome.On = ActiveProfile.MetronomeOn;
 
-            Hud = BattleHud.Build(Driver, Camera, Input, CardInSlot);
+            Hud = BattleHud.Build(Driver, Camera, Input, CardInSlot, held);
             Hud.transform.SetParent(transform, true);
             Hud.Stage.transform.SetParent(transform, true);
             Composed = true;

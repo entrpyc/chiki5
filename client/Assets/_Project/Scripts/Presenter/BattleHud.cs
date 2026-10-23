@@ -21,11 +21,23 @@ namespace Chiki.Client.Presenter
         public const float CanvasHeight = 1080f;
         public const float PixelsPerUnit = 100f;
 
-        /// <summary>Where the enemy's bar and its statuses sit.</summary>
+        /// <summary>Over the enemy on the stage.</summary>
         public static readonly Vector2 EnemyPoint = new Vector2(520f, 150f);
 
-        /// <summary>Where the player's bar sits, and so where a heavy hit bursts over the player (P4.2).</summary>
+        /// <summary>Over the player on the stage, where a heavy hit bursts (P4.2).</summary>
         public static readonly Vector2 PlayerPoint = new Vector2(-520f, -150f);
+
+        /// <summary>The enemy's bar and statuses, top right.</summary>
+        public static readonly Vector2 EnemyBarPoint = new Vector2(640f, 440f);
+
+        /// <summary>The player's bar and statuses, top left.</summary>
+        public static readonly Vector2 PlayerBarPoint = new Vector2(-640f, 440f);
+
+        /// <summary>The Rhythm Line, just above the slot rows.</summary>
+        public static readonly Vector2 RhythmLinePoint = new Vector2(0f, -130f);
+
+        /// <summary>The slot rows, along the bottom.</summary>
+        public static readonly Vector2 SlotRowsPoint = new Vector2(0f, -360f);
 
         public Canvas Canvas { get; private set; } = null!;
 
@@ -75,11 +87,13 @@ namespace Chiki.Client.Presenter
             // still owns it, and takes it down with itself.
             hud.Stage = StageView.Build(driver);
 
-            hud.RhythmLine = RhythmLineView.Build(driver, rect, new Vector2(0f, 330f), new Vector2(1600f, 180f));
-            hud.Statuses = StatusIconsView.Build(driver, rect, EnemyPoint, PlayerPoint);
+            hud.RhythmLine = RhythmLineView.Build(driver, rect, RhythmLinePoint, new Vector2(1600f, 180f));
+            hud.Statuses = StatusIconsView.Build(driver, rect, EnemyBarPoint, PlayerBarPoint);
             hud.HitEffect = HitEffectView.Build(rect, PlayerPoint, driver.Clock);
-            hud.Slots = SlotRowsView.Build(driver, rect, new Vector2(0f, -360f), cardInSlot, input);
+            hud.Slots = SlotRowsView.Build(driver, rect, SlotRowsPoint, cardInSlot, input);
+            // CRP stays tracked for the run and the tests, but is not shown in battle (operator layout, 2026-10-23).
             hud.Crp = CrpView.Build(driver, rect, new Vector2(0f, 500f));
+            hud.Crp.gameObject.SetActive(false);
 
             if (camera != null)
             {

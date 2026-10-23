@@ -103,7 +103,8 @@ namespace Client
 
             var crp = flow.Battle!.Hud!.Crp;
             Assert.That(crp.Text, Does.Contain("7"), "the battle HUD does not show CRP 7");
-            Assert.That(crp.Icon.gameObject.activeInHierarchy, Is.True, "the battle HUD shows no CRP icon");
+            // The battle HUD keeps the CRP view current but hidden (operator layout, 2026-10-23).
+            Assert.That(crp.gameObject.activeInHierarchy, Is.False, "the battle HUD shows the CRP view");
             Assert.That(crp.Icon.sprite, Is.SameAs(badge), "the battle HUD's CRP icon is not the catalogue's");
             Assert.That(crp.Icon.rectTransform.position.x, Is.LessThan(crp.Label.position.x), "the battle HUD's CRP value does not sit beside its icon");
 

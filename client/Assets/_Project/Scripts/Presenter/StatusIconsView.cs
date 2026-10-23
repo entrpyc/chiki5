@@ -42,7 +42,7 @@ namespace Chiki.Client.Presenter
 
         private static readonly Color BarBackground = new Color(0.12f, 0.12f, 0.15f, 1f);
         private static readonly Color EnemyFill = new Color(0.8f, 0.2f, 0.25f, 1f);
-        private static readonly Color PlayerFill = new Color(0.25f, 0.65f, 0.9f, 1f);
+        private static readonly Color PlayerFill = new Color(0.8f, 0.2f, 0.25f, 1f); // Red like the enemy's (operator choice, 2026-10-23).
         private static readonly Color BlockTint = new Color(0.6f, 0.72f, 0.88f, 1f);
 
         private readonly float _width;
@@ -57,11 +57,17 @@ namespace Chiki.Client.Presenter
 
         public StatusTarget Side { get; }
 
+        /// <summary>The player's row runs left to right from its bar's left end; the enemy's mirrors it, right to left from the right end (operator layout, 2026-10-23).</summary>
+        private float Mirror(float x)
+        {
+            return Side == StatusTarget.Enemy ? -x : x;
+        }
+
         public RectTransform Root { get; }
 
         public RectTransform Bar { get; }
 
-        /// <summary>The row the icons sit in, above the bar.</summary>
+        /// <summary>The row the icons sit in, under the bar.</summary>
         public RectTransform IconsRow { get; }
 
         /// <summary>The icons on screen, one per status kind on this side, in kind order.</summary>
@@ -119,15 +125,17 @@ namespace Chiki.Client.Presenter
                 "Block",
                 Root,
                 blockPiece.Tint,
-                new Vector2(width / 2f + IconGap + BlockIconSize / 2f, -BarHeight / 2f - IconGap),
+                // Under the bar's right end, left of the ability badge's place in the status row.
+                new Vector2(0f, -(BarHeight / 2f + IconGap + IconSize / 2f)),
                 new Vector2(BlockIconSize, BlockIconSize),
                 blockPiece.Sprite);
             _blockValue = HudFactory.StretchedText("BlockValue", _blockIcon.rectTransform, 20, Color.white, TextAnchor.MiddleCenter);
             _blockIcon.gameObject.SetActive(false);
 
-            IconsRow = HudFactory.Rect("Statuses", Root, new Vector2(0f, BarHeight / 2f + IconGap + IconSize / 2f), new Vector2(width, IconSize));
+            // The statuses sit directly under the bar (operator layout, 2026-10-23), the bar itself directly under the top bar.
+            IconsRow = HudFactory.Rect("Statuses", Root, new Vector2(0f, -(BarHeight / 2f + IconGap + IconSize / 2f)), new Vector2(width, IconSize));
 
-            _ability = HudFactory.Image("Ability", IconsRow, Color.white, new Vector2(width / 2f - IconSize / 2f, 0f), new Vector2(IconSize, IconSize));
+            _ability = HudFactory.Image("Ability", IconsRow, Color.white, Vector2.zero, new Vector2(IconSize, IconSize));
             _ability.gameObject.SetActive(false);
         }
 
@@ -148,6 +156,8 @@ namespace Chiki.Client.Presenter
             {
                 _ability.gameObject.SetActive(shown);
             }
+
+            LayoutRow();
         }
 
         public void SetBar(int value, int max, string text)
@@ -164,6 +174,8 @@ namespace Chiki.Client.Presenter
             {
                 _blockIcon.gameObject.SetActive(block > 0);
             }
+
+            LayoutRow();
         }
 
         /// <summary>Shows one icon per status kind on the side: total stacks and the longest time left (PRD 3.3.7.1).</summary>
@@ -191,7 +203,6 @@ namespace Chiki.Client.Presenter
 
                 var icon = _pool[next];
                 icon.Set(kind, statuses.Stacks(kind), remaining);
-                icon.Rect.anchoredPosition = new Vector2(-_width / 2f + IconSize / 2f + next * (IconSize + IconGap), 0f);
                 if (!icon.gameObject.activeSelf)
                 {
                     icon.gameObject.SetActive(true);
@@ -208,6 +219,34 @@ namespace Chiki.Client.Presenter
                     _pool[i].HideTooltip();
                     _pool[i].gameObject.SetActive(false);
                 }
+            }
+
+            LayoutRow();
+        }
+
+        /// <summary>
+        /// Lays the row out as one sequence from the bar's outer end inwards: the Block square,
+        /// then a standing ability's badge, then one icon per status. The player's row runs left
+        /// to right from its left end; the enemy's right to left from its right end (operator
+        /// layout, 2026-10-23).
+        /// </summary>
+        private void LayoutRow()
+        {
+            int n = 0;
+            float Next() => Mirror(-_width / 2f + IconSize / 2f + n++ * (IconSize + IconGap));
+            if (_blockIcon.gameObject.activeSelf)
+            {
+                _blockIcon.rectTransform.anchoredPosition = new Vector2(Next(), _blockIcon.rectTransform.anchoredPosition.y);
+            }
+
+            if (_ability.gameObject.activeSelf)
+            {
+                _ability.rectTransform.anchoredPosition = new Vector2(Next(), 0f);
+            }
+
+            foreach (var icon in _shown)
+            {
+                icon.Rect.anchoredPosition = new Vector2(Next(), 0f);
             }
         }
 

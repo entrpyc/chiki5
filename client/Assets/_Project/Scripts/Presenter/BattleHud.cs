@@ -30,11 +30,11 @@ namespace Chiki.Client.Presenter
         /// <summary>The top bar, flush with the top edge.</summary>
         public static readonly Vector2 TopBarPoint = new Vector2(0f, 477.5f);
 
-        /// <summary>The enemy's bar and statuses, right, under the top bar.</summary>
-        public static readonly Vector2 EnemyBarPoint = new Vector2(640f, 335f);
+        /// <summary>The enemy's bar, right, directly under the top bar (whose bottom edge is 415 above the centre); its statuses hang under it.</summary>
+        public static readonly Vector2 EnemyBarPoint = new Vector2(640f, 389f);
 
-        /// <summary>The player's bar and statuses, left, under the top bar.</summary>
-        public static readonly Vector2 PlayerBarPoint = new Vector2(-640f, 335f);
+        /// <summary>The player's bar, left, directly under the top bar; its statuses hang under it.</summary>
+        public static readonly Vector2 PlayerBarPoint = new Vector2(-640f, 389f);
 
         /// <summary>The Rhythm Line, just above the card panel's Category icons.</summary>
         public static readonly Vector2 RhythmLinePoint = new Vector2(0f, -215f);

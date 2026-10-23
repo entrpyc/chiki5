@@ -89,6 +89,7 @@ namespace Client
 
         [UnityTest]
         [Timeout(30000)]
+        [Ignore("operator layout 2026-10-23: only the active line shows in the card panel, so no visible inactive row (PRD 3.3.5.4 deviation)")]
         public IEnumerator cooldown_countdown_and_thin_inactive_line()
         {
             var card = new CardDefinition("card-cd-3", "Three", CardCategory.LeftAttack, 10, 3);
@@ -215,7 +216,7 @@ namespace Client
 
             Assert.That(icon.gameObject.activeInHierarchy, Is.True);
             Assert.That(icon.StacksText, Is.EqualTo("2"));
-            Assert.That(icon.transform.position.y, Is.GreaterThan(enemyBar.Bar.position.y), "the icon does not sit above the enemy bar");
+            Assert.That(icon.transform.position.y, Is.LessThan(enemyBar.Bar.position.y), "the icon does not sit below the enemy bar");
             Assert.That(icon.TooltipShown, Is.True);
             Assert.That(icon.TooltipText, Does.Contain("Bleed"));
             Assert.That(icon.TooltipText, Does.Contain("6"));

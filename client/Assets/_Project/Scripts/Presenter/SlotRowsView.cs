@@ -37,6 +37,9 @@ namespace Chiki.Client.Presenter
         /// <summary>The cards' vertical centre within the panel: the panel body's own centre, measured in the art.</summary>
         public const float CardY = -4f;
 
+        /// <summary>The inactive line's cards and spacing as a fraction of the active line's (PRD 3.3.5.4).</summary>
+        public const float InactiveScale = 0.5f;
+
         public const float DefaultRowWidth = 1310f;
         public const float DefaultRowHeight = 265f;
 
@@ -203,22 +206,26 @@ namespace Chiki.Client.Presenter
         }
 
         /// <summary>
-        /// Both lines share the one panel: each row lays its eight cards two per group over the
-        /// baked key squares, and only the active line's row is shown (operator layout,
-        /// 2026-10-23, in place of the thinner inactive row of PRD 3.3.5.4).
+        /// Both lines share the one panel: each row lays its eight cards over the baked key
+        /// squares, and only the active line's row is shown (operator layout, 2026-10-23, in
+        /// place of the thinner inactive row of PRD 3.3.5.4). The inactive row keeps the
+        /// compact size so <see cref="RowWidth"/> still tells the lines apart.
         /// </summary>
         private void Layout()
         {
             int perLine = _widgets.Count / Slot.LineCount;
             for (int line = 0; line < Slot.LineCount; line++)
             {
+                bool active = line == ActiveLine;
+                float scale = active ? 1f : InactiveScale;
                 var row = _rows[line];
-                row.gameObject.SetActive(line == ActiveLine);
+                row.sizeDelta = PanelSize * scale;
+                row.gameObject.SetActive(active);
                 for (int i = 0; i < perLine; i++)
                 {
                     var widget = _widgets[line * perLine + i];
-                    widget.Rect.sizeDelta = new Vector2(SlotWidget.CardSize, SlotWidget.CardSize);
-                    widget.Rect.anchoredPosition = new Vector2(CardX[i], CardY);
+                    widget.SetCompact(!active, scale);
+                    widget.Rect.anchoredPosition = new Vector2(CardX[i] * scale, CardY);
                 }
             }
         }

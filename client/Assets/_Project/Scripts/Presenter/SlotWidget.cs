@@ -80,6 +80,10 @@ namespace Chiki.Client.Presenter
         private bool _disabledFlashing;
         private int _cooldownTotal;
         private bool _empty = true;
+        private float _compactOpacity = 1f;
+
+        /// <summary>The inactive line's face opacity (PRD 3.3.5.4).</summary>
+        public const float CompactOpacity = 0.7f;
 
         public Slot Slot { get; }
 
@@ -223,14 +227,32 @@ namespace Chiki.Client.Presenter
         {
             _empty = card == null;
             _cardName.text = card != null ? card.Name : Strings.Get("slot.empty");
-            var colour = _frameColor;
-            colour.a = _frameColor.a * (_empty ? EmptyOpacity : 1f);
-            _frame.color = colour;
+            ApplyFaceOpacity();
         }
 
         public void SetKeyLabel(string label)
         {
             _keyLabel.text = label;
+        }
+
+        /// <summary>
+        /// Draws the slot for the inactive line: scaled down, dimmed and without its key letter,
+        /// since no key square sits under it there (PRD 3.3.5.4). Full size otherwise.
+        /// </summary>
+        public void SetCompact(bool compact, float scale)
+        {
+            Rect.sizeDelta = new Vector2(CardSize, CardSize);
+            Rect.localScale = new Vector3(scale, scale, 1f);
+            _keyLabel.gameObject.SetActive(!compact);
+            _compactOpacity = compact ? CompactOpacity : 1f;
+            ApplyFaceOpacity();
+        }
+
+        private void ApplyFaceOpacity()
+        {
+            var colour = _frameColor;
+            colour.a = _frameColor.a * (_empty ? EmptyOpacity : 1f) * _compactOpacity;
+            _frame.color = colour;
         }
 
         /// <summary>Shows the sweep and the beats remaining, or clears both at zero (PRD 3.3.5.4).</summary>

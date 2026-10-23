@@ -52,10 +52,10 @@ public class EdgeCases
     {
         var plays = new (string Name, Slot Slot, CardDefinition Card)[]
         {
-            ("Defense", TestContent.SlotO, TestContent.Defense(8)),
+            ("Defense", TestContent.SlotQ, TestContent.Defense(8)),
             ("correct-side Attack", TestContent.SlotE, TestContent.LeftAttack10),
             ("wrong-side Attack", TestContent.SlotU, TestContent.RightAttack(10)),
-            ("Ability", TestContent.SlotQ, TestContent.Ability()),
+            ("Ability", TestContent.SlotO, TestContent.Ability()),
         };
 
         Assert.Multiple(() =>
@@ -79,7 +79,7 @@ public class EdgeCases
     {
         var stats = new Stats();
         var battle = AttackedLeft(stats);
-        battle.Press(TestContent.SlotQ, TestContent.Ability(), 500 + Perfect);
+        battle.Press(TestContent.SlotO, TestContent.Ability(), 500 + Perfect);
 
         battle.AdvanceToBeat(2);
 
@@ -95,7 +95,7 @@ public class EdgeCases
     {
         var stats = new Stats();
         var battle = AttackedLeft(stats, block: 4);
-        battle.Press(TestContent.SlotO, TestContent.Defense(8), 500 + Good);
+        battle.Press(TestContent.SlotQ, TestContent.Defense(8), 500 + Good);
 
         battle.AdvanceToBeat(2);
 

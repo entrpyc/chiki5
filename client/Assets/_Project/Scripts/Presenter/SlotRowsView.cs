@@ -7,6 +7,7 @@ using Chiki.Client.Keys;
 using Chiki.Sim;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.UI;
 
 namespace Chiki.Client.Presenter
 {
@@ -20,14 +21,24 @@ namespace Chiki.Client.Presenter
     [DisallowMultipleComponent]
     public sealed class SlotRowsView : MonoBehaviour, IBattlePresenter
     {
-        public const float DefaultRowWidth = 1200f;
-        public const float DefaultRowHeight = 110f;
-        public const float RowSpacing = 30f;
+        /// <summary>The panel art's id; it bakes the four key-pair groups, their Category icons and the key squares.</summary>
+        public const string PanelId = "card-panel";
 
-        /// <summary>The inactive row's width and height as a fraction of the active row's.</summary>
-        public const float InactiveScale = 0.7f;
+        /// <summary>The panel art, 2620 by 530, drawn at half size at the 1080p reference.</summary>
+        public static readonly Vector2 PanelSize = new Vector2(1310f, 265f);
 
-        private const float Gap = 10f;
+        /// <summary>
+        /// Each card's centre from the panel's centre, Q to P: the centres of the eight key squares
+        /// measured in the panel art (at 4K: 181.5, 519.5, 859.5, 1169.5, 1490.5, 1801.5, 2122.5,
+        /// 2443.5 from its left edge), halved for the 1080p reference. The art is not evenly spaced.
+        /// </summary>
+        public static readonly float[] CardX = { -564.25f, -395.25f, -225.25f, -70.25f, 90.25f, 245.75f, 406.25f, 566.75f };
+
+        /// <summary>The cards' vertical centre within the panel: the panel body's own centre, measured in the art.</summary>
+        public const float CardY = -4f;
+
+        public const float DefaultRowWidth = 1310f;
+        public const float DefaultRowHeight = 265f;
 
         private readonly RectTransform[] _rows = new RectTransform[Slot.LineCount];
         private readonly List<SlotWidget> _widgets = new List<SlotWidget>();
@@ -43,6 +54,9 @@ namespace Chiki.Client.Presenter
 
         public IReadOnlyList<RectTransform> Rows => _rows;
 
+        /// <summary>The panel art behind the cards.</summary>
+        public Image Panel { get; private set; } = null!;
+
         public IReadOnlyList<SlotWidget> Widgets => _widgets;
 
         public static SlotRowsView Build(BattleDriver driver, RectTransform parent, Vector2 anchoredPosition, Func<Slot, CardDefinition?>? cardInSlot, BattleInput? input)
@@ -52,7 +66,7 @@ namespace Chiki.Client.Presenter
                 throw new ArgumentNullException(nameof(driver));
             }
 
-            var root = HudFactory.Rect("SlotRows", parent, anchoredPosition, new Vector2(DefaultRowWidth, DefaultRowHeight * 2f + RowSpacing));
+            var root = HudFactory.Rect("SlotRows", parent, anchoredPosition, PanelSize);
             var view = root.gameObject.AddComponent<SlotRowsView>();
             view.Init(driver, root, cardInSlot, input);
             driver.AttachPresenter(view);
@@ -158,9 +172,13 @@ namespace Chiki.Client.Presenter
             _cardInSlot = cardInSlot;
             _input = input;
 
+            // The panel first, so every row draws over it.
+            var panelPiece = new LinePiece(SlotWidget.UiKind, PanelId, new Color(0.1f, 0.1f, 0.12f, 0.9f));
+            Panel = HudFactory.StretchedImage("Panel", root, panelPiece.Tint, panelPiece.Sprite);
+
             for (int line = 0; line < Slot.LineCount; line++)
             {
-                _rows[line] = HudFactory.Rect("Line" + (line + 1), root);
+                _rows[line] = HudFactory.Rect("Line" + (line + 1), root, Vector2.zero, PanelSize);
             }
 
             foreach (var slot in Slot.All)
@@ -184,25 +202,23 @@ namespace Chiki.Client.Presenter
             }
         }
 
+        /// <summary>
+        /// Both lines share the one panel: each row lays its eight cards two per group over the
+        /// baked key squares, and only the active line's row is shown (operator layout,
+        /// 2026-10-23, in place of the thinner inactive row of PRD 3.3.5.4).
+        /// </summary>
         private void Layout()
         {
+            int perLine = _widgets.Count / Slot.LineCount;
             for (int line = 0; line < Slot.LineCount; line++)
             {
-                float scale = line == ActiveLine ? 1f : InactiveScale;
-                float width = DefaultRowWidth * scale;
-                float height = DefaultRowHeight * scale;
-                float gap = Gap * scale;
                 var row = _rows[line];
-                row.sizeDelta = new Vector2(width, height);
-                row.anchoredPosition = new Vector2(0f, line == 0 ? (DefaultRowHeight + RowSpacing) / 2f : -(DefaultRowHeight + RowSpacing) / 2f);
-
-                int perLine = _widgets.Count / Slot.LineCount;
-                float slotWidth = (width - gap * (perLine - 1)) / perLine;
+                row.gameObject.SetActive(line == ActiveLine);
                 for (int i = 0; i < perLine; i++)
                 {
                     var widget = _widgets[line * perLine + i];
-                    widget.Rect.sizeDelta = new Vector2(slotWidth, height);
-                    widget.Rect.anchoredPosition = new Vector2(-width / 2f + slotWidth / 2f + i * (slotWidth + gap), 0f);
+                    widget.Rect.sizeDelta = new Vector2(SlotWidget.CardSize, SlotWidget.CardSize);
+                    widget.Rect.anchoredPosition = new Vector2(CardX[i], CardY);
                 }
             }
         }

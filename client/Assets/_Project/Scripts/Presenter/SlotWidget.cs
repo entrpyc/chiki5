@@ -27,6 +27,19 @@ namespace Chiki.Client.Presenter
         public const string CategoryKind = "category";
 
         public const string FrameIdPrefix = "slot-frame-";
+
+        /// <summary>The card face every slot draws until per-card faces ship (operator layout, 2026-10-23).</summary>
+        public const string CardFaceId = "card-face";
+
+        /// <summary>The drawn size of a slot's card face: the 265 px art at the 1080p reference.</summary>
+        public const float CardSize = 132f;
+
+        /// <summary>The key letter's square below the card, baked into the panel art.</summary>
+        public const float KeySquareSize = 40f;
+
+        /// <summary>From the card's centre down to the centre of its key square.</summary>
+        public const float KeySquareDrop = 95.5f;
+
         public const string CooldownId = "slot-cooldown";
         public const string GlowId = "slot-glow";
         public const string FlashId = "slot-flash";
@@ -39,7 +52,7 @@ namespace Chiki.Client.Presenter
         public const float EmptyOpacity = 0.5f;
 
         /// <summary>How far the glow stands proud of the frame on every side; the art is 6 px larger (P3.3).</summary>
-        private const float GlowMargin = 6f;
+        private const float GlowMargin = 0f;
 
         private static readonly Color OverlayColor = new Color(0f, 0f, 0f, 0.65f);
 
@@ -124,9 +137,10 @@ namespace Chiki.Client.Presenter
             var colour = ColorOf(Category);
             string categoryId = CategoryId(Category);
 
-            var framePiece = new LinePiece(UiKind, FrameIdPrefix + categoryId, colour);
-            _frameColor = framePiece.Tint;
-            _frame = HudFactory.Image("Slot-" + slot.Line + "-" + slot.Key, parent, _frameColor, framePiece.Sprite);
+            // The face is the shared card art; the Category's own frame returns when per-card faces ship.
+            var facePiece = new LinePiece(UiKind, CardFaceId, colour);
+            _frameColor = facePiece.Tint;
+            _frame = HudFactory.Image("Slot-" + slot.Line + "-" + slot.Key, parent, _frameColor, Vector2.zero, new Vector2(CardSize, CardSize), facePiece.Sprite);
             Rect = _frame.rectTransform;
 
             var glowPiece = new LinePiece(UiKind, GlowId, new Color(1f, 0.9f, 0.4f, 0.55f));
@@ -141,14 +155,19 @@ namespace Chiki.Client.Presenter
             _categoryIcon.rectTransform.anchorMax = new Vector2(1f, 1f);
             _categoryIcon.rectTransform.pivot = new Vector2(1f, 1f);
             _categoryIcon.rectTransform.anchoredPosition = new Vector2(-6f, -6f);
+            // The panel art bakes one Category icon per key pair, so the slot's own stays hidden.
+            _categoryIcon.gameObject.SetActive(false);
 
-            _keyLabel = HudFactory.StretchedText("Key", Rect, 18, Color.white, TextAnchor.UpperLeft);
-            _keyLabel.rectTransform.offsetMin = new Vector2(6f, 0f);
-            _keyLabel.rectTransform.offsetMax = new Vector2(0f, -4f);
+            // The key letter sits in the panel's baked square below the card.
+            _keyLabel = HudFactory.Text("Key", Rect, 22, Color.white, TextAnchor.MiddleCenter, bold: true);
+            _keyLabel.rectTransform.anchoredPosition = new Vector2(0f, -KeySquareDrop);
+            _keyLabel.rectTransform.sizeDelta = new Vector2(KeySquareSize, KeySquareSize);
 
             _cardName = HudFactory.StretchedText("Card", Rect, 14, new Color(0.85f, 0.85f, 0.9f, 1f), TextAnchor.LowerCenter);
             _cardName.rectTransform.offsetMin = new Vector2(2f, 6f);
             _cardName.rectTransform.offsetMax = new Vector2(-2f, 0f);
+            // The face carries no name until per-card faces ship.
+            _cardName.gameObject.SetActive(false);
 
             var sweep = new LinePiece(UiKind, CooldownId, Color.white);
             _overlay = HudFactory.StretchedImage("Cooldown", Rect, OverlayColor, sweep.Sprite);

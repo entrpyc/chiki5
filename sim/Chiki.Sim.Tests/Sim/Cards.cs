@@ -68,8 +68,8 @@ public class Cards
 
         Assert.That(slots, Is.EquivalentTo(new[]
         {
-            new Slot(0, SlotKey.O), new Slot(0, SlotKey.P),
-            new Slot(1, SlotKey.O), new Slot(1, SlotKey.P),
+            new Slot(0, SlotKey.Q), new Slot(0, SlotKey.W),
+            new Slot(1, SlotKey.Q), new Slot(1, SlotKey.W),
         }));
     }
 

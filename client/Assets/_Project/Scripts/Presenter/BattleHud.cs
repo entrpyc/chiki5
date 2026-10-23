@@ -33,11 +33,11 @@ namespace Chiki.Client.Presenter
         /// <summary>The player's bar and statuses, top left.</summary>
         public static readonly Vector2 PlayerBarPoint = new Vector2(-640f, 440f);
 
-        /// <summary>The Rhythm Line, just above the slot rows.</summary>
-        public static readonly Vector2 RhythmLinePoint = new Vector2(0f, -130f);
+        /// <summary>The Rhythm Line, just above the card panel's Category icons.</summary>
+        public static readonly Vector2 RhythmLinePoint = new Vector2(0f, -215f);
 
-        /// <summary>The slot rows, along the bottom.</summary>
-        public static readonly Vector2 SlotRowsPoint = new Vector2(0f, -360f);
+        /// <summary>The card panel, flush with the bottom edge.</summary>
+        public static readonly Vector2 SlotRowsPoint = new Vector2(0f, -407.5f);
 
         public Canvas Canvas { get; private set; } = null!;
 

@@ -119,7 +119,7 @@ Node catalogue — each row is a node type the map can generate, and the feature
 
 #### 🔨 3.3.2 Input
 
-- ✅ **3.3.2.1** The key layout is fixed for the entire game: Q and W are Ability slots, E and R Left Attack, U and I Right Attack, O and P Defense (3.4.1). The layout spans two lines of these eight keys, sixteen slots in all (3.5.1); only the cards in the slots ever change.
+- ✅ **3.3.2.1** The key layout is fixed for the entire game: Q and W are Defense slots, E and R Left Attack, U and I Right Attack, O and P Ability (3.4.1). The layout spans two lines of these eight keys, sixteen slots in all (3.5.1); only the cards in the slots ever change.
 - ✅ **3.3.2.2** Pressing the line-switch key (3.3.2.6) switches the active line; both lines are always visible and the inactive line is drawn thinner (3.3.5.4).
 - ✅ **3.3.2.3** Space held together with a slot key sends that slot's card to the Signature Chain instead of playing it (3.3.6.1); Space is used for nothing else in combat.
 - **3.3.2.4** Withdrawn. Line switching and Signature send use different keys (3.3.2.6), so no tap-versus-chord disambiguation exists.

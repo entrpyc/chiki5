@@ -33,6 +33,26 @@ MonoBehaviour:
       Y: 6
       Width: 128
       Height: 128
+  - kind: ui
+    id: card-face
+    subject: card-face
+    variant: static
+    sprite: {fileID: 21300000, guid: 6b4009d0f901c8942bedbf46731d68f7, type: 3}
+    opaque:
+      X: 0
+      Y: 0
+      Width: 265
+      Height: 265
+  - kind: ui
+    id: card-panel
+    subject: card-panel
+    variant: static
+    sprite: {fileID: 21300000, guid: 7ab50f7ce5edaeb48bb2552e9206ecc3, type: 3}
+    opaque:
+      X: 0
+      Y: 19
+      Width: 2620
+      Height: 489
   - kind: card
     id: brace
     subject: brace

@@ -150,6 +150,10 @@ namespace Chiki.Client.Presenter
                 view._clips[variant] = VisualCatalogue.Active.Clip(kind, subject, variant);
             }
 
+            // A fighter whose art has not shipped keeps its timing but draws nothing: the
+            // catalogue's fallback is a 4 px square that reads as a stray mark on the stage.
+            view.Renderer.enabled = VisualCatalogue.Active.HasClip(kind, subject + "-" + FighterClips.Idle);
+
             view.Play(FighterClips.Idle, 0);
             return view;
         }

@@ -27,7 +27,7 @@ public class Run
         var fleeting = run.Binder.Add(fleetingDefinition);
         run.Binder.BattleEnded();
         run.Binder.Clear(new Slot(1, SlotKey.I));
-        run.Binder.Assign(new Slot(1, SlotKey.P), fleeting);
+        run.Binder.Assign(new Slot(1, SlotKey.Q), fleeting);
 
         var json = RunSerializer.ToJson(run);
         var restored = RunSerializer.FromJson(json, content);

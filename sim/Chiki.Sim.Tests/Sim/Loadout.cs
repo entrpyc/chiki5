@@ -42,17 +42,17 @@ public class Loadout
         var loadout = new SimLoadout();
         var defense = new CardInstance(1, TestContent.Defense(8));
         var keyE = new Slot(0, SlotKey.E);
-        var keyO = new Slot(0, SlotKey.O);
+        var keyQ = new Slot(0, SlotKey.Q);
 
         var inLeftAttackKey = loadout.Assign(keyE, defense);
-        var inDefenseKey = loadout.Assign(keyO, defense);
+        var inDefenseKey = loadout.Assign(keyQ, defense);
 
         Assert.Multiple(() =>
         {
             Assert.That(inLeftAttackKey, Is.EqualTo(Placement.WrongCategory));
             Assert.That(loadout[keyE], Is.Null);
             Assert.That(inDefenseKey, Is.EqualTo(Placement.Accepted));
-            Assert.That(loadout[keyO], Is.SameAs(defense));
+            Assert.That(loadout[keyQ], Is.SameAs(defense));
         });
     }
 
@@ -61,18 +61,18 @@ public class Loadout
     {
         var loadout = new SimLoadout();
         var ability = new CardInstance(1, TestContent.Ability());
-        var line1KeyQ = new Slot(0, SlotKey.Q);
-        var line2KeyW = new Slot(1, SlotKey.W);
-        loadout.Assign(line1KeyQ, ability);
+        var line1KeyO = new Slot(0, SlotKey.O);
+        var line2KeyP = new Slot(1, SlotKey.P);
+        loadout.Assign(line1KeyO, ability);
 
-        var second = loadout.Assign(line2KeyW, ability);
+        var second = loadout.Assign(line2KeyP, ability);
 
         Assert.Multiple(() =>
         {
             Assert.That(second, Is.EqualTo(Placement.AlreadySlotted));
-            Assert.That(loadout[line1KeyQ], Is.SameAs(ability));
-            Assert.That(loadout[line2KeyW], Is.Null);
-            Assert.That(loadout.SlotOf(ability), Is.EqualTo(line1KeyQ));
+            Assert.That(loadout[line1KeyO], Is.SameAs(ability));
+            Assert.That(loadout[line2KeyP], Is.Null);
+            Assert.That(loadout.SlotOf(ability), Is.EqualTo(line1KeyO));
         });
     }
 

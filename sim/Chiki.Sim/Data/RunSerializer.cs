@@ -21,10 +21,14 @@ namespace Chiki.Sim.Data
     /// </summary>
     public static class RunSerializer
     {
-        /// <summary>Version 2 added the route, the battle records and the open reward offer (P22.3).</summary>
-        public const int SchemaVersion = 2;
+        /// <summary>
+        /// Version 2 added the route, the battle records and the open reward offer (P22.3).
+        /// Version 3 swapped the Defense and Ability keys (PRD 3.3.2.1, decision of 2026-10-23):
+        /// a loadout saved before it holds its Ability cards in Q/W and its Defense cards in O/P.
+        /// </summary>
+        public const int SchemaVersion = 3;
 
-        /// <summary>One step per past version: brings a document of that version to the next one by adding the fields it lacks with their defaults.</summary>
+        /// <summary>One step per past version: brings a document of that version to the next one.</summary>
         private static readonly Dictionary<int, Action<JsonValue>> Migrations = new Dictionary<int, Action<JsonValue>>
         {
             [1] = root =>
@@ -33,7 +37,27 @@ namespace Chiki.Sim.Data
                 root.Set("battles", JsonValue.EmptyArray());
                 root.Set("pendingReward", JsonValue.Null);
             },
+            [2] = root =>
+            {
+                foreach (var slot in root["loadout"].Items)
+                {
+                    slot.Set("key", JsonValue.Of(SwapDefenseAndAbilityKey(slot["key"].AsString())));
+                }
+            },
         };
+
+        /// <summary>The key a version-2 slot's card moves to: Q↔O and W↔P, the attack keys unchanged.</summary>
+        private static string SwapDefenseAndAbilityKey(string key)
+        {
+            switch (key)
+            {
+                case "q": return "o";
+                case "w": return "p";
+                case "o": return "q";
+                case "p": return "w";
+                default: return key;
+            }
+        }
 
         public static string ToJson(Run run)
         {

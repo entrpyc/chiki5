@@ -36,7 +36,7 @@ public class Resolve
         // Perfect 6-Block Defense on beat 1 gives Block 6; Good against DMG 20 on beat 3 is 10 incoming.
         var stats = new Stats();
         var battle = TestContent.Battle(stats, TestContent.Chart(TestContent.Track(), 4, 12), enemyDmg: 20);
-        battle.Press(TestContent.SlotO, TestContent.Defense(6), 500 + Perfect);
+        battle.Press(TestContent.SlotQ, TestContent.Defense(6), 500 + Perfect);
         battle.AdvanceToBeat(2);
         Assume.That(battle.Block, Is.EqualTo(6));
         battle.Press(TestContent.SlotE, TestContent.LeftAttack10, 1500 + Good);
@@ -70,7 +70,7 @@ public class Resolve
     public void defense_block_by_judgment()
     {
         var battle = TestContent.Battle(4);
-        battle.Press(TestContent.SlotO, TestContent.Defense(8), 500 + Good);
+        battle.Press(TestContent.SlotQ, TestContent.Defense(8), 500 + Good);
 
         battle.AdvanceToBeat(2);
 
@@ -100,7 +100,7 @@ public class Resolve
     {
         var stats = new Stats { BaseDmg = 3 };
         var battle = TestContent.Battle(stats, TestContent.Chart(TestContent.Track(), 4));
-        battle.Press(TestContent.SlotO, TestContent.Defense(8), 500 + Perfect);
+        battle.Press(TestContent.SlotQ, TestContent.Defense(8), 500 + Perfect);
 
         battle.AdvanceToBeat(2);
 
@@ -154,9 +154,9 @@ public class Resolve
         // The enemy attacks Left for 20 on beat 1; each play answers it with the given offset.
         var plays = new (string Name, Action<SimBattle, int> Play)[]
         {
-            ("Defense", (b, t) => b.Press(TestContent.SlotO, TestContent.Defense(8), t)),
+            ("Defense", (b, t) => b.Press(TestContent.SlotQ, TestContent.Defense(8), t)),
             ("wrong-side Attack", (b, t) => b.Press(TestContent.SlotU, TestContent.RightAttack(10), t)),
-            ("Ability", (b, t) => b.Press(TestContent.SlotQ, TestContent.Ability(), t)),
+            ("Ability", (b, t) => b.Press(TestContent.SlotO, TestContent.Ability(), t)),
             ("Signature send", (b, t) => b.Send(TestContent.SlotE, TestContent.LeftAttack10, t)),
         };
 

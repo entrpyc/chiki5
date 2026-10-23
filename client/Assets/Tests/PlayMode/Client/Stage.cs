@@ -157,8 +157,8 @@ namespace Client
             _rig.Driver.Script(new[]
             {
                 new ScriptedInput(At(battle, 4), new Slot(0, SlotKey.E), ClientTestContent.LeftAttack10),
-                new ScriptedInput(At(battle, 6), new Slot(0, SlotKey.O), defense),
-                new ScriptedInput(At(battle, 8), new Slot(0, SlotKey.Q), ability),
+                new ScriptedInput(At(battle, 6), new Slot(0, SlotKey.Q), defense),
+                new ScriptedInput(At(battle, 8), new Slot(0, SlotKey.O), ability),
             });
 
             // Beat 10 is left unanswered, so the enemy's attack lands and the player takes damage.
@@ -169,10 +169,10 @@ namespace Client
             Assert.That(player.VariantAt(At(battle, 4)), Is.EqualTo(FighterClips.AttackLeft), "the press on E did not play attack-left");
             Assert.That(player.FrameAt(At(battle, 4)), Is.EqualTo(player.Clip(FighterClips.AttackLeft).StrikeFrame ?? 0), "attack-left's strike frame is not on beat 4");
 
-            Assert.That(player.VariantAt(At(battle, 6)), Is.EqualTo(FighterClips.Defend), "the press on O did not play defend");
+            Assert.That(player.VariantAt(At(battle, 6)), Is.EqualTo(FighterClips.Defend), "the press on Q did not play defend");
             Assert.That(player.FrameAt(At(battle, 6)), Is.EqualTo(1), "defend did not start on beat 6");
 
-            Assert.That(player.VariantAt(At(battle, 8)), Is.EqualTo(FighterClips.Ability), "the press on Q did not play ability");
+            Assert.That(player.VariantAt(At(battle, 8)), Is.EqualTo(FighterClips.Ability), "the press on O did not play ability");
             Assert.That(player.FrameAt(At(battle, 8)), Is.EqualTo(player.Clip(FighterClips.Ability).StrikeFrame ?? 0), "ability's strike frame is not on beat 8");
 
             Assert.That(battle.Events.OfType<DamageTaken>().Any(e => e.Amount > 0), Is.True, "the unanswered action dealt no damage");

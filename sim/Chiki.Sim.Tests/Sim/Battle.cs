@@ -118,7 +118,7 @@ public class Battle
         // applied on beat 3, then a 10-damage Perfect on beat 3 kills.
         var stats = new Stats();
         var battle = TestContent.Battle(stats, TestContent.Chart(TestContent.Track(), 4, 12), enemyHp: 10);
-        battle.Press(TestContent.SlotO, TestContent.Defense(12), 500);
+        battle.Press(TestContent.SlotQ, TestContent.Defense(12), 500);
         battle.AdvanceToBeat(3);
         battle.ApplyStatus(StatusTarget.Player, StatusKind.Bleed);
         Assume.That(battle.Block, Is.EqualTo(12));

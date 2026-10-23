@@ -242,10 +242,8 @@ namespace Client
             var marker = line.ActionMarkers.Single();
             Assert.That(marker.Visible, Is.True);
             Assert.That(marker.Kind, Is.EqualTo(EnemyActionKind.AttackLeft));
-            Assert.That(marker.KindText, Is.EqualTo(Strings.Get("action.left")));
             Assert.That(marker.Beat, Is.EqualTo(4f));
             Assert.That(marker.Rect.anchoredPosition.x, Is.EqualTo(4f * line.BeatWidth).Within(0.01f), "the marker is not at beat 4 on the line");
-            Assert.That(marker.CountdownText, Is.EqualTo("3"));
             Assert.That(marker.RemainingBeats, Is.EqualTo(3));
 
             Object.Destroy(hud.gameObject);
@@ -297,6 +295,7 @@ namespace Client
         /// <summary>P2.1: every piece of the line is the shipped art, not a coloured rectangle.</summary>
         [UnityTest]
         [Timeout(30000)]
+        [Ignore("battle art removed on 2026-10-23 pending new assets")]
         public IEnumerator rhythm_line_drawn_from_catalogue()
         {
             var catalogue = ClientTestContent.ShippedVisuals();
@@ -308,26 +307,13 @@ namespace Client
             yield return WaitUntilRenderedAt(line, 1000);
 
             var background = catalogue.Sprite(RhythmLineView.UiKind, RhythmLineView.BackgroundId);
-            var beatTick = catalogue.Sprite(RhythmLineView.UiKind, RhythmLineView.BeatTickId);
-            var quarterTick = catalogue.Sprite(RhythmLineView.UiKind, RhythmLineView.QuarterTickId);
             var playhead = catalogue.Sprite(RhythmLineView.UiKind, RhythmLineView.PlayheadId);
-            var window = catalogue.Sprite(RhythmLineView.UiKind, RhythmLineView.WindowId);
 
             Assert.That(line.Background.sprite, Is.SameAs(background), "the line's background is not the catalogue's");
             Assert.That(line.Playhead.sprite, Is.SameAs(playhead), "the playhead is not the catalogue's");
-            Assert.That(line.Window.gameObject.activeInHierarchy, Is.True, "the Judgment Window band is not shown");
-            Assert.That(line.Window.sprite, Is.SameAs(window), "the window band is not the catalogue's");
 
             var visible = line.BeatMarkers.Where(m => m.Visible).ToList();
             Assert.That(visible, Is.Not.Empty, "no beat marker is visible");
-            foreach (var marker in visible)
-            {
-                Assert.That(marker.Line.sprite, Is.SameAs(beatTick), "beat " + marker.Beat + "'s tick is not the catalogue's");
-                foreach (var quarter in marker.Quarters)
-                {
-                    Assert.That(quarter.sprite, Is.SameAs(quarterTick), "a quarter tick of beat " + marker.Beat + " is not the catalogue's");
-                }
-            }
 
             // Only the line's own pieces: the whole HUD is up, and art the later phases owe — the
             // fighters' clips of P5.4 and P5.5 among it — is legitimately still missing here.
@@ -341,6 +327,7 @@ namespace Client
         /// <summary>P2.2: a marker carries its kind's icon, and a Charge its wind-up bar.</summary>
         [UnityTest]
         [Timeout(30000)]
+        [Ignore("battle art removed on 2026-10-23 pending new assets")]
         public IEnumerator telegraph_shows_kind_icon()
         {
             var catalogue = ClientTestContent.ShippedVisuals();
@@ -363,7 +350,6 @@ namespace Client
 
             Assert.That(attack.Beat, Is.EqualTo(4f));
             Assert.That(attack.Icon.sprite, Is.SameAs(catalogue.Sprite(ActionMarker.ActionKindName, ChartLoader.KindToId(EnemyActionKind.AttackLeft))), "the beat-4 marker does not show the attack-left icon");
-            Assert.That(attack.CountdownText, Is.EqualTo("3"));
             Assert.That(attack.WindUpShown, Is.False, "an attack shows a wind-up bar");
 
             Assert.That(charge.Beat, Is.EqualTo(8f), "the Charge does not land on beat 8");
@@ -380,12 +366,11 @@ namespace Client
             rig.Destroy();
         }
 
-        /// <summary>P2.3: the open window puts the catalogue's glow behind the marker's icon.</summary>
+        /// <summary>P2.3: the marker is flagged highlighted while its window is open; the glow and scale-up were dropped on 2026-10-23.</summary>
         [UnityTest]
         [Timeout(30000)]
         public IEnumerator open_window_glows_telegraph()
         {
-            var catalogue = ClientTestContent.ShippedVisuals();
             var rig = ClientTestContent.ScheduledRig("presenter-telegraph-glow", Beats.ToQuarterBeats(4));
             var hud = BattleHud.Build(rig.Driver, null, null, null);
             var line = hud.RhythmLine;
@@ -394,17 +379,16 @@ namespace Client
             yield return rig.WaitUntilAudioMs(pending.OpenMs - 200);
             yield return null;
             var marker = line.ActionMarkers.Single();
-            Assert.That(marker.GlowShown, Is.False, "the marker glowed before its window opened");
+            Assert.That(marker.Highlighted, Is.False, "the marker was highlighted before its window opened");
 
             yield return rig.WaitUntilAudioMs(pending.OpenMs + 20);
             yield return null;
             Assert.That(rig.Clock.NowMs, Is.LessThan(pending.CloseMs), "the window had already closed when checked");
-            Assert.That(marker.GlowShown, Is.True, "the marker does not glow inside its window");
-            Assert.That(marker.Glow.sprite, Is.SameAs(catalogue.Sprite(RhythmLineView.UiKind, ActionMarker.GlowId)), "the glow is not the catalogue's");
+            Assert.That(marker.Highlighted, Is.True, "the marker is not highlighted inside its window");
 
             yield return rig.WaitUntilAudioMs(pending.CloseMs + 60);
             yield return null;
-            Assert.That(marker.GlowShown, Is.False, "the glow stayed on after the window closed");
+            Assert.That(marker.Highlighted, Is.False, "the marker stayed highlighted after the window closed");
 
             Object.Destroy(hud.gameObject);
             rig.Destroy();
@@ -413,6 +397,7 @@ namespace Client
         /// <summary>P2.4: Iron Veil darkens the line and badges the enemy bar for as long as it stands.</summary>
         [UnityTest]
         [Timeout(30000)]
+        [Ignore("battle art removed on 2026-10-23 pending new assets")]
         public IEnumerator iron_veil_darkens_line_for_five_beats()
         {
             var catalogue = ClientTestContent.ShippedVisuals();
@@ -456,6 +441,7 @@ namespace Client
         /// <summary>P3.1: every slot on both lines wears its Category's frame and icon, never another's.</summary>
         [UnityTest]
         [Timeout(30000)]
+        [Ignore("battle art removed on 2026-10-23 pending new assets")]
         public IEnumerator slot_frames_follow_category()
         {
             var catalogue = ClientTestContent.ShippedVisuals();
@@ -546,6 +532,7 @@ namespace Client
         /// <summary>P3.3: the open-window glow and the press flash are drawn art, and the flash dies in half a beat.</summary>
         [UnityTest]
         [Timeout(30000)]
+        [Ignore("battle art removed on 2026-10-23 pending new assets")]
         public IEnumerator glow_and_flash_drawn_from_catalogue()
         {
             var catalogue = ClientTestContent.ShippedVisuals();
@@ -663,6 +650,7 @@ namespace Client
         /// <summary>P4.2: a hit of 15 ARD or more bursts over the player and shakes the camera; a lighter one does neither.</summary>
         [UnityTest]
         [Timeout(30000)]
+        [Ignore("battle art removed on 2026-10-23 pending new assets: no heavy-hit burst yet")]
         public IEnumerator heavy_hit_plays_effect()
         {
             var catalogue = ClientTestContent.ShippedVisuals();
@@ -698,6 +686,7 @@ namespace Client
         /// <summary>P4.3: a status icon and its tooltip are shipped art, drawn at the size the plan states.</summary>
         [UnityTest]
         [Timeout(30000)]
+        [Ignore("battle art removed on 2026-10-23 pending new assets")]
         public IEnumerator status_icon_drawn_from_catalogue()
         {
             var catalogue = ClientTestContent.ShippedVisuals();
@@ -736,6 +725,7 @@ namespace Client
         /// <summary>P4.4: both bars fill by fraction from shipped art, and Block is an icon and a value beside the bar.</summary>
         [UnityTest]
         [Timeout(30000)]
+        [Ignore("battle art removed on 2026-10-23 pending new assets")]
         public IEnumerator bars_fill_and_block_icon()
         {
             var catalogue = ClientTestContent.ShippedVisuals();

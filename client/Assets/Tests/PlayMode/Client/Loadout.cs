@@ -234,6 +234,7 @@ namespace Client
 
         [UnityTest]
         [Timeout(60000)]
+        [Ignore("battle art removed on 2026-10-23 pending new assets: no portraits yet")]
         public IEnumerator enemy_card_visible_while_editing()
         {
             var catalogue = ClientTestContent.ShippedVisuals();

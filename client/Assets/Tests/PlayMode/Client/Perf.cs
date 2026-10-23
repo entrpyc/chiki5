@@ -90,6 +90,7 @@ namespace Client
         /// </summary>
         [UnityTest]
         [Timeout(120000)]
+        [Ignore("battle art removed on 2026-10-23 pending new assets: the battle draws fallbacks")]
         public IEnumerator malk_battle_60fps_with_shipped_art()
         {
             var visuals = ClientTestContent.ShippedVisuals();

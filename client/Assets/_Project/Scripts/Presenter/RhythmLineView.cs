@@ -41,11 +41,10 @@ namespace Chiki.Client.Presenter
 
     /// <summary>
     /// The Rhythm Line (PRD 3.3.1.1, 3.6.3): a horizontal timeline that scrolls with the beat
-    /// clock for the whole battle. It marks every beat and the quarter-beat grid, draws every
-    /// upcoming enemy action at its beat with its kind's icon and the beats remaining, shows a
-    /// Charge's wind-up as a bar leading into its landing (PRD 3.6.16), and bands the Judgment
-    /// Window of the next enemy action, glowing that action while its window is open
-    /// (PRD 3.3.8.1). Iron Veil and every later ability that veils the enemy darken the whole
+    /// clock for the whole battle. It draws every upcoming enemy action at its beat with its
+    /// kind's icon, shows a Charge's wind-up as a bar leading into its landing (PRD 3.6.16), and
+    /// marks the next action as highlighted while its Judgment Window is open (PRD 3.3.8.1), for the slots to read. Iron Veil and
+    /// every later ability that veils the enemy darken the whole
     /// strip (PRD 3.6.9). Every piece is drawn from the visual catalogue (P2.1); every position
     /// is derived from audio time through the beat map, and nothing here reads <c>Time.time</c>.
     /// </summary>
@@ -59,24 +58,22 @@ namespace Chiki.Client.Presenter
         /// <summary>Where "now" sits along the line, as a fraction of its width from the left.</summary>
         public const float NowFraction = 0.3f;
 
+        /// <summary>The drawn size of the shipped playhead, the same as a telegraph (<see cref="ActionMarker.IconSize"/>) so the two coincide at "now".</summary>
+        public const float PlayheadSize = 100f;
+
+        /// <summary>The strip art is authored at 4K (3600 × 180); at the 1080p reference it draws at half its pixel size.</summary>
+        public const float StripScale = 0.5f;
+
         /// <summary>The kind every piece of the line and every telegraph decoration is catalogued under.</summary>
         public const string UiKind = "ui";
 
         public const string BackgroundId = "rhythmline-bg";
         public const string DarkBackgroundId = "rhythmline-bg-dark";
-        public const string BeatTickId = "rhythmline-beat";
-        public const string QuarterTickId = "rhythmline-quarter";
         public const string PlayheadId = "rhythmline-playhead";
-        public const string WindowId = "rhythmline-window";
-        public const string WindowOpenId = "rhythmline-window-open";
 
         private static readonly Color BackgroundColor = new Color(0.08f, 0.08f, 0.1f, 0.9f);
         private static readonly Color DarkBackgroundColor = new Color(0.04f, 0.03f, 0.06f, 0.95f);
-        private static readonly Color BeatColor = new Color(0.8f, 0.8f, 0.85f, 0.9f);
-        private static readonly Color QuarterColor = new Color(0.5f, 0.5f, 0.55f, 0.5f);
         private static readonly Color NowColor = new Color(1f, 0.95f, 0.6f, 1f);
-        private static readonly Color WindowColor = new Color(1f, 0.95f, 0.6f, 0.18f);
-        private static readonly Color WindowOpenColor = new Color(1f, 0.95f, 0.6f, 0.4f);
 
         private readonly List<BeatMarker> _beatMarkers = new List<BeatMarker>();
         private readonly List<ActionMarker> _actionMarkers = new List<ActionMarker>();
@@ -89,11 +86,8 @@ namespace Chiki.Client.Presenter
         private RectTransform _nowLine = null!;
         private Image _background = null!;
         private Image _playhead = null!;
-        private Image _window = null!;
         private LinePiece _lightBackground;
         private LinePiece _darkBackground;
-        private LinePiece _windowPiece;
-        private LinePiece _windowOpenPiece;
         private int? _veilModifierId;
         private float _height;
         private int _qb;
@@ -117,11 +111,6 @@ namespace Chiki.Client.Presenter
 
         /// <summary>The playhead standing at "now".</summary>
         public Image Playhead => _playhead;
-
-        /// <summary>The band covering the Judgment Window of the next enemy action.</summary>
-        public Image Window => _window;
-
-        public RectTransform WindowBand => _window.rectTransform;
 
         /// <summary>True while the next enemy action's Judgment Window contains the rendered audio time.</summary>
         public bool WindowOpen { get; private set; }
@@ -207,13 +196,12 @@ namespace Chiki.Client.Presenter
             _content.anchoredPosition = new Vector2(NowX - ScrollBeats * BeatWidth, 0f);
 
             int centre = Mathf.FloorToInt(ScrollBeats);
-            int lengthBeats = _battle.Track.LengthBeats;
             for (int beat = centre - BehindBeats; beat <= centre + HorizonBeats; beat++)
             {
                 var marker = _beatMarkers[Ring(beat)];
                 if (marker.Beat != beat)
                 {
-                    marker.Assign(beat, beat * BeatWidth, (Mod(beat, lengthBeats) + 1).ToString());
+                    marker.Assign(beat, beat * BeatWidth);
                 }
 
                 marker.SetVisible(beat >= 0);
@@ -236,27 +224,27 @@ namespace Chiki.Client.Presenter
             viewport.gameObject.AddComponent<RectMask2D>();
             _lightBackground = new LinePiece(UiKind, BackgroundId, BackgroundColor);
             _darkBackground = new LinePiece(UiKind, DarkBackgroundId, DarkBackgroundColor);
-            _background = HudFactory.StretchedImage("Background", viewport, _lightBackground.Tint, _lightBackground.Sprite);
+            // The shipped strip is drawn at its own height scaled by StripScale, never stretched to the viewport.
+            var stripHeight = _lightBackground.Shipped ? _lightBackground.Sprite.rect.height * StripScale : size.y;
+            _background = HudFactory.Image("Background", viewport, _lightBackground.Tint, Vector2.zero, new Vector2(size.x, stripHeight), _lightBackground.Sprite);
+            _background.pixelsPerUnitMultiplier = 1f / StripScale;
 
             _content = HudFactory.Rect("Content", viewport);
             _content.anchoredPosition = new Vector2(NowX, 0f);
 
-            _windowPiece = new LinePiece(UiKind, WindowId, WindowColor);
-            _windowOpenPiece = new LinePiece(UiKind, WindowOpenId, WindowOpenColor);
-            _window = HudFactory.Image("JudgmentWindow", _content, _windowPiece.Tint, Vector2.zero, new Vector2(0f, size.y * 0.8f), _windowPiece.Sprite);
-            _window.gameObject.SetActive(false);
 
-            var beatPiece = new LinePiece(UiKind, BeatTickId, BeatColor);
-            var quarterPiece = new LinePiece(UiKind, QuarterTickId, QuarterColor);
             int count = HorizonBeats + BehindBeats + 2;
             for (int i = 0; i < count; i++)
             {
-                _beatMarkers.Add(new BeatMarker(_content, size.y, BeatWidth, beatPiece, quarterPiece));
+                _beatMarkers.Add(new BeatMarker(_content, size.y));
             }
 
             var playheadPiece = new LinePiece(UiKind, PlayheadId, NowColor);
-            _playhead = HudFactory.Image("Now", viewport, playheadPiece.Tint, new Vector2(NowX, 0f), playheadPiece.Size(new Vector2(3f, size.y)), playheadPiece.Sprite);
+            var playheadSize = playheadPiece.Shipped ? new Vector2(PlayheadSize, PlayheadSize) : new Vector2(3f, size.y);
+            _playhead = HudFactory.Image("Now", viewport, playheadPiece.Tint, new Vector2(NowX, 0f), playheadSize, playheadPiece.Sprite);
             _nowLine = _playhead.rectTransform;
+            // Drawn after the background and before the content, so telegraphs pass in front of it.
+            _nowLine.SetSiblingIndex(_background.transform.GetSiblingIndex() + 1);
 
             if (_battle != null)
             {
@@ -274,8 +262,17 @@ namespace Chiki.Client.Presenter
             Render(Math.Max(0, _clock.NowMs));
         }
 
+        /// <summary>
+        /// Swaps the strip's art for the veil (PRD 3.6.9). Until a dark strip ships, the light
+        /// strip stays as it is; the veil then shows only through <see cref="Veiled"/>.
+        /// </summary>
         private void SetBackground(LinePiece piece)
         {
+            if (!piece.Shipped && _lightBackground.Shipped)
+            {
+                return;
+            }
+
             HudFactory.SetSprite(_background, piece.Sprite);
             _background.color = piece.Tint;
         }
@@ -306,23 +303,6 @@ namespace Chiki.Client.Presenter
             {
                 _actionMarkers[i].Hide();
             }
-
-            if (pending == null)
-            {
-                _window.gameObject.SetActive(false);
-                return;
-            }
-
-            float beatMs = 60_000f / pending.Bpm;
-            float centreX = pending.PositionQb / (float)Beats.QuarterBeatsPerBeat * BeatWidth;
-            float width = (pending.CloseMs - pending.OpenMs) / beatMs * BeatWidth;
-            float offset = ((pending.OpenMs + pending.CloseMs) / 2f - pending.CentreMs) / beatMs * BeatWidth;
-            var piece = WindowOpen ? _windowOpenPiece : _windowPiece;
-            _window.rectTransform.anchoredPosition = new Vector2(centreX + offset, 0f);
-            _window.rectTransform.sizeDelta = new Vector2(width, _height * 0.8f);
-            HudFactory.SetSprite(_window, piece.Sprite);
-            _window.color = piece.Tint;
-            _window.gameObject.SetActive(true);
         }
 
         /// <summary>The continuous beat an audio time falls on, from the beat map: whole quarter beats plus the fraction of the current one.</summary>
@@ -360,46 +340,23 @@ namespace Chiki.Client.Presenter
     /// <summary>One beat's mark on the Rhythm Line with its three quarter-beat ticks; pooled and reassigned as the line scrolls.</summary>
     public sealed class BeatMarker
     {
-        private readonly UnityEngine.UI.Text _label;
-        private readonly Image _line;
-        private readonly List<Image> _quarters = new List<Image>();
-
         public RectTransform Rect { get; }
-
-        /// <summary>The beat's own rule.</summary>
-        public Image Line => _line;
-
-        /// <summary>The three quarter-beat rules between this beat and the next (PRD 3.3.1.4).</summary>
-        public IReadOnlyList<Image> Quarters => _quarters;
 
         /// <summary>The beat this marker shows; <see cref="int.MinValue"/> before its first assignment.</summary>
         public int Beat { get; private set; } = int.MinValue;
 
         public bool Visible => Rect.gameObject.activeSelf;
 
-        public string LabelText => _label.text;
-
-        internal BeatMarker(RectTransform parent, float height, float beatWidth, LinePiece beat, LinePiece quarter)
+        internal BeatMarker(RectTransform parent, float height)
         {
-            _line = HudFactory.Image("Beat", parent, beat.Tint, Vector2.zero, beat.Size(new Vector2(2f, height * 0.7f)), beat.Sprite);
-            Rect = _line.rectTransform;
-            var quarterSize = quarter.Size(new Vector2(1f, height * 0.3f));
-            for (int index = 1; index < Beats.QuarterBeatsPerBeat; index++)
-            {
-                _quarters.Add(HudFactory.Image("Quarter" + index, Rect, quarter.Tint, new Vector2(beatWidth * index / Beats.QuarterBeatsPerBeat, 0f), quarterSize, quarter.Sprite));
-            }
-
-            _label = HudFactory.Text("Label", Rect, 14, beat.Tint, TextAnchor.LowerCenter);
-            _label.rectTransform.anchoredPosition = new Vector2(0f, -height * 0.45f);
-            _label.rectTransform.sizeDelta = new Vector2(beatWidth, 18f);
+            Rect = HudFactory.Rect("Beat", parent, Vector2.zero, new Vector2(2f, height));
             Rect.gameObject.SetActive(false);
         }
 
-        internal void Assign(int beat, float x, string label)
+        internal void Assign(int beat, float x)
         {
             Beat = beat;
             Rect.anchoredPosition = new Vector2(x, 0f);
-            _label.text = label;
         }
 
         internal void SetVisible(bool visible)
@@ -412,17 +369,15 @@ namespace Chiki.Client.Presenter
     }
 
     /// <summary>
-    /// One upcoming enemy action on the Rhythm Line (PRD 3.6.3): its kind's icon, the beat it
-    /// lands on and the whole beats remaining as text; a Charge also shows its wind-up as a bar
-    /// (PRD 3.6.16). While the action's Judgment Window is open a glow sits behind the icon,
-    /// tinted by kind (PRD 3.3.8.1).
+    /// One upcoming enemy action on the Rhythm Line (PRD 3.6.3): its kind's icon at the beat it
+    /// lands on; a Charge also shows its wind-up as a bar (PRD 3.6.16). <see cref="Highlighted"/>
+    /// is true while the action's Judgment Window is open; the marker itself does not change.
     /// </summary>
     public sealed class ActionMarker
     {
         /// <summary>The drawn size of every telegraph icon (P2.2).</summary>
-        public const float IconSize = 80f;
+        public const float IconSize = 100f;
 
-        public const string GlowId = "telegraph-glow";
         public const string WindUpBarId = "windup-bar";
 
         /// <summary>The kind every telegraph icon is catalogued under; the id is the kind's chart id.</summary>
@@ -436,11 +391,8 @@ namespace Chiki.Client.Presenter
         private static readonly Color BuffColor = new Color(0.773f, 0.514f, 0.910f, 1f);
         private static readonly Color ChargeColor = new Color(1f, 0.847f, 0.420f, 1f);
 
-        private readonly Image _glow;
         private readonly Image _icon;
         private readonly Image _windUp;
-        private readonly UnityEngine.UI.Text _kindLabel;
-        private readonly UnityEngine.UI.Text _countdown;
         private readonly bool _iconsShipped;
         private string _iconId = "";
 
@@ -467,27 +419,15 @@ namespace Chiki.Client.Presenter
         /// <summary>The kind's icon (PRD 3.6.3).</summary>
         public Image Icon => _icon;
 
-        /// <summary>The glow behind the icon while the window is open (PRD 3.3.8.1).</summary>
-        public Image Glow => _glow;
-
-        public bool GlowShown => _glow.gameObject.activeSelf;
-
         /// <summary>A Charge's wind-up bar, running back from the icon to where the wind-up starts (PRD 3.6.16).</summary>
         public Image WindUp => _windUp;
 
         public bool WindUpShown => _windUp.gameObject.activeSelf;
 
-        public string KindText => _kindLabel.text;
-
-        public string CountdownText => _countdown.text;
 
         internal ActionMarker(RectTransform parent, float height)
         {
             Rect = HudFactory.Rect("Action", parent, Vector2.zero, new Vector2(IconSize, IconSize));
-
-            var glow = new LinePiece(RhythmLineView.UiKind, GlowId, Color.white);
-            _glow = HudFactory.Image("Glow", Rect, Color.white, Vector2.zero, glow.Size(new Vector2(IconSize * 1.5f, IconSize * 1.5f)), glow.Sprite);
-            _glow.gameObject.SetActive(false);
 
             _iconsShipped = VisualCatalogue.Active.Has(ActionKindName, ChartLoader.KindToId(EnemyActionKind.AttackLeft));
             _icon = HudFactory.Image("Icon", Rect, AttackColor, Vector2.zero, new Vector2(IconSize, IconSize));
@@ -497,14 +437,6 @@ namespace Chiki.Client.Presenter
             _windUp.rectTransform.pivot = new Vector2(1f, 0.5f);
             _windUp.rectTransform.anchoredPosition = new Vector2(-IconSize / 2f, 0f);
             _windUp.gameObject.SetActive(false);
-
-            _kindLabel = HudFactory.Text("Kind", Rect, 14, Color.white, TextAnchor.UpperCenter);
-            _kindLabel.rectTransform.anchoredPosition = new Vector2(0f, IconSize / 2f + 12f);
-            _kindLabel.rectTransform.sizeDelta = new Vector2(IconSize * 2f, 18f);
-
-            _countdown = HudFactory.Text("Countdown", Rect, 22, Color.white, TextAnchor.LowerCenter);
-            _countdown.rectTransform.anchoredPosition = new Vector2(0f, -IconSize / 2f - 22f);
-            _countdown.rectTransform.sizeDelta = new Vector2(IconSize * 2f, 24f);
             Rect.gameObject.SetActive(false);
         }
 
@@ -517,11 +449,7 @@ namespace Chiki.Client.Presenter
             Highlighted = highlighted;
 
             Rect.anchoredPosition = new Vector2(Beat * beatWidth, 0f);
-            Rect.localScale = highlighted ? new Vector3(1.25f, 1.25f, 1f) : Vector3.one;
             SetIcon(Kind, action.RemainingQb <= Beats.QuarterBeatsPerBeat, highlighted);
-            _kindLabel.text = Labels.ActionKind(Kind);
-            _countdown.text = RemainingBeats.ToString();
-            SetGlow(highlighted);
 
             if (action.WindUpBeats > 0)
             {
@@ -541,7 +469,7 @@ namespace Chiki.Client.Presenter
 
         internal void Hide()
         {
-            SetGlow(false);
+            Highlighted = false;
             if (Rect.gameObject.activeSelf)
             {
                 Rect.gameObject.SetActive(false);
@@ -570,21 +498,6 @@ namespace Chiki.Client.Presenter
 
             var color = ColorFor(kind);
             _icon.color = highlighted ? Color.Lerp(color, Color.white, 0.4f) : imminent ? Color.Lerp(color, Color.white, 0.2f) : color;
-        }
-
-        /// <summary>Shows or hides the glow behind the icon, tinted by kind (PRD 3.3.8.1).</summary>
-        private void SetGlow(bool open)
-        {
-            if (open)
-            {
-                var color = ColorFor(Kind);
-                _glow.color = new Color(color.r, color.g, color.b, 0.85f);
-            }
-
-            if (_glow.gameObject.activeSelf != open)
-            {
-                _glow.gameObject.SetActive(open);
-            }
         }
 
         private static Color ColorFor(EnemyActionKind kind)

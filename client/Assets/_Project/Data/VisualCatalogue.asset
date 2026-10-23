@@ -13,56 +13,16 @@ MonoBehaviour:
   m_Name: VisualCatalogue
   m_EditorClassIdentifier: Chiki.Client::Chiki.Client.Visuals.VisualCatalogue
   sprites:
-  - kind: ui
-    id: bar-fill-ard
-    subject: bar
-    variant: fill-ard
-    sprite: {fileID: 21300000, guid: 309522e0025227a4195dbb5eec05ee7c, type: 3}
-    opaque:
-      X: 0
-      Y: 0
-      Width: 552
-      Height: 24
-  - kind: ui
-    id: bar-fill-enemy
-    subject: bar
-    variant: fill-enemy
-    sprite: {fileID: 21300000, guid: 027ce74c3bf332f4698c4fc9e14cde25, type: 3}
-    opaque:
-      X: 0
-      Y: 0
-      Width: 552
-      Height: 24
-  - kind: ui
-    id: bar-frame
-    subject: bar
-    variant: frame
-    sprite: {fileID: 21300000, guid: 29be9f65a3beb6640b5bd0ae264b00fc, type: 3}
-    opaque:
-      X: 0
-      Y: 0
-      Width: 560
-      Height: 32
-  - kind: ui
-    id: block
-    subject: block
-    variant: static
-    sprite: {fileID: 21300000, guid: a120c4502bf006e4f9718c96db36b20d, type: 3}
-    opaque:
-      X: 2
-      Y: 2
-      Width: 60
-      Height: 60
   - kind: bg
     id: arena
     subject: arena
     variant: static
-    sprite: {fileID: 21300000, guid: ceac7aa476f657b44ab01ea43ca03991, type: 3}
+    sprite: {fileID: 21300000, guid: 71a3931487240bd4b881f669181a0a18, type: 3}
     opaque:
       X: 0
       Y: 0
       Width: 2560
-      Height: 1080
+      Height: 1440
   - kind: ui
     id: calibration-marker
     subject: calibration-marker
@@ -513,16 +473,6 @@ MonoBehaviour:
       Y: 6
       Width: 57
       Height: 58
-  - kind: ability
-    id: iron-veil
-    subject: iron-veil
-    variant: static
-    sprite: {fileID: 21300000, guid: 0176814ab8420cd4fb6bda404ecef51e, type: 3}
-    opaque:
-      X: 8
-      Y: 6
-      Width: 48
-      Height: 54
   - kind: bg
     id: map
     subject: map
@@ -634,75 +584,25 @@ MonoBehaviour:
       Width: 64
       Height: 6
   - kind: ui
-    id: rhythmline-beat
-    subject: rhythmline
-    variant: beat
-    sprite: {fileID: 21300000, guid: b2c698c1eaad46047ae3787752428a13, type: 3}
-    opaque:
-      X: 0
-      Y: 0
-      Width: 4
-      Height: 126
-  - kind: ui
-    id: rhythmline-bg-dark
-    subject: rhythmline
-    variant: bg-dark
-    sprite: {fileID: 21300000, guid: 1553c06a68ffde842ad77e5cb9a96a49, type: 3}
-    opaque:
-      X: 0
-      Y: 0
-      Width: 400
-      Height: 180
-  - kind: ui
     id: rhythmline-bg
     subject: rhythmline
     variant: bg
-    sprite: {fileID: 21300000, guid: 7107e24604ca7374b8feef7ef99285b9, type: 3}
+    sprite: {fileID: 21300000, guid: 69ca9884798135b4daca521ce0e3d83b, type: 3}
     opaque:
-      X: 0
-      Y: 0
-      Width: 400
-      Height: 180
+      X: 8
+      Y: 58
+      Width: 3584
+      Height: 64
   - kind: ui
     id: rhythmline-playhead
     subject: rhythmline
     variant: playhead
-    sprite: {fileID: 21300000, guid: 7951e25a67305a24d8b5b93d1f0ae76f, type: 3}
+    sprite: {fileID: 21300000, guid: eeee1611f196084439aaf677360308c9, type: 3}
     opaque:
       X: 0
       Y: 0
-      Width: 8
-      Height: 180
-  - kind: ui
-    id: rhythmline-quarter
-    subject: rhythmline
-    variant: quarter
-    sprite: {fileID: 21300000, guid: c0c718bc312724f4f8cdc0a6e79d3d4b, type: 3}
-    opaque:
-      X: 0
-      Y: 0
-      Width: 2
-      Height: 54
-  - kind: ui
-    id: rhythmline-window-open
-    subject: rhythmline
-    variant: window-open
-    sprite: {fileID: 21300000, guid: ad556d6d01374ab419e4b918b11aaeb2, type: 3}
-    opaque:
-      X: 0
-      Y: 0
-      Width: 64
-      Height: 144
-  - kind: ui
-    id: rhythmline-window
-    subject: rhythmline
-    variant: window
-    sprite: {fileID: 21300000, guid: cee00b95fba02544795d72980935aa39, type: 3}
-    opaque:
-      X: 0
-      Y: 0
-      Width: 64
-      Height: 144
+      Width: 149
+      Height: 149
   - kind: ui
     id: outcome-abandoned
     subject: outcome
@@ -733,166 +633,16 @@ MonoBehaviour:
       Y: 29
       Width: 1150
       Height: 192
-  - kind: category
-    id: ability
-    subject: ability
-    variant: static
-    sprite: {fileID: 21300000, guid: 99cdc74e5b19f6b4ebc8ec6d91ed6f19, type: 3}
-    opaque:
-      X: 2
-      Y: 8
-      Width: 60
-      Height: 56
-  - kind: category
-    id: attack
-    subject: attack
-    variant: static
-    sprite: {fileID: 21300000, guid: da75cb5160974494e94e74d4dd43550e, type: 3}
-    opaque:
-      X: 11
-      Y: 0
-      Width: 42
-      Height: 62
-  - kind: category
-    id: defense
-    subject: defense
-    variant: static
-    sprite: {fileID: 21300000, guid: daaf7b94dba7eac429dde416cbf6daf0, type: 3}
-    opaque:
-      X: 6
-      Y: 2
-      Width: 52
-      Height: 61
   - kind: ui
-    id: slot-cooldown
-    subject: slot-cooldown
+    id: signature-chain
+    subject: signature-chain
     variant: static
-    sprite: {fileID: 21300000, guid: 167e07d4a4fd64f4e961f7f85a09cd66, type: 3}
-    opaque:
-      X: 0
-      Y: 0
-      Width: 128
-      Height: 128
-  - kind: ui
-    id: slot-disabled
-    subject: slot-disabled
-    variant: static
-    sprite: {fileID: 21300000, guid: 059bba9cb230bca4a9c9bdf6ad7008f0, type: 3}
-    opaque:
-      X: 0
-      Y: 0
-      Width: 160
-      Height: 120
-  - kind: ui
-    id: slot-flash
-    subject: slot-flash
-    variant: static
-    sprite: {fileID: 21300000, guid: 35f207f03ddade64e8bc5de5febcadbe, type: 3}
-    opaque:
-      X: 0
-      Y: 0
-      Width: 160
-      Height: 120
-  - kind: ui
-    id: slot-frame-ability
-    subject: slot-frame
-    variant: ability
-    sprite: {fileID: 21300000, guid: bd50d94c7da395f40bdd494a3ba83976, type: 3}
-    opaque:
-      X: 0
-      Y: 0
-      Width: 160
-      Height: 120
-  - kind: ui
-    id: slot-frame-attack
-    subject: slot-frame
-    variant: attack
-    sprite: {fileID: 21300000, guid: 71d18baf8c852354da98ff3c5c88aa85, type: 3}
-    opaque:
-      X: 0
-      Y: 0
-      Width: 160
-      Height: 120
-  - kind: ui
-    id: slot-frame-defense
-    subject: slot-frame
-    variant: defense
-    sprite: {fileID: 21300000, guid: b48aa99f8239071418d2f15337e8e832, type: 3}
-    opaque:
-      X: 0
-      Y: 0
-      Width: 160
-      Height: 120
-  - kind: ui
-    id: slot-glow
-    subject: slot-glow
-    variant: static
-    sprite: {fileID: 21300000, guid: c6eb88768d21da64b9b787a4887d2800, type: 3}
-    opaque:
-      X: 1
-      Y: 1
-      Width: 170
-      Height: 130
-  - kind: status
-    id: bleed
-    subject: bleed
-    variant: static
-    sprite: {fileID: 21300000, guid: 3392d48f733a6f344908b359891ff2fe, type: 3}
-    opaque:
-      X: 13
-      Y: 5
-      Width: 38
-      Height: 55
-  - kind: status
-    id: disarmed
-    subject: disarmed
-    variant: static
-    sprite: {fileID: 21300000, guid: 563d541aebf4b4044a2a9771fdb9fe54, type: 3}
-    opaque:
-      X: 4
-      Y: 4
-      Width: 56
-      Height: 56
-  - kind: status
-    id: scar
-    subject: scar
-    variant: static
-    sprite: {fileID: 21300000, guid: c2b157b10e115764ba6d76bc70bd72a8, type: 3}
-    opaque:
-      X: 4
-      Y: 5
-      Width: 56
-      Height: 54
-  - kind: status
-    id: stun
-    subject: stun
-    variant: static
-    sprite: {fileID: 21300000, guid: 11dbab7618db0be479e7f21bfefa2f9b, type: 3}
+    sprite: {fileID: 21300000, guid: 247bf06ff1df18241bf4835c6fc1a9a0, type: 3}
     opaque:
       X: 5
-      Y: 9
-      Width: 54
-      Height: 51
-  - kind: status
-    id: thorns
-    subject: thorns
-    variant: static
-    sprite: {fileID: 21300000, guid: 6f1b7720c409cca4f92e71f71aaa7b2b, type: 3}
-    opaque:
-      X: 0
-      Y: 0
-      Width: 64
-      Height: 64
-  - kind: status
-    id: weak
-    subject: weak
-    variant: static
-    sprite: {fileID: 21300000, guid: aa0561721db9fb548ad8420e2516b6ae, type: 3}
-    opaque:
-      X: 12
-      Y: 4
-      Width: 40
-      Height: 56
+      Y: 5
+      Width: 150
+      Height: 430
   - kind: ui
     id: tooltip
     subject: tooltip
@@ -907,72 +657,42 @@ MonoBehaviour:
     id: attack-left
     subject: attack-left
     variant: static
-    sprite: {fileID: 21300000, guid: 5d6fb14eb031ef04d962695c6517acf6, type: 3}
+    sprite: {fileID: 21300000, guid: 263155c06ab5346498e4cdf9fc5b0d47, type: 3}
     opaque:
-      X: 11
-      Y: 7
-      Width: 58
-      Height: 66
+      X: 18
+      Y: 9
+      Width: 185
+      Height: 229
   - kind: action
     id: attack-right
     subject: attack-right
     variant: static
-    sprite: {fileID: 21300000, guid: 58a1a97c89f4140429fd94737ecea746, type: 3}
+    sprite: {fileID: 21300000, guid: 2ea214f4c2c5457419deae6f18e193ed, type: 3}
     opaque:
-      X: 11
-      Y: 7
-      Width: 58
-      Height: 66
+      X: 53
+      Y: 9
+      Width: 185
+      Height: 229
   - kind: action
     id: buff
     subject: buff
     variant: static
-    sprite: {fileID: 21300000, guid: 684f645f9dbd022498f20994e24537d5, type: 3}
+    sprite: {fileID: 21300000, guid: ad42f4cb80f597d439969b38977e05cb, type: 3}
     opaque:
-      X: 5
-      Y: 5
-      Width: 70
-      Height: 70
-  - kind: action
-    id: charge
-    subject: charge
-    variant: static
-    sprite: {fileID: 21300000, guid: ca4d36f151255914ab2762678d011ddd, type: 3}
-    opaque:
-      X: 4
-      Y: 4
-      Width: 72
-      Height: 72
+      X: 18
+      Y: 10
+      Width: 227
+      Height: 227
   - kind: action
     id: defend
     subject: defend
     variant: static
-    sprite: {fileID: 21300000, guid: f52fdb367cdeaf848bca5cd1b547da26, type: 3}
+    sprite: {fileID: 21300000, guid: 9d808741b9b496f488bea19801e417af, type: 3}
     opaque:
-      X: 11
-      Y: 8
-      Width: 58
-      Height: 66
-  - kind: ui
-    id: telegraph-glow
-    subject: telegraph-glow
-    variant: static
-    sprite: {fileID: 21300000, guid: 55972fe63557fbb4fbd2bf1afb96a7ba, type: 3}
-    opaque:
-      X: 2
-      Y: 2
-      Width: 116
-      Height: 116
-  - kind: ui
-    id: windup-bar
-    subject: windup-bar
-    variant: static
-    sprite: {fileID: 21300000, guid: 03ad687196a9ac34692135711db970f6, type: 3}
-    opaque:
-      X: 0
-      Y: 0
-      Width: 64
-      Height: 6
+      X: 18
+      Y: 10
+      Width: 227
+      Height: 227
   - kind: bg
     id: title
     subject: title
@@ -1073,271 +793,6 @@ MonoBehaviour:
       Y: 1
       Width: 26
       Height: 24
-  - kind: portrait
-    id: kess
-    subject: kess
-    variant: static
-    sprite: {fileID: 21300000, guid: 43b4b0b4f9f9b7848b698206bfcb5514, type: 3}
-    opaque:
-      X: 154
-      Y: 0
-      Width: 264
-      Height: 489
-  - kind: portrait
-    id: malk
-    subject: malk
-    variant: static
-    sprite: {fileID: 21300000, guid: b9d3adb53508e5d42805ceb86cd82507, type: 3}
-    opaque:
-      X: 117
-      Y: 0
-      Width: 273
-      Height: 488
-  - kind: portrait
-    id: orm
-    subject: orm
-    variant: static
-    sprite: {fileID: 21300000, guid: 61d9ca6e732a73e4b9e62ba660244b42, type: 3}
-    opaque:
-      X: 5
-      Y: 0
-      Width: 493
-      Height: 479
-  - kind: portrait
-    id: ren
-    subject: ren
-    variant: static
-    sprite: {fileID: 21300000, guid: 0a7024850245be24b88f89ca392d3986, type: 3}
-    opaque:
-      X: 73
-      Y: 0
-      Width: 361
-      Height: 483
-  - kind: portrait
-    id: vey
-    subject: vey
-    variant: static
-    sprite: {fileID: 21300000, guid: ea0626878c0247f4ea2163c6a9905fa0, type: 3}
-    opaque:
-      X: 127
-      Y: 0
-      Width: 262
-      Height: 481
-  clips:
-  - kind: player
-    id: lulu-ability
-    subject: lulu
-    variant: ability
-    clip: {fileID: 11400000, guid: 6087d407ecc05094784250eecbd2e2f1, type: 2}
-  - kind: player
-    id: lulu-attack-left
-    subject: lulu
-    variant: attack-left
-    clip: {fileID: 11400000, guid: ec1d5e9eb4f8e4f49843e81e1b2256ee, type: 2}
-  - kind: player
-    id: lulu-attack-right
-    subject: lulu
-    variant: attack-right
-    clip: {fileID: 11400000, guid: 42df0e8898371804d8bfef1b4135abdb, type: 2}
-  - kind: player
-    id: lulu-death
-    subject: lulu
-    variant: death
-    clip: {fileID: 11400000, guid: d22adba69d6632540b298192745f10ce, type: 2}
-  - kind: player
-    id: lulu-defend
-    subject: lulu
-    variant: defend
-    clip: {fileID: 11400000, guid: 453d54d5d74944045a3938f2d889a69e, type: 2}
-  - kind: player
-    id: lulu-hit
-    subject: lulu
-    variant: hit
-    clip: {fileID: 11400000, guid: 98a33c7ff7d1f5841bea8f6016e6627f, type: 2}
-  - kind: player
-    id: lulu-idle
-    subject: lulu
-    variant: idle
-    clip: {fileID: 11400000, guid: eb14a149a6bedc04f9616bd47bcbb08d, type: 2}
-  - kind: vfx
-    id: hit-heavy-burst
-    subject: hit-heavy
-    variant: burst
-    clip: {fileID: 11400000, guid: 7e03b35b5db73ba448fb3b2d83d499ab, type: 2}
-  - kind: enemy
-    id: kess-attack-left
-    subject: kess
-    variant: attack-left
-    clip: {fileID: 11400000, guid: 08369ab3929a636478dc451712941e08, type: 2}
-  - kind: enemy
-    id: kess-attack-right
-    subject: kess
-    variant: attack-right
-    clip: {fileID: 11400000, guid: f8c69ddb5076f204197af7e0680be25f, type: 2}
-  - kind: enemy
-    id: kess-charge
-    subject: kess
-    variant: charge
-    clip: {fileID: 11400000, guid: 5a3ac99001acd8e4fb4094a739d21236, type: 2}
-  - kind: enemy
-    id: kess-death
-    subject: kess
-    variant: death
-    clip: {fileID: 11400000, guid: cd57b068fc2bbfb4cbf03e7a82add83e, type: 2}
-  - kind: enemy
-    id: kess-defend
-    subject: kess
-    variant: defend
-    clip: {fileID: 11400000, guid: 4d8d7e420dc28504083c2e88fa742bff, type: 2}
-  - kind: enemy
-    id: kess-hit
-    subject: kess
-    variant: hit
-    clip: {fileID: 11400000, guid: 18f4a823503f8ee429e66dba162ed972, type: 2}
-  - kind: enemy
-    id: kess-idle
-    subject: kess
-    variant: idle
-    clip: {fileID: 11400000, guid: 33daeb8bd8ed6ee40bfbe952cbd25fde, type: 2}
-  - kind: enemy
-    id: malk-attack-left
-    subject: malk
-    variant: attack-left
-    clip: {fileID: 11400000, guid: d7fbfc9412d0a084989188f6763d94a5, type: 2}
-  - kind: enemy
-    id: malk-attack-right
-    subject: malk
-    variant: attack-right
-    clip: {fileID: 11400000, guid: f73392af61d6fe5458617d8cd1a80d45, type: 2}
-  - kind: enemy
-    id: malk-charge
-    subject: malk
-    variant: charge
-    clip: {fileID: 11400000, guid: 5b815a1f37ce7234e9fc454e1d38d5ca, type: 2}
-  - kind: enemy
-    id: malk-death
-    subject: malk
-    variant: death
-    clip: {fileID: 11400000, guid: 75673a44f570793499c7162ce2d741a8, type: 2}
-  - kind: enemy
-    id: malk-defend
-    subject: malk
-    variant: defend
-    clip: {fileID: 11400000, guid: 4bce5d81c8efda14aae99d7f90f2c1c2, type: 2}
-  - kind: enemy
-    id: malk-hit
-    subject: malk
-    variant: hit
-    clip: {fileID: 11400000, guid: 50939ca1a86b0ce4fb29fe5cd21a8be7, type: 2}
-  - kind: enemy
-    id: malk-idle
-    subject: malk
-    variant: idle
-    clip: {fileID: 11400000, guid: db1c949293f608448858e484c2680d17, type: 2}
-  - kind: enemy
-    id: orm-attack-left
-    subject: orm
-    variant: attack-left
-    clip: {fileID: 11400000, guid: 25db89bbfc9e673409554cacff515619, type: 2}
-  - kind: enemy
-    id: orm-attack-right
-    subject: orm
-    variant: attack-right
-    clip: {fileID: 11400000, guid: a1b2f4d29aec77b498d889edcc4c0648, type: 2}
-  - kind: enemy
-    id: orm-charge
-    subject: orm
-    variant: charge
-    clip: {fileID: 11400000, guid: 0dd79b872e9193a4fa3b4ee9e64a3116, type: 2}
-  - kind: enemy
-    id: orm-death
-    subject: orm
-    variant: death
-    clip: {fileID: 11400000, guid: 66cb70a9391a1a341a93416164091f23, type: 2}
-  - kind: enemy
-    id: orm-defend
-    subject: orm
-    variant: defend
-    clip: {fileID: 11400000, guid: a89a97ce9ba899a498a9ee1be1d7aa6a, type: 2}
-  - kind: enemy
-    id: orm-hit
-    subject: orm
-    variant: hit
-    clip: {fileID: 11400000, guid: 24d5c98e7e2fedc41b3f023228a60060, type: 2}
-  - kind: enemy
-    id: orm-idle
-    subject: orm
-    variant: idle
-    clip: {fileID: 11400000, guid: 6b8949c2284bffa46b143d1740cb47e0, type: 2}
-  - kind: enemy
-    id: ren-attack-left
-    subject: ren
-    variant: attack-left
-    clip: {fileID: 11400000, guid: cc1b2e046b19d28498b4140e93299969, type: 2}
-  - kind: enemy
-    id: ren-attack-right
-    subject: ren
-    variant: attack-right
-    clip: {fileID: 11400000, guid: b885832647655574a9fd91962c374a53, type: 2}
-  - kind: enemy
-    id: ren-charge
-    subject: ren
-    variant: charge
-    clip: {fileID: 11400000, guid: 2cebf5ea50cfd5045a129f05390053cf, type: 2}
-  - kind: enemy
-    id: ren-death
-    subject: ren
-    variant: death
-    clip: {fileID: 11400000, guid: dee9543746ce43c43a3bc37a42da956c, type: 2}
-  - kind: enemy
-    id: ren-defend
-    subject: ren
-    variant: defend
-    clip: {fileID: 11400000, guid: 4c321e14d7e34da4b84c0a94626d7e87, type: 2}
-  - kind: enemy
-    id: ren-hit
-    subject: ren
-    variant: hit
-    clip: {fileID: 11400000, guid: 39063a8abc28fe145b105583bdec64be, type: 2}
-  - kind: enemy
-    id: ren-idle
-    subject: ren
-    variant: idle
-    clip: {fileID: 11400000, guid: 21c7b4cffeafb6c42aec64484e722b72, type: 2}
-  - kind: enemy
-    id: vey-attack-left
-    subject: vey
-    variant: attack-left
-    clip: {fileID: 11400000, guid: d39d53218218e5441b19a1fe34d55df1, type: 2}
-  - kind: enemy
-    id: vey-attack-right
-    subject: vey
-    variant: attack-right
-    clip: {fileID: 11400000, guid: 4e3a76b29f2e46d458e0f41aeadfca5e, type: 2}
-  - kind: enemy
-    id: vey-charge
-    subject: vey
-    variant: charge
-    clip: {fileID: 11400000, guid: c1a03aa306d70bc42b0db4f336229134, type: 2}
-  - kind: enemy
-    id: vey-death
-    subject: vey
-    variant: death
-    clip: {fileID: 11400000, guid: 138efa99860ee114c8af4922284c79a7, type: 2}
-  - kind: enemy
-    id: vey-defend
-    subject: vey
-    variant: defend
-    clip: {fileID: 11400000, guid: 0645bde45d0cbd3498d36ea6175df97f, type: 2}
-  - kind: enemy
-    id: vey-hit
-    subject: vey
-    variant: hit
-    clip: {fileID: 11400000, guid: ae86e62f5773bf248ba04722fb2a07f5, type: 2}
-  - kind: enemy
-    id: vey-idle
-    subject: vey
-    variant: idle
-    clip: {fileID: 11400000, guid: 0f9705b42f612b74d9ac9cda98f12dcf, type: 2}
+  clips: []
   font: {fileID: 12800000, guid: 9fb76cda3fb75e3419a47e1fe253fbb7, type: 3}
   boldFont: {fileID: 12800000, guid: 02fb3647291bc504187c9768891e230a, type: 3}

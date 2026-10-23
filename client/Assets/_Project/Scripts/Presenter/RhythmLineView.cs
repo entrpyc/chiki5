@@ -58,6 +58,9 @@ namespace Chiki.Client.Presenter
         /// <summary>Where "now" sits along the line, as a fraction of its width from the left.</summary>
         public const float NowFraction = 0.3f;
 
+        /// <summary>A telegraph fades in over its first beat inside the horizon and fades out over the beat after its action lands, on the beat clock.</summary>
+        public const float FadeBeats = 1f;
+
         /// <summary>The drawn size of the shipped playhead, the same as a telegraph (<see cref="ActionMarker.IconSize"/>) so the two coincide at "now".</summary>
         public const float PlayheadSize = 100f;
 
@@ -284,24 +287,39 @@ namespace Chiki.Client.Presenter
             var pending = battle.Outcome == null ? battle.PendingAction : null;
             WindowOpen = pending != null && pending.Contains(audioTimeMs);
 
+            // Each upcoming action keeps the marker it had last frame, so a marker can fade in as
+            // its action enters the horizon and linger, fading out, after the action has landed.
+            var previous = new List<ActionMarker>(_shown);
             _shown.Clear();
-            for (int i = 0; i < upcoming.Count; i++)
+            foreach (var action in upcoming)
             {
-                if (i >= _actionMarkers.Count)
+                var marker = previous.Find(m => m.Index == action.Index) ?? _actionMarkers.Find(m => !m.Visible);
+                if (marker == null)
                 {
-                    _actionMarkers.Add(new ActionMarker(_content, _height));
+                    marker = new ActionMarker(_content, _height);
+                    _actionMarkers.Add(marker);
                 }
 
-                var marker = _actionMarkers[i];
-                var action = upcoming[i];
+                previous.Remove(marker);
                 bool highlighted = WindowOpen && pending != null && action.Index == pending.Index;
                 marker.Assign(action, BeatWidth, highlighted);
+                float ahead = marker.Beat - ScrollBeats;
+                marker.SetAlpha(Mathf.Clamp01((HorizonBeats - ahead) / FadeBeats));
                 _shown.Add(marker);
             }
 
-            for (int i = upcoming.Count; i < _actionMarkers.Count; i++)
+            foreach (var marker in previous)
             {
-                _actionMarkers[i].Hide();
+                float behind = ScrollBeats - marker.Beat;
+                if (behind >= 0f && behind < FadeBeats)
+                {
+                    marker.Linger(1f - behind / FadeBeats);
+                    _shown.Add(marker);
+                }
+                else
+                {
+                    marker.Hide();
+                }
             }
         }
 
@@ -474,6 +492,27 @@ namespace Chiki.Client.Presenter
             {
                 Rect.gameObject.SetActive(false);
             }
+        }
+
+        /// <summary>The icon's opacity, 0 to 1, from the fades either end of its life on the line.</summary>
+        public float Alpha { get; private set; } = 1f;
+
+        internal void SetAlpha(float alpha)
+        {
+            Alpha = Mathf.Clamp01(alpha);
+            var icon = _icon.color;
+            icon.a = Alpha;
+            _icon.color = icon;
+            var windUp = _windUp.color;
+            windUp.a = Alpha;
+            _windUp.color = windUp;
+        }
+
+        /// <summary>Keeps a landed action's marker on the line while it fades out past "now"; it is no longer highlighted.</summary>
+        internal void Linger(float alpha)
+        {
+            Highlighted = false;
+            SetAlpha(alpha);
         }
 
         /// <summary>
